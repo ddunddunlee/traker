@@ -512,7 +512,7 @@ tbody td.g{color:var(--green)}
     <div class="page" id="page-variance">
       <div style="margin-bottom:12px">
         <div style="font-size:15px;font-weight:800;margin-bottom:3px">증감 분석</div>
-        <div style="font-size:11px;color:var(--muted)">로직 자동분석 + Haiku + Sonnet 3-way 비교 · 적요 키워드 그룹 기반 팩트 분석</div>
+        <div style="font-size:11px;color:var(--muted)">로직 / Haiku / Sonnet 3-way 비교 · 적요 키워드 그룹 기반 팩트 분석</div>
       </div>
       <div class="var-toolbar">
         <label>비교 기준</label>
@@ -533,53 +533,50 @@ tbody td.g{color:var(--green)}
         <button class="btn-copy" onclick="copyVar()">전체 복사</button>
       </div>
 
-      <!-- IS 테이블 + 3-way 결과 -->
-      <div style="display:grid;grid-template-columns:260px 1fr;gap:12px;align-items:start">
+      <!-- IS 테이블 + 3-way 가로 배치 -->
+      <div style="display:grid;grid-template-columns:240px 1fr 1fr 1fr;gap:10px;align-items:start;min-width:0">
 
-        <!-- 왼쪽: IS 증감 테이블 -->
-        <div class="var-card" style="position:sticky;top:0">
+        <!-- IS 증감 테이블 -->
+        <div class="var-card" style="min-width:0">
           <h3 style="font-size:11px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
             <span id="var-is-title">손익계산서 증감</span>
-            <span style="font-size:9px;color:var(--muted);font-weight:400">기준 데이터</span>
           </h3>
-          <div id="var-is-table"></div>
+          <div id="var-is-table" style="font-size:9px"></div>
         </div>
 
-        <!-- 오른쪽: 3-way 비교 -->
-        <div style="display:flex;flex-direction:column;gap:10px">
-
-          <!-- 로직 분석 -->
-          <div>
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-              <span style="font-size:9px;font-weight:700;background:#e8f5ec;color:#1a5c30;padding:2px 8px;border-radius:10px">규칙 기반</span>
-              <span style="font-size:9px;color:var(--muted)">JS 로직 자동분석 · API 없음 · 즉시 실행</span>
-            </div>
-            <div id="var-result-logic" style="min-height:80px;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center">
-              분석 실행을 클릭하세요
-            </div>
+        <!-- 로직 -->
+        <div class="var-card" style="min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+            <span style="font-size:9px;font-weight:700;background:#e8f5ec;color:#1a5c30;padding:2px 7px;border-radius:8px">규칙 기반</span>
+            <span style="font-size:9px;color:var(--muted)">JS 로직 · API 없음</span>
           </div>
-
-          <div style="border-top:1px dashed var(--border);padding-top:10px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-              <span style="font-size:9px;font-weight:700;background:#eef0fe;color:#3345cc;padding:2px 8px;border-radius:10px">Claude Haiku</span>
-              <span style="font-size:9px;color:var(--muted)">claude-haiku-4-5 · 빠름 · 저비용</span>
-            </div>
-            <div id="var-result-haiku" style="min-height:80px;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center">
-              분석 실행을 클릭하세요
-            </div>
+          <div id="var-result-logic" style="font-size:10px;color:var(--muted);min-height:60px;display:flex;align-items:center;justify-content:center">
+            분석 실행을 클릭하세요
           </div>
-
-          <div style="border-top:1px dashed var(--border);padding-top:10px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-              <span style="font-size:9px;font-weight:700;background:#f3f0ff;color:#5b21b6;padding:2px 8px;border-radius:10px">Claude Sonnet</span>
-              <span style="font-size:9px;color:var(--muted)">claude-sonnet-4-6 · 고품질</span>
-            </div>
-            <div id="var-result-sonnet" style="min-height:80px;font-size:10px;color:var(--muted);display:flex;align-items:center;justify-content:center">
-              분석 실행을 클릭하세요
-            </div>
-          </div>
-
         </div>
+
+        <!-- Haiku -->
+        <div class="var-card" style="min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+            <span style="font-size:9px;font-weight:700;background:#eef0fe;color:#3345cc;padding:2px 7px;border-radius:8px">Claude Haiku</span>
+            <span style="font-size:9px;color:var(--muted)">빠름 · 저비용</span>
+          </div>
+          <div id="var-result-haiku" style="font-size:10px;color:var(--muted);min-height:60px;display:flex;align-items:center;justify-content:center">
+            분석 실행을 클릭하세요
+          </div>
+        </div>
+
+        <!-- Sonnet -->
+        <div class="var-card" style="min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:8px">
+            <span style="font-size:9px;font-weight:700;background:#f3f0ff;color:#5b21b6;padding:2px 7px;border-radius:8px">Claude Sonnet</span>
+            <span style="font-size:9px;color:var(--muted)">고품질</span>
+          </div>
+          <div id="var-result-sonnet" style="font-size:10px;color:var(--muted);min-height:60px;display:flex;align-items:center;justify-content:center">
+            분석 실행을 클릭하세요
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -913,22 +910,22 @@ const APP = {
   filename: '',
   totalRows: 0,
   months: [],
-  monthly: {},       // {m1: {rev, c5, c6, op}, ...}  (원 단위)
-  revByAcct: {},     // {acct_nm: {m1, m2, m3}}        (원 단위)
-  c5ByAcct: {},
+  monthly: {},       // {m1: {rev, c5, c6, op}}  (원 단위, 순액)
+  revByAcct: {},     // {acct_nm: {m1, m2, m3}}   (원 단위, 순액 절댓값)
+  c5ByAcct: {},      // {acct_nm: {m1, m2, m3}}   (원 단위, 순액)
   c6ByAcct: {},
-  isFromLedger: {},  // {bcode: {m1, m2, ...}}          (원 단위)
-  clfGroups: [],     // CLF_GROUPS 복사본 (cnt/amt 업데이트됨)
+  isFromLedger: {},  // {bcode: {m1, m2, ...}}     (원 단위)
+  clfGroups: [],     // CLF_GROUPS 복사본
   unmatched: [],
 };
 
-// ── 차트 인스턴스 관리 ─────────────────────────────────────────────
+// ── 차트 관리 ─────────────────────────────────────────────────────
 const CHARTS = {};
 function destroyChart(id) {
   if (CHARTS[id]) { CHARTS[id].destroy(); delete CHARTS[id]; }
 }
 
-// ── 공통 Chart 기본 설정 ───────────────────────────────────────────
+// ── Chart 기본 설정 ────────────────────────────────────────────────
 Chart.defaults.color = '#7c839a';
 Chart.defaults.font.family = "'Noto Sans KR', sans-serif";
 Chart.defaults.font.size = 10;
@@ -974,49 +971,79 @@ function buildISTableHtml(items, baseKey, compKey) {
   return h;
 }
 
-// ── XLSX 파싱 및 집계 ─────────────────────────────────────────────
-function setProgress(pct, msg) {
-  const fill = document.getElementById('loading-progress');
-  const pct_el = document.getElementById('loading-pct');
-  const msg_el = document.getElementById('loading-msg');
-  if (fill) fill.style.width = pct + '%';
-  if (pct_el) pct_el.textContent = pct + '%';
-  if (msg_el && msg) msg_el.textContent = msg;
-}
-
+// ── 날짜에서 월 추출 ──────────────────────────────────────────────
+// SheetJS raw:false + cellDates:true → "2025-01-02T00:00:00.000Z" 형태
+// 또는 "1/2/2025", "2025-01-02" 등 다양한 포맷 처리
 function detectMonth(dateStr) {
   if (!dateStr) return null;
-  const m = String(dateStr).match(/(\d{4})[.\-\/]?(\d{2})/);
-  if (!m) return null;
-  const [y, mo] = [parseInt(m[1]), parseInt(m[2])];
-  if (y === 2025 && mo >= 1 && mo <= 3) return `m${mo}`;
-  if (y === 2024 && mo === 12) return 'm12';
+  const s = String(dateStr);
+
+  // ISO 형태: 2025-01-02 or 2025-01-02T...
+  let m = s.match(/^(\d{4})-(\d{2})/);
+  if (m) {
+    const [y, mo] = [parseInt(m[1]), parseInt(m[2])];
+    if (y === 2025 && mo >= 1 && mo <= 3) return `m${mo}`;
+    if (y === 2024 && mo === 12) return 'm12';
+    return null;
+  }
+
+  // MM/DD/YYYY 형태: 1/2/2025
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) {
+    const [mo, , y] = [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+    if (y === 2025 && mo >= 1 && mo <= 3) return `m${mo}`;
+    if (y === 2024 && mo === 12) return 'm12';
+    return null;
+  }
+
+  // YYYY.MM.DD 형태
+  m = s.match(/(\d{4})\.(\d{2})/);
+  if (m) {
+    const [y, mo] = [parseInt(m[1]), parseInt(m[2])];
+    if (y === 2025 && mo >= 1 && mo <= 3) return `m${mo}`;
+    if (y === 2024 && mo === 12) return 'm12';
+  }
+
   return null;
+}
+
+// ── XLSX 파싱 및 집계 ─────────────────────────────────────────────
+function setProgress(pct, msg) {
+  const fill  = document.getElementById('loading-progress');
+  const pctEl = document.getElementById('loading-pct');
+  const msgEl = document.getElementById('loading-msg');
+  if (fill)  fill.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (msgEl && msg) msgEl.textContent = msg;
 }
 
 function processData(rows) {
   APP.totalRows = rows.length;
   APP.loaded    = true;
 
-  // 컬럼명 탐지
-  const keys = Object.keys(rows[0] || {});
-  // 정확히 일치하는 컬럼명 우선, 없으면 포함 검색
-  const findExact = (...cands) => keys.find(k => cands.some(c => k === c));
-  const findIncl  = (...cands) => keys.find(k => cands.some(c => k.includes(c)));
-  const COL = {
-    date: findExact('전기일','Posting Date') || findIncl('전기일','Posting Date'),
-    gl:   findExact('G/L 계정','GL Account') || findIncl('GL Account'),
-    glNm: findExact('G/L 계정: 설명','GL Acct Long Text') || findIncl('G/L 계정: 설명','GL Acct Long Text'),
-    amt:  findExact('회사 코드 통화 금액','Amount in LC') || findIncl('회사 코드 통화 금액','Amount in LC'),
-    hdr:  findExact('전표 헤더 텍스트','Header Text') || findIncl('전표 헤더 텍스트','Header Text'),
-    txt:  findExact('텍스트','Text') || findIncl('텍스트','Text'),
-  };
-  console.log('컬럼 매핑:', COL);  // 개발용 디버그
+  // ── 컬럼명 탐지 ───────────────────────────────────────────────
+  const keys     = Object.keys(rows[0] || {});
+  const findExact = (...c) => keys.find(k => c.some(x => k === x));
+  const findIncl  = (...c) => keys.find(k => c.some(x => k.includes(x)));
 
+  const COL = {
+    date: findExact('전기일','Posting Date')     || findIncl('전기일','Posting'),
+    gl:   findExact('G/L 계정','GL Account')     || findExact('GL계정'),
+    glNm: findExact('G/L 계정: 설명','GL Acct Long Text') || findIncl('G/L 계정: 설명'),
+    amt:  findExact('회사 코드 통화 금액','Amount in LC') || findIncl('회사 코드 통화 금액'),
+    hdr:  findExact('전표 헤더 텍스트','Header Text')    || findIncl('전표 헤더 텍스트'),
+    txt:  findExact('텍스트','Text')              || findIncl('텍스트'),
+    dc:   findExact('차변/대변지시자','D/C')       || findIncl('차변/대변'),
+  };
+  console.log('[재무분석] 컬럼 매핑:', COL);
+
+  // ── 월별 순액 집계 버킷 ───────────────────────────────────────
+  // 매출(4xx): 대변(H) 합산 → 절댓값
+  // 원가(5xx), 판관(6xx): 순액(차변-대변)
   const monthly    = {};
-  const revByAcct  = {};
-  const c5ByAcct   = {};
-  const c6ByAcct   = {};
+  const revByAcct  = {};  // {nm: {m: 순액절댓값}}
+  const c5ByAcct   = {};  // {nm: {m: 순액}}
+  const c6ByAcct   = {};  // {nm: {m: 순액}}
   const isLedger   = {};
   const clfResult  = {};
   const unmatchedMap = {};
@@ -1024,47 +1051,55 @@ function processData(rows) {
   APP.clfGroups.forEach(g => { clfResult[g.id] = {cnt:0, amt:0}; });
 
   rows.forEach(row => {
-    const month  = detectMonth(row[COL.date]);
+    const month = detectMonth(row[COL.date]);
     if (!month) return;
 
-    const gl   = String(row[COL.gl]  || '').trim();
-    const glNm = String(row[COL.glNm]|| '').trim();
-    const amt  = parseFloat(row[COL.amt]) || 0;
-    const jk   = ((row[COL.hdr]||'') + ' ' + (row[COL.txt]||'')).trim();
+    const gl   = String(row[COL.gl]   || '').trim();
+    const glNm = String(row[COL.glNm] || '').trim();
+    const rawAmt = parseFloat(String(row[COL.amt] || '0').replace(/,/g, '')) || 0;
+    const hdr  = String(row[COL.hdr]  || '').trim();
+    const txt2 = String(row[COL.txt]  || '').trim();
+    const jk   = (hdr + ' ' + txt2).trim();
     const px   = gl.charAt(0);
 
     if (!monthly[month]) monthly[month] = {rev:0, c5:0, c6:0};
 
+    // ── 집계: 순액 기반 ────────────────────────────────────────
+    // SAP 총계정원장: 매출(4xx)은 대변(-) 기록 → net이 음수 → abs
+    // 원가(5xx), 판관(6xx): 차변(+) 기록 → net이 양수
     if (px === '4') {
-      monthly[month].rev += Math.abs(amt);
+      // 매출: net 절댓값 (대변 발생이 음수이므로)
+      monthly[month].rev += rawAmt;  // 누적 후 나중에 abs
       if (!revByAcct[glNm]) revByAcct[glNm] = {};
-      revByAcct[glNm][month] = (revByAcct[glNm][month]||0) + Math.abs(amt);
+      revByAcct[glNm][month] = (revByAcct[glNm][month] || 0) + rawAmt;
+
     } else if (px === '5') {
-      const v = amt > 0 ? amt : 0;
-      monthly[month].c5 += v;
+      // 원가: 순액 (역분개 포함)
+      monthly[month].c5 += rawAmt;
       if (!c5ByAcct[glNm]) c5ByAcct[glNm] = {};
-      c5ByAcct[glNm][month] = (c5ByAcct[glNm][month]||0) + v;
+      c5ByAcct[glNm][month] = (c5ByAcct[glNm][month] || 0) + rawAmt;
+
     } else if (px === '6') {
-      const v = amt > 0 ? amt : 0;
-      monthly[month].c6 += v;
+      // 판관비: 순액
+      monthly[month].c6 += rawAmt;
       if (!c6ByAcct[glNm]) c6ByAcct[glNm] = {};
-      c6ByAcct[glNm][month] = (c6ByAcct[glNm][month]||0) + v;
+      c6ByAcct[glNm][month] = (c6ByAcct[glNm][month] || 0) + rawAmt;
     }
 
-    // IS B코드 집계
+    // ── IS B코드 집계 ─────────────────────────────────────────
     const bcode = GL_TO_B[gl];
     if (bcode) {
       if (!isLedger[bcode]) isLedger[bcode] = {};
-      isLedger[bcode][month] = (isLedger[bcode][month]||0) + amt;
+      isLedger[bcode][month] = (isLedger[bcode][month] || 0) + rawAmt;
     }
 
-    // 적요 분류
+    // ── 적요 분류 (J+K열) ─────────────────────────────────────
     if (jk) {
       let matched = false;
       for (const g of APP.clfGroups) {
         if (g.kw.some(kw => jk.includes(kw))) {
           clfResult[g.id].cnt++;
-          clfResult[g.id].amt += Math.abs(amt);
+          clfResult[g.id].amt += Math.abs(rawAmt);
           matched = true;
           break;
         }
@@ -1072,21 +1107,32 @@ function processData(rows) {
       if (!matched) {
         if (!unmatchedMap[jk]) unmatchedMap[jk] = {cnt:0, amt:0};
         unmatchedMap[jk].cnt++;
-        unmatchedMap[jk].amt += Math.abs(amt);
+        unmatchedMap[jk].amt += Math.abs(rawAmt);
       }
     }
   });
 
-  // 영업이익 계산
-  Object.keys(monthly).forEach(m => {
-    monthly[m].op = monthly[m].rev - monthly[m].c5 - monthly[m].c6;
+  // ── 월별 순액 보정: 4xx는 net이 음수 → 절댓값으로 변환 ────────
+  const validMonths = Object.keys(monthly).filter(m => ['m1','m2','m3','m12'].includes(m));
+  validMonths.forEach(m => {
+    monthly[m].rev = Math.abs(monthly[m].rev);  // 매출 절댓값
+    // 5xx, 6xx는 이미 순액(양수)이므로 그대로
+    monthly[m].op  = monthly[m].rev - monthly[m].c5 - monthly[m].c6;
   });
 
-  APP.months      = Object.keys(monthly).filter(m => ['m1','m2','m3','m12'].includes(m)).sort();
-  APP.monthly     = monthly;
-  APP.revByAcct   = revByAcct;
-  APP.c5ByAcct    = c5ByAcct;
-  APP.c6ByAcct    = c6ByAcct;
+  // revByAcct도 절댓값으로
+  Object.keys(revByAcct).forEach(nm => {
+    Object.keys(revByAcct[nm]).forEach(m => {
+      revByAcct[nm][m] = Math.abs(revByAcct[nm][m]);
+    });
+  });
+
+  // ── APP 상태 업데이트 ────────────────────────────────────────
+  APP.months       = validMonths.sort();
+  APP.monthly      = monthly;
+  APP.revByAcct    = revByAcct;
+  APP.c5ByAcct     = c5ByAcct;
+  APP.c6ByAcct     = c6ByAcct;
   APP.isFromLedger = isLedger;
 
   APP.clfGroups.forEach(g => {
@@ -1098,22 +1144,49 @@ function processData(rows) {
     .map(([text, {cnt, amt}]) => ({text, cnt, amt}))
     .sort((a,b) => b.cnt - a.cnt)
     .slice(0, 100);
+
+  console.log('[재무분석] 집계 완료:', {
+    rows: APP.totalRows,
+    months: APP.months,
+    monthly: Object.fromEntries(
+      Object.entries(APP.monthly).map(([m,v]) => [m, {
+        rev: (v.rev/1e8).toFixed(1)+'억',
+        c5:  (v.c5/1e8).toFixed(1)+'억',
+        c6:  (v.c6/1e8).toFixed(1)+'억',
+        op:  (v.op/1e8).toFixed(1)+'억',
+      }])
+    ),
+    분류율: ((APP.clfGroups.reduce((s,g)=>s+g.cnt,0)/APP.totalRows*100).toFixed(1)+'%'),
+    미분류건수: APP.unmatched.length,
+  });
 }
 
 function readXLSX(file) {
   document.getElementById('loading').style.display = 'flex';
   setProgress(5, '파일 읽는 중...');
   APP.clfGroups = JSON.parse(JSON.stringify(CLF_GROUPS));
+
   const reader = new FileReader();
   reader.onload = e => {
     try {
       setProgress(20, 'XLSX 파싱 중...');
       const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
-      const sheetName = wb.SheetNames.find(s => s.includes('1~3') || s.includes('1-3')) || wb.SheetNames[0];
+
+      // 시트 탐색: '1~3월' 우선, 없으면 첫 번째
+      const sheetName = wb.SheetNames.find(s =>
+        s.includes('1~3') || s.includes('1-3') || s.includes('원장')
+      ) || wb.SheetNames[0];
+
       setProgress(40, `"${sheetName}" 시트 집계 중...`);
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {raw:false, defval:''});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], {
+        raw: false,      // 모든 값을 문자열로 (날짜 포함)
+        defval: '',
+        dateNF: 'yyyy-mm-dd',  // 날짜 포맷 통일
+      });
+
       setProgress(65, `${rows.length.toLocaleString()}건 처리 중...`);
       processData(rows);
+
       setProgress(90, '화면 렌더링 중...');
       setTimeout(() => {
         renderAll();
@@ -1123,9 +1196,11 @@ function readXLSX(file) {
           navTo('analysis');
         }, 400);
       }, 100);
+
     } catch(err) {
       document.getElementById('loading').style.display = 'none';
-      alert('파일 오류: ' + err.message);
+      alert('파일 오류: ' + err.message + '\n\nF12 콘솔에서 상세 오류를 확인하세요.');
+      console.error('[재무분석] 파일 오류:', err);
     }
   };
   reader.readAsArrayBuffer(file);
@@ -1158,22 +1233,22 @@ document.querySelectorAll('.tab[data-t]').forEach(el => {
 // ── 사이드바 상태 업데이트 ─────────────────────────────────────────
 function updateSidebar() {
   const months = APP.months.filter(m => ['m1','m2','m3'].includes(m));
-  const el = (id) => document.getElementById(id);
-  if (el('sb-ds-info'))    el('sb-ds-info').textContent = APP.filename;
-  if (el('sb-ds-label'))   el('sb-ds-label').textContent = `${APP.totalRows.toLocaleString()}건 · ${months.length}개월`;
-  if (el('sb-ds-status'))  el('sb-ds-status').innerHTML = '<span class="dot dot-green"></span><span style="color:var(--green)">분석 완료</span>';
-  if (el('tb-file'))       el('tb-file').textContent = APP.filename.replace(/\.[^.]+$/, '');
-  if (el('tb-rows'))       el('tb-rows').textContent = APP.totalRows.toLocaleString()+'건';
-  if (el('tb-period'))     el('tb-period').textContent = months.map(m => PERIOD_NAMES[m]||m).join('·');
-  if (el('footer-text'))   el('footer-text').textContent = `기획실 재무팀 분석 v0.1 · ${APP.filename} · ${APP.totalRows.toLocaleString()}건`;
+  const el = id => document.getElementById(id);
+  if (el('sb-ds-info'))   el('sb-ds-info').textContent   = APP.filename;
+  if (el('sb-ds-label'))  el('sb-ds-label').textContent  = `${APP.totalRows.toLocaleString()}건 · ${months.length}개월`;
+  if (el('sb-ds-status')) el('sb-ds-status').innerHTML   = '<span class="dot dot-green"></span><span style="color:var(--green)">분석 완료</span>';
+  if (el('tb-file'))      el('tb-file').textContent      = APP.filename.replace(/\.[^.]+$/, '');
+  if (el('tb-rows'))      el('tb-rows').textContent      = APP.totalRows.toLocaleString()+'건';
+  if (el('tb-period'))    el('tb-period').textContent    = months.map(m => PERIOD_NAMES[m]||m).join('·');
+  if (el('footer-text'))  el('footer-text').textContent  = `기획실 재무팀 분석 v0.1 · ${APP.filename} · ${APP.totalRows.toLocaleString()}건`;
 }
 
 // ── 전체 렌더링 진입점 ─────────────────────────────────────────────
 function renderAll() {
   updateSidebar();
-  renderAnalysis();   // 05_page_analysis.js
-  renderKeyword();    // 06_page_keyword.js
-  renderVarIS();      // 07_page_variance.js
+  renderAnalysis();
+  renderKeyword();
+  renderVarIS();
   updatePeriodSelects();
 }
 
