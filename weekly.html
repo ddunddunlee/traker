@@ -35,7 +35,7 @@
 }
 
 /* ── 기본 ── */
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
   -webkit-text-size-adjust:100%}
@@ -569,14 +569,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   </button>
     <div class="page-title">주간 스케줄</div>
     <div class="topbar-right">
-      <button class="btn-solid" id="addPersonalBtn">+ 일정/업무 추가</button>
+      <button class="btn-solid" id="addPersonalBtn">+ 개별 일정 추가</button>
     </div>
   </div>
-  <div class="tab-row">
-    <button class="tab-btn active" id="tab-cal" data-view="cal">📅 주간 스케줄</button>
-    <button class="tab-btn" id="tab-cat" data-view="cat">🏷 카테고리 관리</button>
-  </div>
-  <div id="view-cal">
+    <div id="view-cal">
   <div id="view-gantt" style="padding:1.25rem 24px; max-width: 1400px; overflow-x: auto;">
     <div class="gantt-header">
       <div style="display:flex;align-items:center;gap:10px">
@@ -764,17 +760,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 <script>
 
 document.addEventListener('DOMContentLoaded', function() {
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
   try {
     var _u = JSON.parse(localStorage.getItem('tt_user') || '{}');
@@ -814,7 +799,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('prevBtn').addEventListener('click', function() { if(window.moveMonth) window.moveMonth(-1); });
   document.getElementById('nextBtn').addEventListener('click', function() { if(window.moveMonth) window.moveMonth(1); });
   document.getElementById('todayBtn').addEventListener('click', function() { if(window.goToday) window.goToday(); });
-  document.getElementById('addPersonalBtn').addEventListener('click', function() { if(window.openAddModal) window.openAddModal('personal'); });
+  var _apb = document.getElementById('addPersonalBtn');
+  if(_apb) {
+    _apb.addEventListener('touchend', function(e) { e.preventDefault(); if(window.openAddModal) window.openAddModal('personal'); }, {passive:false});
+    _apb.addEventListener('click', function() { if(window.openAddModal) window.openAddModal('personal'); });
+  }
   document.getElementById('addCommonBtnTop').addEventListener('click', function() { if(window.openAddModal) window.openAddModal('common'); });
   document.getElementById('addCommonBtn')?.addEventListener('click', function() { if(window.openAddModal) window.openAddModal('common'); });
   document.getElementById('addCatBtn').addEventListener('click', function() { if(window.addCategory) window.addCategory(); });

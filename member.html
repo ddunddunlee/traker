@@ -34,7 +34,7 @@
 }
 
 /* ── 기본 ── */
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
   -webkit-text-size-adjust:100%}
@@ -1674,17 +1674,6 @@ loadReporters();
 // ── 버튼 바인딩 (일반 script - 즉시 실행) ──
 // window.xxx 함수는 module 스크립트에서 등록되므로 DOMContentLoaded 후 바인딩
 document.addEventListener('DOMContentLoaded', function() {
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
   // 사이드바 이름 (일반 script에서도 처리 - module보다 빠름)
   try {

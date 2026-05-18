@@ -27,7 +27,7 @@
 }
 
 /* ── 앱 레이아웃 ── */
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh}
 .app{display:flex;min-height:100vh}
 
@@ -1701,17 +1701,6 @@ var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textCon
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
   // 업무 추가 버튼
   var addBtn = document.getElementById('addBtn');

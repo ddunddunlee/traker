@@ -22,7 +22,7 @@
   --orange:#EF9F27;
   --sw:220px;--topbar-h:52px;--touch-min:44px;
 }
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px}
 .app{display:flex;min-height:100vh}
@@ -1073,17 +1073,6 @@ if (isMgr) {
   renderMemberView();
 }
 
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
 </script>
 </body>

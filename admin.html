@@ -34,7 +34,7 @@
 }
 
 /* ── 기본 ── */
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
   -webkit-text-size-adjust:100%}
@@ -908,17 +908,6 @@ init();
 <script>
 // ── 공통 버튼 바인딩 (즉시 실행) ──
 document.addEventListener('DOMContentLoaded', function() {
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
   // 로그아웃
   var lb = document.getElementById('logoutBtn');

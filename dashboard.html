@@ -138,7 +138,7 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 .empty-txt{font-size:12px;color:var(--text3);text-align:center}
 
 /* 캘린더 */
-.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:640px}
+.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:700px}
 .cal-toolbar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .cal-month{font-size:13px;font-weight:600;color:var(--text)}
 .cal-nav{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);transition:all .12s}
@@ -148,7 +148,7 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 .cal-dlbl{padding:6px 0;text-align:center;font-size:10px;font-weight:600;color:var(--text3)}
 .cal-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow-y:visible}
 .cal-cell{
-  min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
   padding:5px;overflow:hidden;
 }
 .cal-cell:nth-child(7n){border-right:none}
@@ -386,14 +386,6 @@ document.getElementById('topSub').textContent   = `${now.getFullYear()}년 ${now
 
 // ── 사이드바 토글 ──
 const sidebar  = document.getElementById('sidebar');
-const mainWrap = document.getElementById('mainWrap');
-let collapsed  = localStorage.getItem('gz_sb_collapsed') === '1';
-if (collapsed) sidebar.classList.add('collapsed');
-
-document.getElementById('sbToggleBtn').addEventListener('click', () => {
-  collapsed = !collapsed;
-  sidebar.classList.toggle('collapsed', collapsed);
-  localStorage.setItem('gz_sb_collapsed', collapsed ? '1' : '0');
 });
 
 // ── 네비 ──

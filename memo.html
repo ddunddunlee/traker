@@ -35,7 +35,7 @@
 }
 
 /* ── 기본 ── */
-html,body{height:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
   -webkit-text-size-adjust:100%}
@@ -603,17 +603,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 })();
 
 
-  // 사이드바 토글
-  (function(){
-    var sb = document.querySelector('.sidebar');
-    var toggle = document.getElementById('sbToggleBtn');
-    if(!sb || !toggle) return;
-    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
-    toggle.addEventListener('click', function(){
-      sb.classList.toggle('collapsed');
-      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
-    });
-  })();
 
 </script>
 
@@ -671,7 +660,7 @@ window.saveTagSetting=()=>{
   toast('태그 설정을 저장했어요 ✓');
 };
 renderQuickTags();
-window.saveMemo=async()=>{const text=document.getElementById('memoInput').value.trim();if(!text)return;setSync(true);await addDoc(mRef(),{text,date:nStr(),tags:exTags(text),author:ME.displayName,createdAt:serverTimestamp()});document.getElementById('memoInput').value='';toast('저장됐어요 ✓');};
+window.saveMemo=async()=>{const text=document.getElementById('memoInput').value.trim();if(!text)return;if(!ME||!ME.id){console.error('[GZPlan] ME.id 없음');return;}setSync(true);await addDoc(mRef(),{text,date:nStr(),tags:exTags(text),author:ME.displayName,createdAt:serverTimestamp()});document.getElementById('memoInput').value='';toast('저장됐어요 ✓');};
 window.editMemo=id=>{const m=memos.find(m=>m._id===id);if(!m)return;editingId=id;document.getElementById('editInput').value=m.text;document.getElementById('overlay').classList.add('show');setTimeout(()=>document.getElementById('editInput').focus(),100);};
 window.saveEdit=async()=>{const text=document.getElementById('editInput').value.trim();if(!text)return;setSync(true);await updateDoc(mDoc(editingId),{text,tags:exTags(text),edited:nStr()});closeModal();toast('수정됐어요 ✓');};
 window.deleteMemo=async id=>{if(!confirm('이 메모를 삭제할까요?'))return;setSync(true);await deleteDoc(mDoc(id));toast('삭제됐어요');};
