@@ -31,19 +31,34 @@ html,body{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;background:var(--bg2);color:var(--text);min-height:100vh}
 .app{display:flex;min-height:100vh}
 
+.sb-item.active .sb-label,
 
+
+
+
+.sb-sync{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+.sync-dot.syncing{background:var(--orange);animation:blink .8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── 메인 ── */
+
+
+/* ── 탑바 ── */
+.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sidebar.collapsed~.main-wrap{margin-left:var(--sw-col)}
 .topbar{background:var(--bg);border-bottom:0.5px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;flex-shrink:0}
 .page-title{font-size:15px;font-weight:600;color:var(--text);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .topbar-right{display:flex;gap:8px;align-items:center;flex-shrink:0}
 
 /* ── 햄버거 버튼 (모바일) ── */
-.hamburger{display:none;width:36px;height:36px;border:none;background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:4px;border-radius:var(--radius-sm);flex-shrink:0}
-.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px;transition:all .2s}
-.hamburger:hover{background:var(--bg2)}
+
+
+
 
 /* ── 모바일 딤 ── */
-.sidebar-dim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:290}
-.sidebar-dim.show{display:block}
+
+
 
 /* ── 공통 버튼 ── */
 .btn-ghost{padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;border:0.5px solid var(--border);background:transparent;color:var(--text2);cursor:pointer;transition:all .12s}
@@ -168,7 +183,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 /* ── 모바일 반응형 ── */
 @media(max-width:768px){
-  .hamburger{display:flex}
+  
   
   .stats{grid-template-columns:repeat(2,1fr)}
   .detail-panel{position:fixed;inset:0;width:100%;max-width:100%;border-radius:0;z-index:350;max-height:100vh;overflow-y:auto}
@@ -184,15 +199,15 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
 
 
 /* ── 사이드바 다크블루 override ── */
-.sb-user{border-bottom:1px solid rgba(255,255,255,0.1) !important;}
-.sb-avatar{background:rgba(255,255,255,0.15) !important;color:#fff !important;}
-.sb-user-name{color:#fff !important;}
-.sb-user-role{color:rgba(255,255,255,0.45) !important;}
-.sb-sec{color:rgba(255,255,255,0.35) !important;}
-.sb-label{color:rgba(255,255,255,0.6) !important;}
-.sb-item:hover{background:rgba(255,255,255,0.1) !important;}
-.sb-item.active{background:rgba(255,255,255,0.15) !important;}
-.sb-bottom{border-top:1px solid rgba(255,255,255,0.1) !important;}
+
+
+
+
+
+
+
+
+
 .sb-sync{color:rgba(255,255,255,0.45) !important;}
 .sb-sync span{color:rgba(255,255,255,0.45) !important;}
 .btn-solid{background:#0C447C !important;border-color:#0C447C !important;}
@@ -200,46 +215,46 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
 .chip.active{background:#0C447C !important;border-color:#0C447C !important;color:#fff !important;}
   /* ── 사이드바 표준 CSS ── */
   :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  .sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sw);background:#0C447C;color:#fff;display:flex;flex-direction:column;transition:width var(--sb-ease);overflow:hidden;z-index:300}
-  .sidebar.collapsed{width:var(--sw-col)}
-  .main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease)}
-  .sidebar.collapsed ~ .main-wrap{margin-left:var(--sw-col)}
-  .sb-brand{display:flex;align-items:center;gap:10px;padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;min-height:52px;overflow:hidden}
-  .sb-mark{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
-  .sb-brand-texts{overflow:hidden;white-space:nowrap;flex:1;min-width:0;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
-  .sidebar.collapsed .sb-brand-texts{opacity:0;max-width:0}
-  .sb-brand-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px}
-  .sb-brand-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
-  .sb-toggle-btn{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-  .sb-toggle-btn:hover{background:rgba(255,255,255,.2)}
-  .sb-toggle-btn svg{transition:transform var(--sb-ease);stroke:#fff;flex-shrink:0}
-  .sidebar.collapsed .sb-toggle-btn svg{transform:rotate(180deg)}
-  .sb-user{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;overflow:hidden}
-  .sb-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#fff}
-  .sb-user-info{white-space:nowrap;overflow:hidden;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
-  .sidebar.collapsed .sb-user-info{opacity:0;max-width:0}
-  .sb-user-name{font-size:13px;font-weight:600;color:#fff}
-  .sb-user-role{font-size:11px;color:rgba(255,255,255,.5)}
-  .sb-nav{flex:1;padding:8px;overflow-y:auto;overflow-x:hidden}
-  .sb-nav::-webkit-scrollbar{display:none}
-  .sb-sec{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.4);padding:0 8px;margin:12px 0 3px;white-space:nowrap;transition:opacity var(--sb-ease)}
-  .sidebar.collapsed .sb-sec{opacity:0}
-  .sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;margin-bottom:1px;overflow:hidden;transition:background .12s,color .12s;white-space:nowrap}
-  .sb-item:hover{background:rgba(255,255,255,.12);color:#fff}
-  .sb-item.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600}
-  .sidebar.collapsed .sb-item{justify-content:center;padding:8px 0}
-  .sb-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .sb-label{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden;white-space:nowrap}
-  .sidebar.collapsed .sb-label{opacity:0;max-width:0}
-  .sb-badge{margin-left:auto;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0;white-space:nowrap;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:50px}
-  .sidebar.collapsed .sb-badge{opacity:0;max-width:0;overflow:hidden;padding:0}
-  .sidebar.collapsed .sb-item[data-label]:hover::after{content:attr(data-label);position:fixed;left:calc(var(--sw-col) + 8px);background:#1a1a1a;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999}
-  .sb-bottom{padding:8px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0}
-  .sb-logout{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .12s;white-space:nowrap;overflow:hidden}
-  .sb-logout:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
-  .sidebar.collapsed .sb-logout{justify-content:center;padding:7px 0}
-  .sb-logout-lbl{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden}
-  .sidebar.collapsed .sb-logout-lbl{opacity:0;max-width:0}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 </style>
 </head>
 <body>
@@ -516,8 +531,8 @@ window.switchViewTab = window.switchViewTab || function(tab) {
 })();
 
 
-document.getElementById('sbUserName').textContent = ME.displayName;
-  document.getElementById('sbAvatar').textContent = ME.displayName.slice(0,1);
+var _sbUserName=document.getElementById('sbUserName');if(_sbUserName)_sbUserName.textContent=ME.displayName;
+  var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=ME.displayName.slice(0,1);
 loadReporters();
 
 window.logout = () => { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; };
@@ -1678,8 +1693,8 @@ document.querySelectorAll('[data-filter]').forEach(btn => {
 });
 
 // 사이드바 이름 표시
-document.getElementById('sbUserName').textContent = ME.displayName || '';
-document.getElementById('sbAvatar').textContent = (ME.displayName||'').slice(0,1) || '--';
+var _sbUserName=document.getElementById('sbUserName');if(_sbUserName)_sbUserName.textContent=ME.displayName || '';
+var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=(ME.displayName||'').slice(0,1) || '--';
 
 </script>
 <script>

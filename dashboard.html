@@ -31,7 +31,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
   -webkit-text-size-adjust:100%;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;margin:0;padding:0}
 
+/* 툴팁 (collapsed) */
 
+
+
+
+
+
+
+
+/* ── 메인 ── */
+
+
+
+/* 탑바 */
+.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sidebar.collapsed~.main-wrap{margin-left:var(--sw-col)}
 .topbar{
   height:48px;background:var(--bg);border-bottom:1px solid var(--border);
   display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;
@@ -353,9 +368,9 @@ function toast(msg) {
 }
 
 // ── 사이드바 초기화 ──
-document.getElementById('sbAvatar').textContent = (ME.displayName || ME.id).slice(0,1);
-document.getElementById('sbName').textContent   = ME.displayName || ME.id;
-document.getElementById('sbRole').textContent   = isMgr ? '팀장' : '팀원';
+var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=(ME.displayName || ME.id).slice(0,1);
+var _sbName=document.getElementById('sbName');if(_sbName)_sbName.textContent=ME.displayName || ME.id;
+var _sbRole=document.getElementById('sbRole');if(_sbRole)_sbRole.textContent=isMgr ? '팀장' : '팀원';
 
 // manager는 manager.html로 이동할 nav 분기
 if (isMgr) {
