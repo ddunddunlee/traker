@@ -1733,10 +1733,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (cancelBtn) cancelBtn.addEventListener('click', function() {
     if (window.closeModal) window.closeModal();
   });
-  var okBtn = document.getElementById('addTaskOkBtn');
-  if (okBtn) okBtn.addEventListener('click', function() {
-    if (window.addTask) window.addTask();
-  });
+  
   var noteBtn = document.getElementById('addNoteBtn');
   if (noteBtn) noteBtn.addEventListener('click', function() {
     if (window.addNote) window.addNote();

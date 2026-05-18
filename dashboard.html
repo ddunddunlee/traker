@@ -654,7 +654,7 @@ function renderCalendar() {
       if (t==='more'){more++;return;}
       html+=`<div class="cal-pill ${pillColor(t)}">${t.title||'(제목없음)'}</div>`;
     });
-    if (more) html+=`<div class="cal-more">+${more}</div>`;
+    if (more) html+=`<div class="cal-more" onclick="showMorePopup(event,'${dStr}')" style="cursor:pointer">+${more}개 더보기</div>`;
     cell.innerHTML=html;
     cells.appendChild(cell);
   }
@@ -668,6 +668,38 @@ document.getElementById('calNext').addEventListener('click',()=>{
 });
 
 renderCalendar();
+
+// +N개 팝업
+window.showMorePopup = function(e, dateStr) {
+  e.stopPropagation();
+  var popup = document.getElementById('calMorePopup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'calMorePopup';
+    popup.style.cssText = 'position:fixed;background:#fff;border:1px solid #dde3ea;border-radius:8px;padding:10px 14px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;min-width:180px;max-width:260px;font-size:13px';
+    document.body.appendChild(popup);
+  }
+  var all = taskMap[dateStr] || [];
+  var items = all.filter(function(t){ return t !== 'more'; });
+  var d = new Date(dateStr);
+  var label = (d.getMonth()+1) + '/' + d.getDate();
+  popup.innerHTML = '<div style="font-weight:600;margin-bottom:8px;color:#1a1a1a">' + label + ' 업무</div>' +
+    (items.length ? items.map(function(t){
+      return '<div style="padding:4px 0;border-bottom:1px solid #f0f0f0;color:#333">' + (t.title||'(제목없음)') + '</div>';
+    }).join('') : '<div style="color:#aaa">없음</div>');
+  var x = e.clientX, y = e.clientY;
+  if (x + 270 > window.innerWidth) x = window.innerWidth - 275;
+  if (y + 200 > window.innerHeight) y = window.innerHeight - 205;
+  popup.style.left = x + 'px';
+  popup.style.top = y + 'px';
+  popup.style.display = 'block';
+  setTimeout(function() {
+    document.addEventListener('click', function hide() {
+      popup.style.display = 'none';
+      document.removeEventListener('click', hide);
+    });
+  }, 10);
+};
 </script>
 </body>
 </html>
