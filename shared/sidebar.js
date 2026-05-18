@@ -84,6 +84,7 @@
 
   /* ── 사이드바 CSS ───────────────────────────────────────────── */
   var CSS = [
+    ':root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}',
     '.sidebar{',
     '  width:var(--sw,220px);flex-shrink:0;',
     '  background:#0C447C;color:#fff;',
@@ -119,8 +120,9 @@
     /* collapsed */
     '.sidebar.collapsed{width:var(--sw-col,56px)}',
     '.sidebar.collapsed~.main-wrap{margin-left:var(--sw-col,56px) !important}',
-    '.sidebar.collapsed .sb-brand-texts,.sidebar.collapsed .sb-user-info,.sidebar.collapsed .sb-sec,.sidebar.collapsed .sb-label,.sidebar.collapsed .sb-logout-lbl{display:none}',
-    '.sidebar.collapsed .sb-brand{justify-content:center;padding:14px 0}',
+    '.sidebar.collapsed .sb-brand-texts,.sidebar.collapsed .sb-user-info,.sidebar.collapsed .sb-sec,.sidebar.collapsed .sb-label,.sidebar.collapsed .sb-logout-lbl,.sidebar.collapsed .sb-mark{display:none}',
+    '.sidebar.collapsed .sb-brand{justify-content:center;padding:10px 0}',
+    '.sidebar.collapsed .sb-mark{display:none}',
     '.sidebar.collapsed .sb-toggle-btn svg{transform:rotate(180deg)}',
     '.sidebar.collapsed .sb-user{justify-content:center;padding:10px 0}',
     '.sidebar.collapsed .sb-item{justify-content:center;padding:10px 0;margin:1px 4px}',
