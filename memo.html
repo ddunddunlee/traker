@@ -55,7 +55,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 
 /* ── 탑바 ── */
-.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow-y:auto}
 .sidebar.collapsed~.main-wrap{margin-left:var(--sw-col)}
 .topbar{
   background:var(--bg);border-bottom:0.5px solid var(--border);
@@ -359,7 +359,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 /* ── 페이지 고유 CSS ── */
 
 @media(max-width:767px){
-  .content-area,.memo-layout{flex-direction:column!important}
+  .content-area,.memo-layout{flex-direction:column!important;overflow-y:auto;flex:1}
   .input-panel{width:100%!important;min-width:0!important}
   .memo-list-panel{width:100%!important}
   .memo-card{padding:12px}
@@ -464,6 +464,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   
   
 </style>
+<script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
 <div id="gz-sidebar" data-active="memo.html"></div>
@@ -707,6 +708,5 @@ document.getElementById('memoInput').addEventListener('keydown',e=>{if(e.key==='
 // render를 window에 노출
 window.renderMemo = render;
 </script>
-<script src="./shared/sidebar.js"></script>
 </body>
 </html>

@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .member-tab.active{background:#0C447C;color:#fff;border-color:#0C447C}
 
 /* ── 콘텐츠 영역 ── */
-.content-wrap{padding:20px 24px 80px;flex:1}
+.content-wrap{padding:20px 24px 80px;flex:1;overflow-y:auto;flex:1}
 
 /* ── 보고 작성 카드 ── */
 .report-card{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden}
@@ -294,7 +294,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
   
   
   
-</style>
+
+.week-label{display:none}</style>
+<script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
 <div id="gz-sidebar" data-active="report.html"></div>
@@ -449,7 +451,10 @@ let curMember = isMgr ? MEMBER_IDS[0] : ME.id;
 
 function updateWeekLabel() {
   const { label } = getWeekKey(curDate);
-  document.getElementById('weekLabel').textContent = label;
+  var _wl = document.getElementById('weekLabel');
+  var _wln = document.getElementById('weekLabelNav');
+  if(_wl) _wl.textContent = label;
+  if(_wln) _wln.textContent = label;
 }
 
 // ── 토스트 ──
@@ -1081,6 +1086,5 @@ if (isMgr) {
   })();
 
 </script>
-<script src="./shared/sidebar.js"></script>
 </body>
 </html>

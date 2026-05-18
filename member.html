@@ -54,7 +54,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 
 /* ── 탑바 ── */
-.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow-y:auto}
 .sidebar.collapsed~.main-wrap{margin-left:var(--sw-col)}
 .topbar{
   background:var(--bg);border-bottom:0.5px solid var(--border);
@@ -372,7 +372,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 /* ── 페이지 고유 CSS ── */
 
 @media(max-width:767px){
-  .content-wrap{padding:14px 14px 80px!important}
+  .content-wrap{padding:14px 14px 80px!important;overflow-y:auto;flex:1}
   .task-title{font-size:12px}
   .badge{font-size:10px;padding:2px 6px}
   .task-date{font-size:10px}
@@ -443,6 +443,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   
   
 </style>
+<script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
 <!-- 모바일 딤 -->
@@ -1771,6 +1772,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<script src="./shared/sidebar.js"></script>
 </body>
 </html>

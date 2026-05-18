@@ -54,7 +54,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 
 /* ── 탑바 ── */
-.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease);display:flex;flex-direction:column;height:100vh;overflow-y:auto}
 .sidebar.collapsed~.main-wrap{margin-left:var(--sw-col)}
 .topbar{
   background:var(--bg);border-bottom:0.5px solid var(--border);
@@ -430,7 +430,9 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   
   
   
-</style>
+
+.content-wrap{flex:1;overflow-y:auto;padding:20px 24px 80px}</style>
+<script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
 <!-- 모바일 딤 -->
@@ -932,6 +934,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </div>
 </div>
-<script src="./shared/sidebar.js"></script>
 </body>
 </html>
