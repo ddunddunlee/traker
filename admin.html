@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="GZ기획팀"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GZ Plan — 계정 관리</title>
+<style>
+/* ════════════════════════════════════════════
+   GZ Plan — 공통 반응형 CSS
+   PC(1024+) / Tablet(768-1023) / Mobile(~767)
+════════════════════════════════════════════ */
+
+/* ── Reset & 변수 ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ee;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
+  --border:#e5e5e3;--border2:#d0d0cc;
+  --radius:10px;--radius-sm:6px;--pill:999px;
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
+  --amber-bg:#FAEEDA;--amber-t:#633806;
+  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-t:#791F1F;
+  --orange:#EF9F27;
+  --purple-bg:#EEEDFE;--purple-t:#3C3489;
+  --sw:220px;
+  --topbar-h:52px;
+  --touch-min:44px;
+}
+
+/* ── 기본 ── */
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
+  background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
+  -webkit-text-size-adjust:100%}
+.app{display:flex;min-height:100vh}
+
+
+/* ══════════════════════════════════════════
+   반응형 — 태블릿 (768px ~ 1023px)
+══════════════════════════════════════════ */
+@media(max-width:1023px){
+  :root{--sw:220px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .detail-panel{width:280px;min-width:240px}
+}
+
+/* ══════════════════════════════════════════
+   반응형 — 모바일 (~ 767px)
+══════════════════════════════════════════ */
+@media(max-width:767px){
+  :root{--sw:220px}
+
+  /* 사이드바 슬라이드 */
+
+  /* 햄버거 표시 */
+  .hamburger{display:flex}
+
+  /* 메인 영역 */
+  
+  .topbar{padding:0 14px;gap:8px}
+  .page-title{font-size:14px}
+
+  /* 통계 2열 */
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .stat{padding:12px}
+  .stat-value{font-size:18px}
+
+  /* 필터 스크롤 */
+  .filter-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+  .filter-row::-webkit-scrollbar{display:none}
+
+  /* 카드 */
+  .task-card{padding:10px 12px;gap:8px}
+  .task-title{font-size:12px}
+  .card-right{position:static;margin-left:auto;flex-shrink:0}
+
+  /* 상세 패널 전체화면 */
+  .detail-panel{
+    position:fixed;inset:0;width:100%;max-width:100%;
+    border-radius:0;z-index:350;max-height:100vh;
+    top:0!important;
+  }
+  .resizer{display:none}
+
+  /* 모달 */
+  .modal{max-width:100%;margin:0;border-radius:var(--radius) var(--radius) 0 0;
+    position:fixed;bottom:0;left:0;right:0;max-height:90vh;}
+  .overlay{align-items:flex-end;padding:0}
+
+  /* 버튼 크기 */
+  .btn-ghost,.btn-solid,.btn-ok,.btn-cancel{height:38px;font-size:13px}
+  .chip{min-height:34px;padding:5px 12px}
+}
+
+/* ── 페이지 고유 CSS ── */
+
+@media(max-width:767px){
+  .account-row{flex-wrap:wrap;gap:6px}
+  .acc-actions{width:100%;flex-wrap:wrap}
+  .act-btn{flex:1;min-width:60px;text-align:center;justify-content:center}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .pw-fields{flex-direction:column}
+  .init-box{flex-direction:column;text-align:center}
+  .appContent{padding:1rem 14px 5rem!important}
+}
+
+/* ── 메인 ── */
+.main-wrap{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-height:100vh}
+.pin-btn,.del-btn{width:24px;height:24px;border-radius:var(--radius-sm);border:none;background:transparent;cursor:pointer;font-size:13px;color:var(--text3);display:flex;align-items:center;justify-content:center}
+.pin-btn:hover{background:var(--bg3);color:var(--text)}
+.pin-btn.on{color:var(--blue)}
+
+/* ── 사이드바 다크블루 override ── */
+.sb-user{border-bottom:1px solid rgba(255,255,255,0.1) !important;}
+.sb-avatar{background:rgba(255,255,255,0.15) !important;color:#fff !important;}
+.sb-user-name{color:#fff !important;}
+.sb-user-role{color:rgba(255,255,255,0.45) !important;}
+.sb-sec{color:rgba(255,255,255,0.35) !important;}
+.sb-label{color:rgba(255,255,255,0.6) !important;}
+.sb-item:hover{background:rgba(255,255,255,0.1) !important;}
+.sb-item.active{background:rgba(255,255,255,0.15) !important;}
+.sb-bottom{border-top:1px solid rgba(255,255,255,0.1) !important;}
+.sb-sync{color:rgba(255,255,255,0.45) !important;}
+.sb-sync span{color:rgba(255,255,255,0.45) !important;}
+.btn-solid{background:#0C447C !important;border-color:#0C447C !important;}
+.btn-solid:hover{background:#0a3a6a !important;}
+.chip.active{background:#0C447C !important;border-color:#0C447C !important;color:#fff !important;}
+  /* ── 사이드바 표준 CSS ── */
+  :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
+  .sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sw);background:#0C447C;color:#fff;display:flex;flex-direction:column;transition:width var(--sb-ease);overflow:hidden;z-index:300}
+  .sidebar.collapsed{width:var(--sw-col)}
+  .main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease)}
+  .sidebar.collapsed ~ .main-wrap{margin-left:var(--sw-col)}
+  .sb-brand{display:flex;align-items:center;gap:10px;padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;min-height:52px;overflow:hidden}
+  .sb-mark{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
+  .sb-brand-texts{overflow:hidden;white-space:nowrap;flex:1;min-width:0;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
+  .sidebar.collapsed .sb-brand-texts{opacity:0;max-width:0}
+  .sb-brand-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px}
+  .sb-brand-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
+  .sb-toggle-btn{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
+  .sb-toggle-btn:hover{background:rgba(255,255,255,.2)}
+  .sb-toggle-btn svg{transition:transform var(--sb-ease);stroke:#fff;flex-shrink:0}
+  .sidebar.collapsed .sb-toggle-btn svg{transform:rotate(180deg)}
+  .sb-user{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;overflow:hidden}
+  .sb-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#fff}
+  .sb-user-info{white-space:nowrap;overflow:hidden;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
+  .sidebar.collapsed .sb-user-info{opacity:0;max-width:0}
+  .sb-user-name{font-size:13px;font-weight:600;color:#fff}
+  .sb-user-role{font-size:11px;color:rgba(255,255,255,.5)}
+  .sb-nav{flex:1;padding:8px;overflow-y:auto;overflow-x:hidden}
+  .sb-nav::-webkit-scrollbar{display:none}
+  .sb-sec{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.4);padding:0 8px;margin:12px 0 3px;white-space:nowrap;transition:opacity var(--sb-ease)}
+  .sidebar.collapsed .sb-sec{opacity:0}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;margin-bottom:1px;overflow:hidden;transition:background .12s,color .12s;white-space:nowrap}
+  .sb-item:hover{background:rgba(255,255,255,.12);color:#fff}
+  .sb-item.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600}
+  .sidebar.collapsed .sb-item{justify-content:center;padding:8px 0}
+  .sb-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sb-label{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden;white-space:nowrap}
+  .sidebar.collapsed .sb-label{opacity:0;max-width:0}
+  .sb-badge{margin-left:auto;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0;white-space:nowrap;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:50px}
+  .sidebar.collapsed .sb-badge{opacity:0;max-width:0;overflow:hidden;padding:0}
+  .sidebar.collapsed .sb-item[data-label]:hover::after{content:attr(data-label);position:fixed;left:calc(var(--sw-col) + 8px);background:#1a1a1a;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999}
+  .sb-bottom{padding:8px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0}
+  .sb-logout{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .12s;white-space:nowrap;overflow:hidden}
+  .sb-logout:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
+  .sidebar.collapsed .sb-logout{justify-content:center;padding:7px 0}
+  .sb-logout-lbl{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden}
+  .sidebar.collapsed .sb-logout-lbl{opacity:0;max-width:0}
+</style>
+</head>
+<body>
+<!-- 모바일 딤 -->
+<div id="gz-sidebar" data-active="admin.html" data-variant="admin"></div>
+
+<div class="main-wrap">
+  <div class="topbar">
+  <button class="hamburger" id="hamburgerBtn" aria-label="메뉴">
+    <span></span><span></span><span></span>
+  </button><div class="page-title">계정 관리</div></div>
+  <div id="gate" style="display:flex;align-items:center;justify-content:center;flex:1">
+    <div style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--text);border-radius:50%;animation:sp .7s linear infinite"></div>
+    <style>@keyframes sp{to{transform:rotate(360deg)}}</style>
+  </div>
+  <div id="appContent" style="display:none;padding:0;width:100%">
+
+  <!-- 탭 헤더 (사이드바 클릭으로 전환) -->
+
+  <!-- 계정 관리 섹션 -->
+  <div id="tabAccounts" style="padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
+    <div class="stats" id="statsRow" style="margin-bottom:1.25rem"></div>
+    
+    <!-- 계정 목록 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">계정 목록</div>
+      <button class="btn-solid" id="openAddAccountBtn" style="touch-action:manipulation">+ 계정 추가</button>
+    </div>
+    <div id="accountList"></div>
+  </div>
+
+  <!-- 팀원 순서 관리 섹션 -->
+  <div id="tabOrder" style="display:none;padding:1.5rem 24px 6rem;max-width:600px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">팀원 순서 관리</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">드래그해서 순서를 바꾸고 저장하세요</div>
+      </div>
+      <button class="btn-solid" onclick="if(window.saveOrder)window.saveOrder()" style="touch-action:manipulation">💾 저장</button>
+    </div>
+    <div id="orderList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+
+  <!-- 담당 조직 관리 섹션 -->
+  <div id="tabOrgs" style="display:none;padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">담당 조직 관리</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">팀원별 담당 조직을 설정해요. 주간 보고 작성 시 섹션으로 표시돼요.</div>
+      </div>
+      <button class="btn-solid" onclick="if(window.saveOrgs)window.saveOrgs()" style="touch-action:manipulation">💾 저장</button>
+    </div>
+    <div id="orgsList"></div>
+  </div>
+
+  <!-- 최종보고자 목록 섹션 -->
+  <div id="tabReporters" style="display:none;padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">최종보고자 목록</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px">팀원이 업무 추가 시 선택할 수 있는 보고자 목록이에요</div>
+      </div>
+      <button class="btn-solid" id="openAddReporterBtn" style="touch-action:manipulation">+ 보고자 추가</button>
+    </div>
+    <div class="card-sec">
+      <div id="reporterList" style="display:flex;flex-wrap:wrap;gap:8px;min-height:40px"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="addAccountOverlay">
+  <div class="modal">
+    <h3>계정 추가</h3>
+    <div class="modal-note">아이디는 한 번 설정하면 변경할 수 없어요.</div>
+    <div class="fg"><label>표시 이름</label><input id="aName" placeholder="예: 홍길동"/></div>
+    <div class="fg"><label>아이디</label><input id="aId" placeholder="예: 홍길동"/></div>
+    <div class="fg"><label>비밀번호</label><div class="pw-row"><input id="aPw" type="password" placeholder="초기 비밀번호"/><button class="pw-show" id="aPwShowBtn">보기</button></div></div>
+    <div class="fg"><label>역할</label><select id="aRole"><option value="member">팀원</option><option value="manager">팀장</option><option value="admin">어드민</option></select></div>
+    <div class="err-line" id="addErr"></div>
+    <div class="modal-btns"><button class="btn-cancel" id="addAccountCancelBtn" style="touch-action:manipulation">취소</button><button class="btn-ok" id="addAccountOkBtn">추가하기</button></div>
+  </div>
+</div>
+<div class="overlay" id="pwOverlay">
+  <div class="modal">
+    <h3>비밀번호 변경</h3>
+    <div class="modal-note" id="pwTargetLabel"></div>
+    <div class="fg"><label>새 비밀번호</label><div class="pw-row"><input id="newPw" type="password" placeholder="새 비밀번호"/><button class="pw-show" id="newPwShowBtn">보기</button></div></div>
+    <div class="modal-btns"><button class="btn-cancel" id="pwCancelBtn" style="touch-action:manipulation">취소</button><button class="btn-ok" id="pwOkBtn">변경하기</button></div>
+  </div>
+</div>
+<div class="overlay" id="roleOverlay">
+  <div class="modal">
+    <h3>역할 변경</h3>
+    <div class="modal-note" id="roleTargetLabel"></div>
+    <div class="fg"><label>역할</label><select id="newRole"><option value="member">팀원</option><option value="manager">팀장</option><option value="admin">어드민</option></select></div>
+    <div class="modal-btns"><button class="btn-cancel" id="roleCancelBtn" style="touch-action:manipulation">취소</button><button class="btn-ok" id="roleOkBtn">변경하기</button></div>
+  </div>
+</div>
+<div class="overlay" id="reporterOverlay">
+  <div class="modal">
+    <h3>보고자 추가</h3>
+    <div class="fg"><label>보고자 이름</label><input id="rName" placeholder="예: CEO, 홀딩스, 본부장"/></div>
+    <div class="modal-btns"><button class="btn-cancel" id="reporterCancelBtn" style="touch-action:manipulation">취소</button><button class="btn-ok" id="reporterOkBtn">추가하기</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+
+// ── 모바일 햄버거 ──
+(function() {
+  function openSB() {
+    var s = document.querySelector('.sidebar');
+    var d = document.getElementById('sidebarDim');
+    if (s) s.classList.add('open');
+    if (d) d.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeSB() {
+    var s = document.querySelector('.sidebar');
+    var d = document.getElementById('sidebarDim');
+    if (s) s.classList.remove('open');
+    if (d) d.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+  var hb = document.getElementById('hamburgerBtn');
+  var dim = document.getElementById('sidebarDim');
+  if (hb) { hb.onclick = openSB; }
+  if (dim) { dim.onclick = closeSB; }
+  // 사이드바 nav 클릭시 닫기
+  document.querySelectorAll('.sidebar [data-nav]').forEach(function(el) {
+    el.addEventListener('click', closeSB);
+  });
+  // window에 노출 (외부에서 호출 가능)
+  window.openSidebar = openSB;
+  window.closeSidebar = closeSB;
+})();
+
+
+</script>
+
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {getFirestore,collection,doc,getDocs,getDoc,setDoc,updateDoc,deleteDoc} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const FC={apiKey:"AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",authDomain:"gzplan.firebaseapp.com",projectId:"gzplan",storageBucket:"gzplan.firebasestorage.app",messagingSenderId:"186255862586",appId:"1:186255862586:web:f36d21f76012ca43b8fe03"};
+const INIT_MEMBERS=[{id:"이도영",name:"이도영"},{id:"이영찬",name:"이영찬"},{id:"이윤형",name:"이윤형"},{id:"강신욱",name:"강신욱"},{id:"김용욱",name:"김용욱"},{id:"오문식",name:"오문식"},{id:"이길우",name:"이길우"}];
+const db=getFirestore(initializeApp(FC));
+let accounts=[],reporters=[],currentUser=null,editingId=null;
+
+const sess=localStorage.getItem('tt_user');
+if(!sess){location.href='index.html';throw'';}
+const u=JSON.parse(sess);
+if(u.role!=='admin'){location.href='index.html';throw'';}
+currentUser=u;
+
+// 사이드바
+document.getElementById('sbAvatar').textContent='AD';
+document.getElementById('sbUserName').textContent='admin';
+document.getElementById('sbUserRole').textContent='어드민';
+document.getElementById('sbUserRole').style.color='var(--purple-t)';
+document.getElementById('sbAvatar').style.background='var(--purple-t)';
+
+document.getElementById('logoutBtn')?.addEventListener('click',()=>{localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';});
+document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click',()=>location.href=el.dataset.nav));
+
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2400)}
+function closeOverlay(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)e.target.classList.remove('show')}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'))});
+
+
+// ── 관리 탭 전환 ──
+window.switchAdminTab = function(tab) {
+  document.getElementById('tabAccounts').style.display = tab==='accounts' ? '' : 'none';
+  document.getElementById('tabReporters').style.display = tab==='reporters' ? '' : 'none';
+  document.getElementById('tabOrgs').style.display = tab==='orgs' ? '' : 'none';
+  document.getElementById('tabOrder').style.display = tab==='order' ? '' : 'none';
+  (document.getElementById('navAccounts')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='accounts');
+  (document.getElementById('navReporters')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='reporters');
+  (document.getElementById('navOrgs')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='orgs');
+  (document.getElementById('navOrder')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='order');
+  if (tab === 'orgs') window.loadOrgs?.();
+  if (tab === 'order') window.loadOrder?.();
+};
+
+const MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형"];
+const DEFAULT_ORGS = {
+  "강신욱": ["IR/이사회 등","시장/경쟁사","보도자료 일정","사업지원본부(인프라지원실)","사업지원본부(경영지원실)","CISO","GLA"],
+  "김용욱": ["중국","신규사업본부(시티골프사업부)","글로벌사업팀","글로벌사업개척TF"],
+  "오문식": ["신규사업본부(카트사업부)","신규사업본부(시티골프사업부)","기술개발본부(NX개발실)","NX개발실(베트남R&D)"],
+  "이길우": ["GS사업본부","AI센서개발실"],
+  "이도영": ["미국","베트남"],
+  "이상현": ["신규사업본부(플랫폼사업부)","기술개발본부(모바일개발실)","기술개발본부(GDR개발실)"],
+  "이영찬": ["GDR직영사업","골프존 클라우드"],
+  "이윤형": ["일본","사업지원본부(기획실)"]
+};
+let currentOrgs = {...DEFAULT_ORGS};
+
+// ── 팀원 순서 관리 ──
+let currentOrder = [...MEMBER_IDS];
+let dragSrcIdx = null;
+
+window.loadOrder = async function() {
+  try {
+    const snap = await getDoc(doc(db,'config','memberOrder'));
+    if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
+  } catch(e){console.error("[GZPlan]",e);}
+  renderOrder();
+};
+
+function renderOrder() {
+  const el = document.getElementById('orderList');
+  if (!el) return;
+  el.innerHTML = currentOrder.map((name, i) => `
+    <div class="order-item" draggable="true" data-idx="${i}"
+      style="display:flex;align-items:center;gap:12px;background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;cursor:grab;user-select:none">
+      <span style="color:var(--text3);font-size:16px">⠿</span>
+      <span style="font-size:14px;font-weight:600;color:var(--text)">${name}</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--text3)">${i+1}</span>
+    </div>
+  `).join('');
+
+  // 드래그 이벤트
+  el.querySelectorAll('.order-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragSrcIdx = parseInt(item.dataset.idx);
+      item.style.opacity = '0.4';
+    });
+    item.addEventListener('dragend', e => {
+      item.style.opacity = '1';
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      item.style.background = '#F0F4F8';
+    });
+    item.addEventListener('dragleave', e => {
+      item.style.background = '#fff';
+    });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      item.style.background = '#fff';
+      const targetIdx = parseInt(item.dataset.idx);
+      if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+      const moved = currentOrder.splice(dragSrcIdx, 1)[0];
+      currentOrder.splice(targetIdx, 0, moved);
+      renderOrder();
+    });
+  });
+}
+
+window.saveOrder = async function() {
+  try {
+    await setDoc(doc(db,'config','memberOrder'), { order: currentOrder, updatedAt: new Date().toISOString() });
+    toast('순서가 저장됐어요 ✓');
+  } catch(e) {
+    toast('저장 실패: ' + e.message);
+  }
+};
+
+window.loadOrgs = async function() {
+  try {
+    const snap = await getDoc(doc(db,'config','memberOrgs'));
+    if (snap.exists()) currentOrgs = snap.data().orgs || DEFAULT_ORGS;
+  } catch(e){console.error("[GZPlan]",e);}
+  renderOrgs();
+};
+
+function renderOrgs() {
+  const el = document.getElementById('orgsList');
+  if (!el) return;
+  el.innerHTML = MEMBER_IDS.map(id => {
+    const orgs = currentOrgs[id] || [];
+    return `
+      <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:#0C447C;margin-bottom:10px">${id}</div>
+        <div id="orgItems_${id}" style="display:flex;flex-direction:column;gap:6px">
+          ${orgs.map((org, i) => `
+            <div style="display:flex;gap:8px;align-items:center">
+              <input value="${org}" data-member="${id}" data-idx="${i}"
+                style="flex:1;padding:7px 10px;font-size:12px;border:0.5px solid var(--border);border-radius:6px;outline:none;font-family:inherit"
+                oninput="updateOrg(this)"/>
+              <button onclick="removeOrg('${id}',${i})" style="width:28px;height:28px;border:0.5px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:14px;color:var(--text3);flex-shrink:0">✕</button>
+            </div>`).join('')}
+        </div>
+        <button onclick="addOrg('${id}')" style="margin-top:8px;font-size:12px;color:var(--blue-t);border:none;background:transparent;cursor:pointer;padding:4px 0">+ 조직 추가</button>
+      </div>`;
+  }).join('');
+}
+
+window.updateOrg = function(input) {
+  const member = input.dataset.member;
+  const idx = parseInt(input.dataset.idx);
+  if (!currentOrgs[member]) currentOrgs[member] = [];
+  currentOrgs[member][idx] = input.value;
+};
+
+window.addOrg = function(member) {
+  if (!currentOrgs[member]) currentOrgs[member] = [];
+  currentOrgs[member].push('');
+  renderOrgs();
+};
+
+window.removeOrg = function(member, idx) {
+  if (!currentOrgs[member]) return;
+  currentOrgs[member].splice(idx, 1);
+  renderOrgs();
+};
+
+window.saveOrgs = async function() {
+  try {
+    await setDoc(doc(db,'config','memberOrgs'), { orgs: currentOrgs, updatedAt: new Date().toISOString() });
+    toast('담당 조직이 저장됐어요 ✓');
+  } catch(e) {
+    toast('저장 실패: ' + e.message);
+  }
+};
+
+async function init(){
+  document.getElementById('gate').style.display='none';
+  document.getElementById('appContent').style.display='block';
+  await Promise.all([loadAccounts(),loadReporters()]);
+}
+
+async function loadAccounts(){
+  try{const snap=await getDocs(collection(db,'accounts'));accounts=snap.docs.map(d=>{return {docId:d.id,...d.data()}});accounts.sort((a,b)=>{const o={admin:0,manager:1,member:2};return(o[a.role]??3)-(o[b.role]??3)||a.docId.localeCompare(b.docId,'ko')})}catch{accounts=[]}
+  renderStats();renderList();
+}
+
+function renderStats(){
+  const t=accounts.length,a=accounts.filter(x=>x.role==='admin').length,m=accounts.filter(x=>x.role==='manager').length,mb=accounts.filter(x=>x.role==='member').length;
+  document.getElementById('statsRow').innerHTML=`<div class="stat-card"><div class="stat-label">전체 계정</div><div class="stat-value">${t}</div></div><div class="stat-card"><div class="stat-label">어드민</div><div class="stat-value">${a}</div></div><div class="stat-card"><div class="stat-label">팀장</div><div class="stat-value">${m}</div></div><div class="stat-card"><div class="stat-label">팀원</div><div class="stat-value">${mb}</div></div>`;
+}
+
+function renderList(){
+  const el=document.getElementById('accountList');
+  if(!accounts.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">등록된 계정이 없어요</div>';return;}
+  const rl={admin:'어드민',manager:'팀장',member:'팀원'};
+  const roleCls={admin:'role-admin',manager:'role-manager',member:'role-member'};
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+accounts.map(a=>{
+    const isMe=a.docId===currentUser?.id;
+    return `<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <!-- 아바타 -->
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--text);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--bg);flex-shrink:0">
+          ${(a.displayName||a.docId).slice(0,1)}
+        </div>
+        <!-- 정보 -->
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="font-size:14px;font-weight:600;color:var(--text)">${a.displayName||a.docId}</span>
+            ${isMe?'<span style="font-size:10px;color:var(--text3);padding:1px 6px;border-radius:var(--pill);background:var(--bg3)">나</span>':''}
+            <span class="role-badge ${roleCls[a.role]||'role-member'}">${rl[a.role]||a.role}</span>
+            <span class="status-badge ${a.disabled?'status-off':'status-on'}">${a.disabled?'비활성':'활성'}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text3)">@${a.docId}</div>
+        </div>
+        <!-- 액션 버튼 -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0">
+          <button class="act-btn" data-action="pw" data-id="${a.docId}" data-name="${a.displayName||a.docId}" style="padding:5px 10px;font-size:11px">🔑 비번</button>
+          <button class="act-btn" data-action="role" data-id="${a.docId}" data-name="${a.displayName||a.docId}" data-role="${a.role}" style="padding:5px 10px;font-size:11px">👤 역할</button>
+          ${isMe?'':`
+          <button class="act-btn ${a.disabled?'':'danger'}" data-action="toggle" data-id="${a.docId}" data-disabled="${a.disabled?'1':'0'}" style="padding:5px 10px;font-size:11px">${a.disabled?'✅ 활성화':'⏸ 비활성'}</button>
+          <button class="act-btn danger" data-action="del" data-id="${a.docId}" data-name="${a.displayName||a.docId}" style="padding:5px 10px;font-size:11px">🗑 삭제</button>`}
+        </div>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// 계정 목록 이벤트 위임
+document.getElementById('accountList')?.addEventListener('click',e=>{
+  const btn=e.target.closest('[data-action]');if(!btn)return;
+  const {action,id,name,role,disabled}=btn.dataset;
+  if(action==='pw'){editingId=id;document.getElementById('pwTargetLabel').textContent=`대상: ${name} (@${id})`;document.getElementById('newPw').value='';document.getElementById('pwOverlay').classList.add('show');}
+  else if(action==='role'){editingId=id;document.getElementById('roleTargetLabel').textContent=`대상: ${name} (@${id})`;document.getElementById('newRole').value=role;document.getElementById('roleOverlay').classList.add('show');}
+  else if(action==='toggle'){if(!confirm(`이 계정을 ${disabled==='1'?'활성화':'비활성화'}할까요?`))return;updateDoc(doc(db,'accounts',id),{disabled:disabled==='1'?false:true}).then(()=>{toast('변경됐어요 ✓');loadAccounts();});}
+  else if(action==='del'){if(id===currentUser?.id){toast('자신의 계정은 삭제할 수 없어요');return;}if(!confirm(`"${name}" 계정을 삭제할까요?`))return;deleteDoc(doc(db,'accounts',id)).then(()=>{toast('삭제됐어요');loadAccounts();});}
+});
+
+
+// admin 비번 변경
+window._changePw = async () => {
+  const _cpe=document.getElementById('curPw'); if(!_cpe) return; const cur=_cpe.value,nw=document.getElementById('newAdminPw').value,cf=document.getElementById('confirmAdminPw').value,err=document.getElementById('adminPwErr');
+  err.textContent='';
+  if(!cur||!nw||!cf){err.textContent='모든 항목을 입력해주세요';return}
+  if(nw!==cf){err.textContent='새 비밀번호가 일치하지 않아요';return}
+  if(nw.length<4){err.textContent='4자 이상 입력해주세요';return}
+  const snap=await getDoc(doc(db,'accounts','admin'));
+  const expected=snap.exists()?snap.data().password:'admin1234';
+  if(cur!==expected){err.textContent='현재 비밀번호가 틀렸어요';return}
+  await setDoc(doc(db,'accounts','admin'),{displayName:'admin',password:nw,role:'admin',disabled:false,updatedAt:new Date().toISOString()},{merge:true});
+  ['curPw','newAdminPw','confirmAdminPw'].forEach(id=>document.getElementById(id).value='');
+  toast('비밀번호가 변경됐어요 ✓');
+};
+document.getElementById('changePwBtn')?.addEventListener('click', window._changePw);;
+
+// 계정 추가
+window._openAddAccount = () => {
+  ['aName','aId','aPw'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('aRole').value='member';document.getElementById('addErr').textContent='';
+  document.getElementById('addAccountOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('aName').focus(),80);
+};
+document.getElementById('openAddAccountBtn')?.addEventListener('click', window._openAddAccount);
+document.getElementById('addAccountCancelBtn')?.addEventListener('click',()=>closeOverlay('addAccountOverlay'));
+document.getElementById('addAccountOkBtn')?.addEventListener('click',async()=>{
+  const name=document.getElementById('aName').value.trim(),id=document.getElementById('aId').value.trim(),pw=document.getElementById('aPw').value,role=document.getElementById('aRole').value,err=document.getElementById('addErr');
+  err.textContent='';
+  if(!name||!id||!pw){err.textContent='모든 항목을 입력해주세요';return}
+  if(pw.length<4){err.textContent='비밀번호는 4자 이상이어야 해요';return}
+  const ex=await getDoc(doc(db,'accounts',id));
+  if(ex.exists()){err.textContent='이미 사용 중인 아이디예요';return}
+  await setDoc(doc(db,'accounts',id),{displayName:name,password:pw,role,disabled:false,createdAt:new Date().toISOString()});
+  closeOverlay('addAccountOverlay');toast(`${name} 계정을 추가했어요 ✓`);loadAccounts();
+});
+document.getElementById('aPwShowBtn')?.addEventListener('click',()=>{const e=document.getElementById('aPw');e.type=e.type==='password'?'text':'password';});
+
+// 비번 변경
+document.getElementById('pwCancelBtn')?.addEventListener('click',()=>closeOverlay('pwOverlay'));
+document.getElementById('pwOkBtn')?.addEventListener('click',async()=>{
+  const pw=document.getElementById('newPw').value;
+  if(!pw){toast('새 비밀번호를 입력해주세요');return}
+  if(pw.length<4){toast('4자 이상 입력해주세요');return}
+  await updateDoc(doc(db,'accounts',editingId),{password:pw});
+  closeOverlay('pwOverlay');toast('비밀번호를 변경했어요 ✓');
+});
+document.getElementById('newPwShowBtn')?.addEventListener('click',()=>{const e=document.getElementById('newPw');e.type=e.type==='password'?'text':'password';});
+
+// 역할 변경
+document.getElementById('roleCancelBtn')?.addEventListener('click',()=>closeOverlay('roleOverlay'));
+document.getElementById('roleOkBtn')?.addEventListener('click',async()=>{
+  await updateDoc(doc(db,'accounts',editingId),{role:document.getElementById('newRole').value});
+  closeOverlay('roleOverlay');toast('역할을 변경했어요 ✓');loadAccounts();
+});
+
+// 보고자
+async function loadReporters(){
+  try{const snap=await getDoc(doc(db,'settings','reporters'));reporters=snap.exists()?(snap.data().list||[]):[];}catch{reporters=[]}
+  renderReporters();
+}
+async function saveReporters(){await setDoc(doc(db,'settings','reporters'),{list:reporters});}
+function renderReporters(){
+  const el=document.getElementById('reporterList');
+  if(!reporters.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem 0">등록된 보고자가 없어요</div>';return;}
+  el.innerHTML=reporters.map((r,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg2);border-radius:var(--radius-sm);gap:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;width:22px;height:22px;background:var(--purple-bg);color:var(--purple-t);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600">${i+1}</span>
+        <span style="font-size:14px;font-weight:500;color:var(--text)">${r}</span>
+      </div>
+      <button data-ri="${i}" style="padding:3px 10px;font-size:12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:transparent;color:var(--red);cursor:pointer">삭제</button>
+    </div>`).join('');
+}
+document.getElementById('reporterList')?.addEventListener('click',async e=>{
+  const btn=e.target.closest('[data-ri]');if(!btn)return;
+  const i=parseInt(btn.dataset.ri);const name=reporters[i];
+  if(!confirm(`"${name}"을 삭제할까요?`))return;
+  reporters.splice(i,1);await saveReporters();renderReporters();toast('삭제됐어요');
+});
+window._openAddReporter = () => {document.getElementById('rName').value='';document.getElementById('reporterOverlay').classList.add('show');setTimeout(()=>document.getElementById('rName').focus(),80);};
+document.getElementById('openAddReporterBtn')?.addEventListener('click', window._openAddReporter);
+document.getElementById('reporterCancelBtn')?.addEventListener('click',()=>closeOverlay('reporterOverlay'));
+document.getElementById('reporterOkBtn')?.addEventListener('click',async()=>{
+  const name=document.getElementById('rName').value.trim();
+  if(!name){toast('이름을 입력해주세요');return}
+  if(reporters.includes(name)){toast('이미 있는 보고자예요');return}
+  reporters.push(name);await saveReporters();closeOverlay('reporterOverlay');renderReporters();toast(`"${name}" 추가됐어요 ✓`);
+});
+
+init();
+</script>
+
+<script>
+// ── 공통 버튼 바인딩 (즉시 실행) ──
+document.addEventListener('DOMContentLoaded', function() {
+  // 사이드바 토글
+  (function(){
+    var sb = document.querySelector('.sidebar');
+    var toggle = document.getElementById('sbToggleBtn');
+    if(!sb || !toggle) return;
+    if(localStorage.getItem('gz_sb_collapsed')==='1') sb.classList.add('collapsed');
+    toggle.addEventListener('click', function(){
+      sb.classList.toggle('collapsed');
+      localStorage.setItem('gz_sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
+    });
+  })();
+
+  // 로그아웃
+  var lb = document.getElementById('logoutBtn');
+  if (lb) lb.addEventListener('click', function() {
+    localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';
+  });
+  // 사이드바 네비
+  document.querySelectorAll('[data-nav]').forEach(function(el) {
+    el.addEventListener('click', function() { location.href = el.dataset.nav; });
+  });
+});
+</script>
+
+</div>
+</div>
+<script src="./shared/sidebar.js"></script>
+</body>
+</html>

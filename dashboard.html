@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<link rel="manifest" href="./manifest.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="GZ기획팀"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GZ Plan — 홈</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ee;
+  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
+  --border:#e5e5e3;--border2:#d0d0cc;
+  --radius:10px;--radius-sm:6px;--pill:999px;
+  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
+  --amber-bg:#FAEEDA;--amber-t:#633806;
+  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-t:#791F1F;
+  --orange:#EF9F27;
+  --purple-bg:#EEEDFE;--purple-t:#3C3489;
+  --sw:220px;
+  --sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1);
+  --topbar-h:52px;
+  --touch-min:44px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
+  background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
+  -webkit-text-size-adjust:100%;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;margin:0;padding:0}
+
+
+.topbar{
+  height:48px;background:var(--bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;
+;position:sticky;top:0;z-index:50}
+.tb-title{font-size:14px;font-weight:600;color:var(--text)}
+.tb-sep{color:var(--border2)}
+.tb-sub{font-size:12px;color:var(--text3)}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.btn-ghost{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:var(--radius-sm);
+  font-size:12px;color:var(--text2);
+  border:1px solid var(--border);background:var(--bg);
+  cursor:pointer;font-family:inherit;transition:all .12s;
+}
+.btn-ghost:hover{background:var(--bg2)}
+.btn-blue{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 13px;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:600;color:#fff;
+  background:var(--blue);border:none;cursor:pointer;
+  font-family:inherit;transition:opacity .12s;
+}
+.btn-blue:hover{opacity:.88}
+
+/* 대시보드 본문 */
+.dash-body{
+  flex:1;overflow-y:auto;padding:0 16px 60px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.dash-body::-webkit-scrollbar{width:4px}
+.dash-body::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.kpi{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:12px;padding:14px 16px;
+}
+.kpi-top{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.kpi-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.kpi-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.kpi-num{font-size:26px;font-weight:300;color:var(--text);line-height:1;margin-bottom:4px;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.kpi-sub{font-size:11px;color:var(--text3)}
+.kpi-sub.up{color:var(--green)}
+.kpi-sub.dn{color:var(--red)}
+
+/* 중앙 2단 */
+.mid-row{display:grid;grid-template-columns:340px 1fr;gap:12px;min-height:0}
+
+/* 카드 공통 */
+.card{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;display:flex;flex-direction:column;
+}
+.card-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.card-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.card-link{font-size:11px;color:var(--blue);cursor:pointer}
+.card-link:hover{text-decoration:underline}
+
+/* 오늘 할 일 */
+.today-list{display:flex;flex-direction:column;flex:1;overflow-y:auto}
+.today-item{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 14px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;
+}
+.today-item:last-child{border-bottom:none}
+.today-item:hover{background:var(--bg2)}
+.t-check{
+  width:15px;height:15px;border-radius:4px;
+  border:1.5px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .1s;
+}
+.t-check.done{background:var(--green);border-color:var(--green);color:#fff;font-size:9px}
+.t-title{font-size:12px;color:var(--text);flex:1;line-height:1.4}
+.t-title.done{text-decoration:line-through;color:var(--text3)}
+.t-due{font-size:10px;font-weight:600;flex-shrink:0;padding:2px 7px;border-radius:999px}
+.t-due.done{background:var(--green-bg);color:var(--green-dk)}
+.t-due.late{background:var(--red-bg);color:var(--red-dk)}
+.t-due.today{background:var(--blue-bg);color:var(--blue-dk)}
+.t-due.soon{background:var(--amber-bg);color:var(--amber-dk)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 16px;gap:8px;flex:1}
+.empty-icon{font-size:28px;opacity:.3}
+.empty-txt{font-size:12px;color:var(--text3);text-align:center}
+
+/* 캘린더 */
+.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:640px}
+.cal-toolbar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cal-month{font-size:13px;font-weight:600;color:var(--text)}
+.cal-nav{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);transition:all .12s}
+.cal-nav:hover{background:var(--bg2)}
+.cal-grid{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.cal-day-row{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
+.cal-dlbl{padding:6px 0;text-align:center;font-size:10px;font-weight:600;color:var(--text3)}
+.cal-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow-y:visible}
+.cal-cell{
+  min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  padding:5px;overflow:hidden;
+}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-num{
+  font-size:11px;color:var(--text3);
+  width:20px;height:20px;display:flex;align-items:center;justify-content:center;
+  border-radius:50%;margin-bottom:2px;font-weight:500;
+}
+.cal-num.today{background:var(--blue);color:#fff;font-weight:700}
+.cal-num.dim{color:var(--border2)}
+.cal-pill{
+  font-size:10px;padding:1px 5px;border-radius:3px;
+  margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:block;cursor:pointer;transition:filter .1s;
+}
+.cal-pill:hover{filter:brightness(.92)}
+.cal-pill.blue{background:var(--blue-bg);color:var(--blue-dk)}
+.cal-pill.green{background:var(--green-bg);color:var(--green-dk)}
+.cal-pill.amber{background:var(--amber-bg);color:var(--amber-dk)}
+.cal-pill.red{background:var(--red-bg);color:var(--red-dk)}
+.cal-more{font-size:10px;color:var(--text3);cursor:pointer;padding:1px 3px}
+.cal-more:hover{color:var(--blue)}
+
+/* 하단 2단 */
+.bot-row{display:grid;grid-template-columns:1fr 240px;gap:12px}
+
+/* 팀 업데이트 */
+.upd-list{display:flex;flex-direction:column;flex:1;overflow-y:auto}
+.upd-item{display:flex;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border)}
+.upd-item:last-child{border-bottom:none}
+.upd-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:5px}
+.upd-dot.g{background:var(--green)}
+.upd-dot.r{background:var(--red)}
+.upd-dot.a{background:var(--amber)}
+.upd-txt{font-size:12px;color:var(--text2);flex:1;line-height:1.5}
+.upd-txt strong{color:var(--text);font-weight:600}
+.upd-time{font-size:10px;color:var(--text3);flex-shrink:0;margin-top:2px}
+
+
+
+
+
+
+/* 알림 배너 */
+.alert-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;background:var(--red-bg);
+  border:1px solid #fca5a5;border-radius:var(--radius-sm);
+  font-size:12px;color:var(--red-dk);
+  animation:slideDown .2s ease;
+}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.alert-banner .al-close{margin-left:auto;cursor:pointer;opacity:.6;font-size:16px;line-height:1}
+.alert-banner .al-close:hover{opacity:1}
+
+/* 토스트 */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--text);color:#fff;font-size:12px;
+  padding:8px 16px;border-radius:999px;
+  opacity:0;transition:opacity .2s;pointer-events:none;z-index:999;white-space:nowrap;
+}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div id="gz-sidebar" data-active="dashboard.html"></div>
+
+<div class="main-wrap" id="mainWrap">
+  <div class="topbar">
+    <div class="tb-title">홈</div>
+    <span class="tb-sep">·</span>
+    <div class="tb-sub" id="topSub">경영기획팀</div>
+    <div class="tb-r">
+      <button class="btn-ghost" onclick="location.href='member.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+        내 업무
+      </button>
+      <button class="btn-ghost" onclick="location.href='calendar.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        캘린더
+      </button>
+    </div>
+  </div>
+
+  <div class="dash-body" id="dashBody">
+
+    <!-- 기한초과 알림 배너 -->
+    <div class="alert-banner" id="alertBanner" style="display:none">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="alertText"></span>
+      <span class="al-close" onclick="document.getElementById('alertBanner').style.display='none'">×</span>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-top"><div class="kpi-dot" style="background:var(--text3)"></div><div class="kpi-lbl">전체 업무</div></div>
+        <div class="kpi-num" id="kTotal">—</div>
+        <div class="kpi-sub">이번 달</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top"><div class="kpi-dot" style="background:var(--blue)"></div><div class="kpi-lbl">진행 중</div></div>
+        <div class="kpi-num" id="kDoing">—</div>
+        <div class="kpi-sub up">실시간</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top"><div class="kpi-dot" style="background:var(--amber)"></div><div class="kpi-lbl">기한 임박</div></div>
+        <div class="kpi-num" id="kUrgent">—</div>
+        <div class="kpi-sub dn" id="kUrgentSub">7일 이내</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-top"><div class="kpi-dot" style="background:var(--green)"></div><div class="kpi-lbl">완료</div></div>
+        <div class="kpi-num" id="kDone">—</div>
+        <div class="kpi-sub up">누적</div>
+      </div>
+    </div>
+
+    <!-- 캘린더 (전체 너비) -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          캘린더
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="cal-nav" id="calPrev">‹</div>
+          <div class="cal-month" id="calTitle"></div>
+          <div class="cal-nav" id="calNext">›</div>
+          <div class="card-link" onclick="location.href='calendar.html'" style="margin-left:8px">전체보기 →</div>
+        </div>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-day-row">
+          <div class="cal-dlbl">월</div><div class="cal-dlbl">화</div><div class="cal-dlbl">수</div>
+          <div class="cal-dlbl">목</div><div class="cal-dlbl">금</div>
+          <div class="cal-dlbl" style="opacity:.4">토</div>
+          <div class="cal-dlbl" style="color:var(--red);opacity:.6">일</div>
+        </div>
+        <div class="cal-cells" id="calCells"></div>
+      </div>
+    </div>
+
+    <!-- 오늘할일 + 팀업데이트 (50:50) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+      <!-- 오늘 할 일 -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+            오늘 할 일
+            <span style="font-size:11px;color:var(--text3);font-weight:400" id="todayLbl"></span>
+          </div>
+          <div class="card-link" onclick="location.href='member.html'">전체보기 →</div>
+        </div>
+        <div class="today-list" id="todayList">
+          <div class="empty-state"><div class="empty-txt">불러오는 중...</div></div>
+        </div>
+      </div>
+
+      <!-- 팀 업데이트 -->
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            팀 업데이트
+          </div>
+        </div>
+        <div class="upd-list" id="updList">
+          <div class="empty-state"><div class="empty-txt">불러오는 중...</div></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div></div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, onSnapshot, updateDoc, query, orderBy, where }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const FIREBASE_CONFIG = {
+  apiKey:'AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ',
+  authDomain:'gzplan.firebaseapp.com', projectId:'gzplan',
+  storageBucket:'gzplan.firebasestorage.app',
+  messagingSenderId:'186255862586',
+  appId:'1:186255862586:web:f36d21f76012ca43b8fe03',
+};
+const db = getFirestore(initializeApp(FIREBASE_CONFIG));
+
+// ── 세션 확인 ──
+const sess = localStorage.getItem('tt_user');
+if (!sess) { location.href = 'index.html'; throw ''; }
+let ME;
+try { ME = JSON.parse(sess); } catch { location.href = 'index.html'; throw ''; }
+if (!ME?.id) { location.href = 'index.html'; throw ''; }
+const isMgr = ME.role === 'manager' || ME.role === 'admin';
+
+// ── 상수 ──
+const MEMBER_IDS = ['강신욱','김용욱','오문식','이길우','이도영','이상현','이영찬','이윤형'];
+const MEMBER_COLORS = ['#378ADD','#7F77DD','#EF9F27','#639922','#E24B4A','#D4537E','#1D9E75','#D85A30'];
+
+// ── 유틸 ──
+const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today = toStr(new Date());
+const pad2  = n => String(n).padStart(2,'0');
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── 사이드바 초기화 ──
+document.getElementById('sbAvatar').textContent = (ME.displayName || ME.id).slice(0,1);
+document.getElementById('sbName').textContent   = ME.displayName || ME.id;
+document.getElementById('sbRole').textContent   = isMgr ? '팀장' : '팀원';
+
+// manager는 manager.html로 이동할 nav 분기
+if (isMgr) {
+  const navMember = document.getElementById('navMember');
+  if (navMember) navMember.dataset.nav = 'manager.html';
+}
+
+// 날짜
+const now = new Date();
+document.getElementById('todayLbl').textContent = `${now.getMonth()+1}월 ${now.getDate()}일`;
+document.getElementById('topSub').textContent   = `${now.getFullYear()}년 ${now.getMonth()+1}월 · 경영기획팀`;
+
+// ── 사이드바 토글 ──
+const sidebar  = document.getElementById('sidebar');
+const mainWrap = document.getElementById('mainWrap');
+let collapsed  = localStorage.getItem('gz_sb_collapsed') === '1';
+if (collapsed) sidebar.classList.add('collapsed');
+
+document.getElementById('sbToggleBtn').addEventListener('click', () => {
+  collapsed = !collapsed;
+  sidebar.classList.toggle('collapsed', collapsed);
+  localStorage.setItem('gz_sb_collapsed', collapsed ? '1' : '0');
+});
+
+// ── 네비 ──
+document.querySelectorAll('.sb-item[data-nav]').forEach(el => {
+  el.addEventListener('click', () => location.href = el.dataset.nav);
+});
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';
+});
+
+// ── 상태 ──
+let tasks     = [];
+let schedules = [];
+let calYear   = now.getFullYear();
+let calMonth  = now.getMonth();
+
+// ── memberOrder ──
+try {
+  const snap = await getDoc(doc(db,'config','memberOrder'));
+  if (snap.exists() && snap.data().order?.length) {
+    MEMBER_IDS.length = 0;
+    snap.data().order.forEach(id => MEMBER_IDS.push(id));
+  }
+} catch(e){console.error("[GZPlan]",e);}
+
+// ── 업무 구독 ──
+const taskQuery = isMgr
+  ? null
+  : query(collection(db,'tasks',ME.id,'items'), orderBy('order','asc'));
+
+if (taskQuery) {
+  onSnapshot(taskQuery, snap => {
+    tasks = snap.docs.map(d => ({_id:d.id,...d.data()}));
+    renderKPI();
+    renderToday();
+    renderCalendar();
+    renderShortcut();
+    renderAlert();
+  });
+}
+
+// 팀장: 전체 팀원 업무 구독
+if (isMgr) {
+  MEMBER_IDS.forEach(mid => {
+    onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
+      tasks = tasks.filter(t => t._mid !== mid);
+      snap.docs.forEach(d => tasks.push({_id:d.id, _mid:mid, ...d.data()}));
+      renderKPI(); renderToday(); renderCalendar(); renderShortcut(); renderAlert();
+    });
+  });
+}
+
+// ── 일정 구독 ──
+onSnapshot(collection(db,'schedules'), snap => {
+  schedules = snap.docs.map(d => ({_id:d.id,...d.data()}))
+    .filter(s => s.source !== 'meeting' && !(s.category==='meeting' && s.title?.startsWith('📋')));
+  renderCalendar();
+});
+
+// ── 팀 업데이트 (전 팀원 최신 업무) ──
+MEMBER_IDS.forEach(mid => {
+  onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
+    renderUpdates(mid, snap.docs.map(d => ({_id:d.id,_mid:mid,...d.data()})));
+  });
+});
+
+let allUpdTasks = {};
+function renderUpdates(mid, taskList) {
+  allUpdTasks[mid] = taskList;
+  const all = Object.values(allUpdTasks).flat()
+    .filter(t => t.updated || t.createdAt)
+    .sort((a,b) => (b.updated||'') > (a.updated||'') ? 1 : -1)
+    .slice(0,8);
+
+  const el = document.getElementById('updList');
+  if (!all.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-txt">업데이트 내역이 없어요</div></div>';
+    return;
+  }
+  const statusMap = {todo:'대기',inprogress:'진행중',done:'완료',hold:'보류'};
+  const dotMap    = {done:'g',inprogress:'',hold:'a',todo:''};
+  el.innerHTML = all.map(t => {
+    const rel = relTime(t.updated||'');
+    return `<div class="upd-item">
+      <div class="upd-dot ${dotMap[t.status]||''}"></div>
+      <div class="upd-txt"><strong>${t._mid||ME.id}</strong> · ${t.title||'(제목없음)'}<br><span style="font-size:10px;color:var(--text3)">${statusMap[t.status]||t.status}${t.due?' · '+t.due:''}</span></div>
+      <div class="upd-time">${rel}</div>
+    </div>`;
+  }).join('');
+}
+
+function relTime(d) {
+  if (!d) return '';
+  const diff = Math.floor((Date.now() - new Date(d))/60000);
+  if (diff < 1)    return '방금';
+  if (diff < 60)   return `${diff}분`;
+  if (diff < 1440) return `${Math.floor(diff/60)}시간`;
+  return `${Math.floor(diff/1440)}일전`;
+}
+
+// ── KPI ──
+function renderKPI() {
+  const myTasks = isMgr ? tasks : tasks;
+  const total   = myTasks.length;
+  const doing   = myTasks.filter(t => t.status==='inprogress').length;
+  const done    = myTasks.filter(t => t.status==='done').length;
+  const urgent  = myTasks.filter(t => {
+    if (t.status==='done') return false;
+    const due = t.due||t.startDate; if(!due) return false;
+    const diff = (new Date(due)-new Date())/86400000;
+    return diff<=7 && diff>=0;
+  }).length;
+  const overdue = myTasks.filter(t => {
+    if (t.status==='done') return false;
+    const due = t.due||t.startDate;
+    return due && due < today;
+  }).length;
+
+  document.getElementById('kTotal').textContent  = String(total).padStart(2,'0');
+  document.getElementById('kDoing').textContent  = String(doing).padStart(2,'0');
+  document.getElementById('kUrgent').textContent = String(urgent).padStart(2,'0');
+  document.getElementById('kDone').textContent   = String(done).padStart(2,'0');
+
+  const urgSub = document.getElementById('kUrgentSub');
+  if (overdue > 0) { urgSub.textContent = `기한초과 ${overdue}건`; urgSub.className='kpi-sub dn'; }
+  else { urgSub.textContent = '7일 이내'; urgSub.className='kpi-sub'; }
+
+  const badge = document.getElementById('urgentBadge');
+  const n = overdue + urgent;
+  if (n > 0) { badge.textContent = n; badge.style.display = ''; }
+  else badge.style.display = 'none';
+}
+
+// ── 기한초과 알림 배너 ──
+function renderAlert() {
+  const overdue = tasks.filter(t => {
+    if (t.status==='done') return false;
+    const due = t.due||t.startDate;
+    return due && due < today;
+  });
+  const banner = document.getElementById('alertBanner');
+  if (overdue.length > 0 && sessionStorage.getItem('gz_alert_closed') !== '1') {
+    document.getElementById('alertText').textContent =
+      `기한 초과 업무가 ${overdue.length}건 있어요 — ${overdue.slice(0,2).map(t=>t.title).join(', ')}${overdue.length>2?' 외 '+( overdue.length-2)+'건':''}`;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+  // 닫기 버튼
+  banner.querySelector('.al-close').onclick = () => {
+    banner.style.display = 'none';
+    sessionStorage.setItem('gz_alert_closed','1');
+  };
+}
+
+// ── 오늘 할 일 ──
+function renderToday() {
+  const myTasks = isMgr ? tasks : tasks;
+  const overdue = myTasks.filter(t => {
+    if(t.status==='done') return false;
+    const due = t.due||t.startDate;
+    return due && due < today;
+  });
+  const todayT = myTasks.filter(t => {
+    if(t.status==='done') return false;
+    const s = t.startDate||t.due; const e = t.due||t.startDate;
+    return s && e && s<=today && today<=e;
+  });
+
+  const items = [...overdue.map(t=>({...t,_late:true})), ...todayT].slice(0,6);
+  const el = document.getElementById('todayList');
+
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">✓</div>
+      <div class="empty-txt">오늘 할 일이 없어요<br>여유롭게 업무를 돌아볼 때예요</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = items.map(t => {
+    const isDone = t.status==='done';
+    const dueStr = isDone ? '완료' : t._late ? '기한초과' : today===(t.due||t.startDate) ? '오늘' : '진행중';
+    const dueCls = isDone ? 'done' : t._late ? 'late' : today===(t.due||t.startDate) ? 'today' : 'soon';
+    const mid    = t._mid || ME.id;
+    const color  = MEMBER_COLORS[MEMBER_IDS.indexOf(mid)] || '#378ADD';
+    return `<div class="today-item" onclick="toggleDone('${t._id}','${t.status}','${mid}')">
+      <div class="t-check${isDone?' done':'}'}">${isDone?'✓':''}</div>
+      <div class="t-title${isDone?' done':''}">
+        ${isMgr && t._mid ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:5px;vertical-align:1px"></span>` : ''}
+        ${t.title||'(제목없음)'}
+      </div>
+      <span class="t-due ${dueCls}">${dueStr}</span>
+    </div>`;
+  }).join('');
+}
+
+window.toggleDone = async (id, status, mid) => {
+  const newStatus = status === 'done' ? 'inprogress' : 'done';
+  try {
+    await updateDoc(doc(db,'tasks',mid,'items',id), {status:newStatus, updated:today});
+  } catch(e) { toast('저장 실패'); }
+};
+
+// ── 바로가기 부제 ──
+function renderShortcut() {
+  const doing  = tasks.filter(t=>t.status==='inprogress').length;
+  const wait   = tasks.filter(t=>t.status==='todo').length;
+  var _sc1=document.getElementById('sc1Sub');if(_sc1)_sc1.textContent=`진행중 ${doing}개 · 대기 ${wait}개`;
+}
+
+// ── 캘린더 ──
+function renderCalendar() {
+  document.getElementById('calTitle').textContent = `${calYear}년 ${calMonth+1}월`;
+  const cells    = document.getElementById('calCells');
+  const firstDow = new Date(calYear,calMonth,1).getDay();
+  const startDow = firstDow===0 ? 6 : firstDow-1;
+  const lastDate = new Date(calYear,calMonth+1,0).getDate();
+  const total    = Math.ceil((startDow+lastDate)/7)*7;
+
+  // 날짜별 업무 맵
+  const taskMap = {};
+  const myTasks = isMgr ? tasks : tasks;
+  myTasks.forEach(t => {
+    const s = t.startDate||t.due; const e = t.due||t.startDate;
+    if (!s) return;
+    for (let d=new Date(s); d<=new Date(e||s); d.setDate(d.getDate()+1)) {
+      const k = toStr(new Date(d));
+      if (!taskMap[k]) taskMap[k]=[];
+      if (taskMap[k].length < 3) taskMap[k].push(t);
+      else if (taskMap[k].length===3) taskMap[k].push('more');
+    }
+  });
+  schedules.forEach(s => {
+    if (!s.date) return;
+    const [y,m] = s.date.split('-').map(Number);
+    if (y===calYear && m-1===calMonth) {
+      if (!taskMap[s.date]) taskMap[s.date]=[];
+      if (taskMap[s.date].filter(x=>x!=='more').length<3)
+        taskMap[s.date].push({title:s.title,_sch:true});
+    }
+  });
+
+  const pillColor = t => {
+    if (t._sch) return 'blue';
+    if (t.status==='done') return 'green';
+    const p = t.priority||3;
+    if (p>=5) return 'red';
+    if (p>=4) return 'amber';
+    return 'blue';
+  };
+
+  cells.innerHTML = '';
+  for (let i=0; i<total; i++) {
+    const day    = i-startDow+1;
+    const valid  = day>=1 && day<=lastDate;
+    const dStr   = valid ? `${calYear}-${pad2(calMonth+1)}-${pad2(day)}` : '';
+    const isToday= dStr===today;
+    const cell   = document.createElement('div');
+    cell.className = 'cal-cell';
+    if (!valid) { cell.innerHTML='<div class="cal-num dim">·</div>'; cells.appendChild(cell); continue; }
+    let html = `<div class="cal-num${isToday?' today':''}">${day}</div>`;
+    const dayT = taskMap[dStr]||[];
+    let more=0;
+    dayT.forEach(t => {
+      if (t==='more'){more++;return;}
+      html+=`<div class="cal-pill ${pillColor(t)}">${t.title||'(제목없음)'}</div>`;
+    });
+    if (more) html+=`<div class="cal-more">+${more}</div>`;
+    cell.innerHTML=html;
+    cells.appendChild(cell);
+  }
+}
+
+document.getElementById('calPrev').addEventListener('click',()=>{
+  calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click',()=>{
+  calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar();
+});
+
+renderCalendar();
+</script>
+<script src="./shared/sidebar.js"></script>
+</body>
+</html>
