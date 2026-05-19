@@ -303,13 +303,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 <div class="main-wrap">
   <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title">주간 보고</div>
+    </div>
     <div class="topbar-right">
-      <div class="week-nav">
-        <button class="nav-btn" id="prevBtn">‹</button>
-        <div class="week-label" id="weekLabel" style="font-size:14px;font-weight:600;min-width:180px;text-align:center"></div>
-        <button class="nav-btn" id="nextBtn">›</button>
-        <button class="today-btn" id="todayBtn">이번 주</button>
-      </div>
+      <button class="nav-btn" id="prevBtn">‹</button>
+      <span id="weekLabel" style="font-size:14px;font-weight:500;min-width:160px;text-align:center"></span>
+      <button class="nav-btn" id="nextBtn">›</button>
+      <button class="today-btn" id="todayBtn">이번 주</button>
     </div>
   </div>
   <div id="memberTabsWrap" style="display:none"></div>
