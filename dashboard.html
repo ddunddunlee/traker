@@ -138,7 +138,7 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 .empty-txt{font-size:12px;color:var(--text3);text-align:center}
 
 /* 캘린더 */
-.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:700px}
+.cal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:640px}
 .cal-toolbar{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
 .cal-month{font-size:13px;font-weight:600;color:var(--text)}
 .cal-nav{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--text2);transition:all .12s}
@@ -148,7 +148,7 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 .cal-dlbl{padding:6px 0;text-align:center;font-size:10px;font-weight:600;color:var(--text3)}
 .cal-cells{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow-y:visible}
 .cal-cell{
-  min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
+  min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);
   padding:5px;overflow:hidden;
 }
 .cal-cell:nth-child(7n){border-right:none}
@@ -384,9 +384,6 @@ const now = new Date();
 document.getElementById('todayLbl').textContent = `${now.getMonth()+1}월 ${now.getDate()}일`;
 document.getElementById('topSub').textContent   = `${now.getFullYear()}년 ${now.getMonth()+1}월 · 경영기획팀`;
 
-// ── 사이드바 토글 ──
-const sidebar  = document.getElementById('sidebar');
-});
 
 // ── 네비 ──
 document.querySelectorAll('.sb-item[data-nav]').forEach(el => {
@@ -607,7 +604,7 @@ function renderCalendar() {
   const total    = Math.ceil((startDow+lastDate)/7)*7;
 
   // 날짜별 업무 맵
-  const taskMap = {};
+  const taskMap = {}; window._calTaskMap = taskMap;
   const myTasks = isMgr ? tasks : tasks;
   myTasks.forEach(t => {
     const s = t.startDate||t.due; const e = t.due||t.startDate;
@@ -669,7 +666,6 @@ document.getElementById('calNext').addEventListener('click',()=>{
 
 renderCalendar();
 
-// +N개 팝업
 window.showMorePopup = function(e, dateStr) {
   e.stopPropagation();
   var popup = document.getElementById('calMorePopup');
@@ -679,27 +675,15 @@ window.showMorePopup = function(e, dateStr) {
     popup.style.cssText = 'position:fixed;background:#fff;border:1px solid #dde3ea;border-radius:8px;padding:10px 14px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;min-width:180px;max-width:260px;font-size:13px';
     document.body.appendChild(popup);
   }
-  var all = taskMap[dateStr] || [];
+  var all = window._calTaskMap && window._calTaskMap[dateStr] ? window._calTaskMap[dateStr] : [];
   var items = all.filter(function(t){ return t !== 'more'; });
-  var d = new Date(dateStr);
-  var label = (d.getMonth()+1) + '/' + d.getDate();
-  popup.innerHTML = '<div style="font-weight:600;margin-bottom:8px;color:#1a1a1a">' + label + ' 업무</div>' +
-    (items.length ? items.map(function(t){
-      return '<div style="padding:4px 0;border-bottom:1px solid #f0f0f0;color:#333">' + (t.title||'(제목없음)') + '</div>';
-    }).join('') : '<div style="color:#aaa">없음</div>');
-  var x = e.clientX, y = e.clientY;
-  if (x + 270 > window.innerWidth) x = window.innerWidth - 275;
-  if (y + 200 > window.innerHeight) y = window.innerHeight - 205;
-  popup.style.left = x + 'px';
-  popup.style.top = y + 'px';
-  popup.style.display = 'block';
-  setTimeout(function() {
-    document.addEventListener('click', function hide() {
-      popup.style.display = 'none';
-      document.removeEventListener('click', hide);
-    });
-  }, 10);
-};
-</script>
+  var d = new Date(dateStr); var label = (d.getMonth()+1)+'/'+d.getDate();
+  popup.innerHTML = '<div style="font-weight:600;margin-bottom:8px">'+label+' 업무</div>'+(items.length?items.map(function(t){return '<div style="padding:4px 0;border-bottom:1px solid #f0f0f0">'+( t.title||'(제목없음)')+'</div>';}).join(''):'<div style="color:#aaa">없음</div>');
+  var x=e.clientX,y=e.clientY;
+  if(x+270>window.innerWidth)x=window.innerWidth-275;
+  if(y+200>window.innerHeight)y=window.innerHeight-205;
+  popup.style.left=x+'px';popup.style.top=y+'px';popup.style.display='block';
+  setTimeout(function(){document.addEventListener('click',function hide(){popup.style.display='none';document.removeEventListener('click',hide);});},10);
+};</script>
 </body>
 </html>
