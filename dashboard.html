@@ -486,7 +486,7 @@ function relTime(d) {
 
 // ── KPI ──
 function renderKPI() {
-  const myTasks = isMgr ? tasks : tasks;
+  const myTasks = tasks; // 본인 업무만
   const total   = myTasks.length;
   const doing   = myTasks.filter(t => t.status==='inprogress').length;
   const done    = myTasks.filter(t => t.status==='done').length;
@@ -541,7 +541,7 @@ function renderAlert() {
 
 // ── 오늘 할 일 ──
 function renderToday() {
-  const myTasks = isMgr ? tasks : tasks;
+  const myTasks = tasks; // 본인 업무만
   const overdue = myTasks.filter(t => {
     if(t.status==='done') return false;
     const due = t.due||t.startDate;
@@ -606,7 +606,7 @@ function renderCalendar() {
 
   // 날짜별 업무 맵
   const taskMap = {}; window._calTaskMap = taskMap;
-  const myTasks = isMgr ? tasks : tasks;
+  const myTasks = tasks; // 본인 업무만
   myTasks.forEach(t => {
     const s = t.startDate||t.due; const e = t.due||t.startDate;
     if (!s) return;
@@ -619,6 +619,9 @@ function renderCalendar() {
   });
   schedules.forEach(s => {
     if (!s.date) return;
+    // 본인 개별일정 or 공통일정만 (타인 일정 제외)
+    if (!s.isCommon && s.assignee && s.assignee !== ME.id) return;
+    if (s.source === 'meeting') return;
     const [y,m] = s.date.split('-').map(Number);
     if (y===calYear && m-1===calMonth) {
       if (!taskMap[s.date]) taskMap[s.date]=[];
