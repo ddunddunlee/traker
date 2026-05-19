@@ -1731,8 +1731,8 @@ var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textCon
 
 
 // ── 칸반 뷰 ──
-let currentView = 'list';
 let kbDragId = null;
+let currentView = 'list';
 
 const KB_COLS = [
   {key:'todo',      label:'대기',      badge:'kb-badge-todo'},
@@ -1753,10 +1753,8 @@ function renderKanban() {
   if (!board) return;
   board.innerHTML = '';
 
-  const others = [...activeMemberFilters]
-    .filter(id => id !== ME.id)
-    .flatMap(id => (otherTasks[id]||[]).map(t => ({...t, _isOther:true})));
-  const allTasks = [...tasks, ...others.filter(t => !t.isPrivate)];
+  // manager는 getAllTasks() 사용
+  const allTasks = getAllTasks();
 
   KB_COLS.forEach(col => {
     const items = allTasks.filter(t => getKbStatus(t) === col.key);
@@ -1765,7 +1763,6 @@ function renderKanban() {
 
     const colEl = document.createElement('div');
     colEl.className = 'kb-col';
-
     colEl.innerHTML = `<div class="kb-col-head">
       <span class="kb-col-name">${col.label}</span>
       <span class="kb-col-count">${items.length}</span>
@@ -1777,29 +1774,28 @@ function renderKanban() {
     const makeKbCard = (t) => {
       const el = document.createElement('div');
       el.className = 'kb-card';
-      el.draggable = !t._isOther;
+      el.draggable = true;
       el.dataset.id = t._id;
+      el.dataset.mid = t._mid || ME.id;
       const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : '';
-      el.innerHTML = `<div class="kb-card-title">${t.title}</div>
+      const assignee = t._mid || t.assignee || '';
+      el.innerHTML = `<div class="kb-card-title">${t.title||'(제목없음)'}</div>
         <div class="kb-card-meta">
-          <span class="kb-badge ${col.badge}">${t._isOther ? (t._mid||t.assignee||'') : (t.assignee||ME.id)}</span>
-          ${due}
+          <span class="kb-badge ${col.badge}">${assignee}</span>${due}
         </div>`;
       el.addEventListener('click', () => {
-        if (t._isOther) openOtherDetail && openOtherDetail(t._id, t._mid||'');
-        else selTask && selTask(t._id);
+        if (window.openDetail) window.openDetail(t._id, t._mid || ME.id);
+        else if (window.selTask) window.selTask(t._id);
       });
-      if (!t._isOther) {
-        el.addEventListener('dragstart', () => {
-          kbDragId = t._id;
-          setTimeout(() => el.classList.add('kb-dragging'), 0);
-        });
-        el.addEventListener('dragend', () => {
-          el.classList.remove('kb-dragging');
-          kbDragId = null;
-          document.querySelectorAll('.kb-drag-over').forEach(c => c.classList.remove('kb-drag-over'));
-        });
-      }
+      el.addEventListener('dragstart', () => {
+        kbDragId = {id: t._id, mid: t._mid || ME.id};
+        setTimeout(() => el.classList.add('kb-dragging'), 0);
+      });
+      el.addEventListener('dragend', () => {
+        el.classList.remove('kb-dragging');
+        kbDragId = null;
+        document.querySelectorAll('.kb-drag-over').forEach(c => c.classList.remove('kb-drag-over'));
+      });
       return el;
     };
 
@@ -1825,21 +1821,16 @@ function renderKanban() {
     colEl.appendChild(body);
     board.appendChild(colEl);
 
-    // 드래그 드롭 - 상태 변경
     body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('kb-drag-over'); });
     body.addEventListener('dragleave', () => body.classList.remove('kb-drag-over'));
     body.addEventListener('drop', async e => {
       e.preventDefault();
       body.classList.remove('kb-drag-over');
-      if (!kbDragId) return;
-      const task = tasks.find(t => t._id === kbDragId);
-      if (!task) return;
-      const newStatus = col.key === 'overdue' ? task.status : col.key; // overdue는 status 변경 안 함
-      if (col.key === 'overdue') return; // 기한초과는 날짜 기반이라 드롭 불가
-      if (task.status === newStatus) return;
+      if (!kbDragId || col.key === 'overdue') return;
       try {
-        await updateDoc(doc(db, 'tasks', ME.id, 'items', kbDragId), {
-          status: newStatus, updated: new Date().toISOString().slice(0,10)
+        const {id, mid} = kbDragId;
+        await updateDoc(doc(db, 'tasks', mid, 'items', id), {
+          status: col.key, updated: new Date().toISOString().slice(0,10)
         });
       } catch(e) { console.error('[GZPlan]', e); }
     });
