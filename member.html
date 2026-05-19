@@ -580,7 +580,7 @@ const FIREBASE_CONFIG = {
 const DAY_MS    = 86400000;
 const STALE_DAYS = 14;
 let REPORTERS   = [];
-let MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형"];
+let MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 
 const db  = getFirestore(initializeApp(FIREBASE_CONFIG));
 const sess = localStorage.getItem('tt_user');
@@ -823,7 +823,7 @@ function renderMemberFilter() {
   const isMgr = ME.role === 'manager' || ME.role === 'admin';
   if (isMgr) { row.innerHTML = ''; return; } // 팀장은 별도 뷰 있으므로 숨김
   let html = '<span style="font-size:11px;color:var(--text3);flex-shrink:0;align-self:center">팀원</span>';
-  MEMBER_IDS.forEach((id, i) => {
+  MEMBER_IDS.filter(id => id !== '현주용').forEach((id, i) => {
     const color = MEMBER_CHIP_COLORS[i % MEMBER_CHIP_COLORS.length];
     const isMe = id === ME.id;
     const isActive = activeMemberFilters.has(id);

@@ -355,8 +355,8 @@ if (!ME?.id) { location.href = 'index.html'; throw ''; }
 const isMgr = ME.role === 'manager' || ME.role === 'admin';
 
 // ── 상수 ──
-const MEMBER_IDS = ['강신욱','김용욱','오문식','이길우','이도영','이상현','이영찬','이윤형'];
-const MEMBER_COLORS = ['#378ADD','#7F77DD','#EF9F27','#639922','#E24B4A','#D4537E','#1D9E75','#D85A30'];
+const MEMBER_IDS = ['강신욱','김용욱','오문식','이길우','이도영','이상현','이영찬','이윤형','현주용'];
+const MEMBER_COLORS = ['#378ADD','#7F77DD','#EF9F27','#639922','#E24B4A','#D4537E','#1D9E75','#D85A30','#5B6AF0'];
 
 // ── 유틸 ──
 const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -644,6 +644,13 @@ function renderCalendar() {
     const isToday= dStr===today;
     const cell   = document.createElement('div');
     cell.className = 'cal-cell';
+    if (valid) {
+      cell.style.cursor = 'pointer';
+      cell.addEventListener('click', (e) => {
+        if (e.target.classList.contains('cal-more') || e.target.closest('.cal-more')) return;
+        location.href = 'calendar.html?date=' + dStr + '&add=1';
+      });
+    }
     if (!valid) { cell.innerHTML='<div class="cal-num dim">·</div>'; cells.appendChild(cell); continue; }
     let html = `<div class="cal-num${isToday?' today':''}">${day}</div>`;
     const dayT = taskMap[dStr]||[];
