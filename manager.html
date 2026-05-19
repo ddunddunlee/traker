@@ -295,6 +295,10 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
     <button class="hamburger" id="hamburgerBtn" aria-label="메뉴"><span></span><span></span><span></span></button>
     <div class="page-title">팀 업무 현황</div>
     <div class="topbar-right">
+      <div class="view-toggle-wrap">
+        <button class="view-btn active" id="viewListBtn" onclick="switchView('list')">리스트</button>
+        <button class="view-btn" id="viewKanbanBtn" onclick="switchView('kanban')">카드</button>
+      </div>
       <button class="btn-solid" id="addBtn" style="touch-action:manipulation">+ 업무 추가</button>
     </div>
   </div>
