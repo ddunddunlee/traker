@@ -623,7 +623,7 @@ const fmtDate=s=>{const d=new Date(s),days=['일','월','화','수','목','금',
 const fmtTime=s=>{const d=new Date(s);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
 const dateKey=s=>new Date(s).toISOString().split('T')[0];
 const exTags=t=>[...new Set((t.match(/#[\w가-힣]+/g)||[]))];
-const setSync=v=>document.getElementById('syncDot').classList.toggle('syncing',v);
+const setSync=v=>{const _sd=document.getElementById('syncDot');if(_sd)_sd.classList.toggle('syncing',v);};
 const toast=m=>{const el=document.getElementById('toast');el.textContent=m;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2000);};
 function hlText(text,search){
   let h=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
