@@ -43,38 +43,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .app{display:flex;min-height:100vh}
 
 /* ── 사이드바 ── */
-.sidebar{
-  width:var(--sw);flex-shrink:0;
-  background:#0C447C;border-right:none;
-  display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;height:100vh;z-index:300;
-  transition:width var(--sb-ease);overflow:hidden;
-}
-.sb-brand{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0}
-.sb-brand-name{font-size:15px;font-weight:600;color:#fff;letter-spacing:-.3px}
-.sb-brand-sub{font-size:11px;color:rgba(255,255,255,0.45);margin-top:2px}
-.sb-user{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0}
-.sb-avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.15);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
-.sb-user-name{font-size:13px;font-weight:500;color:#fff;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-user-role{font-size:11px;color:rgba(255,255,255,0.45)}
-.sb-nav{flex:1;padding:8px 0;overflow-y:auto;overflow-x:hidden}
-.sb-sec{padding:4px 16px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.35);
-  letter-spacing:.08em;text-transform:uppercase;margin-top:10px}
-.sb-item{display:flex;align-items:center;gap:10px;padding:9px 16px;
-  cursor:pointer;margin:1px 8px;border-radius:var(--radius-sm);
-  transition:background .12s;min-height:var(--touch-min)}
-.sb-item:hover{background:rgba(255,255,255,0.1)}
-.sb-item.active{background:rgba(255,255,255,0.15)}
-.sb-item.active .sb-label,.sb-item.active .sb-icon{color:#fff;font-weight:500}
-.sb-icon{font-size:15px;width:22px;text-align:center;color:rgba(255,255,255,0.6);flex-shrink:0;display:flex;align-items:center}
-.sb-label{font-size:13px;color:rgba(255,255,255,0.6);flex:1;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sb-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:var(--pill);
-  background:var(--red-bg);color:var(--red);flex-shrink:0}
-.sb-bottom{padding:12px 16px;border-top:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.sb-item.active .sb-label,
+
+
+
+
 .sb-sync{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.45)}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
 .sync-dot.syncing{background:var(--orange);animation:blink .8s infinite}
@@ -95,15 +81,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .topbar-right{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap}
 
 /* ── 햄버거 ── */
-.hamburger{
-  display:none;width:36px;height:36px;border:none;background:transparent;
-  cursor:pointer;flex-direction:column;align-items:center;justify-content:center;
-  gap:5px;padding:4px;border-radius:var(--radius-sm);flex-shrink:0;
-}
-.hamburger span{display:block;width:20px;height:2px;background:var(--text);border-radius:2px}
-.hamburger:hover{background:var(--bg2)}
-.sidebar-dim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:290}
-.sidebar-dim.show{display:block}
+
+
+
+
+
 
 /* ── 버튼 ── */
 .btn-ghost{
@@ -348,7 +330,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   /* 사이드바 슬라이드 */
 
   /* 햄버거 표시 */
-  .hamburger{display:flex}
+  
 
   /* 메인 영역 */
   
@@ -482,107 +464,53 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 .td-progress{padding:8px 0;border-bottom:0.5px solid var(--bg2)}
   /* ── 사이드바 표준 CSS ── */
   :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  .sidebar{position:fixed;top:0;left:0;height:100vh;width:var(--sw);background:#0C447C;color:#fff;display:flex;flex-direction:column;transition:width var(--sb-ease);overflow:hidden;z-index:300}
-  .sidebar.collapsed{width:var(--sw-col)}
+  
+  
   .main-wrap{margin-left:var(--sw);transition:margin-left var(--sb-ease)}
-  .sidebar.collapsed ~ .main-wrap{margin-left:var(--sw-col)}
-  .sb-brand{display:flex;align-items:center;gap:10px;padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;min-height:52px;overflow:hidden}
-  .sb-mark{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:#fff}
-  .sb-brand-texts{overflow:hidden;white-space:nowrap;flex:1;min-width:0;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
-  .sidebar.collapsed .sb-brand-texts{opacity:0;max-width:0}
-  .sb-brand-name{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px}
-  .sb-brand-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
-  .sb-toggle-btn{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
-  .sb-toggle-btn:hover{background:rgba(255,255,255,.2)}
-  .sb-toggle-btn svg{transition:transform var(--sb-ease);stroke:#fff;flex-shrink:0}
-  .sidebar.collapsed .sb-toggle-btn svg{transform:rotate(180deg)}
-  .sb-user{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;overflow:hidden}
-  .sb-avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#fff}
-  .sb-user-info{white-space:nowrap;overflow:hidden;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px}
-  .sidebar.collapsed .sb-user-info{opacity:0;max-width:0}
-  .sb-user-name{font-size:13px;font-weight:600;color:#fff}
-  .sb-user-role{font-size:11px;color:rgba(255,255,255,.5)}
-  .sb-nav{flex:1;padding:8px;overflow-y:auto;overflow-x:hidden}
-  .sb-nav::-webkit-scrollbar{display:none}
-  .sb-sec{font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.4);padding:0 8px;margin:12px 0 3px;white-space:nowrap;transition:opacity var(--sb-ease)}
-  .sidebar.collapsed .sb-sec{opacity:0}
-  .sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;margin-bottom:1px;overflow:hidden;transition:background .12s,color .12s;white-space:nowrap}
-  .sb-item:hover{background:rgba(255,255,255,.12);color:#fff}
-  .sb-item.active{background:rgba(255,255,255,.2);color:#fff;font-weight:600}
-  .sidebar.collapsed .sb-item{justify-content:center;padding:8px 0}
-  .sb-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  .sb-label{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden;white-space:nowrap}
-  .sidebar.collapsed .sb-label{opacity:0;max-width:0}
-  .sb-badge{margin-left:auto;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;flex-shrink:0;white-space:nowrap;transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:50px}
-  .sidebar.collapsed .sb-badge{opacity:0;max-width:0;overflow:hidden;padding:0}
-  .sidebar.collapsed .sb-item[data-label]:hover::after{content:attr(data-label);position:fixed;left:calc(var(--sw-col) + 8px);background:#1a1a1a;color:#fff;font-size:11px;padding:4px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;z-index:9999}
-  .sb-bottom{padding:8px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0}
-  .sb-logout{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:6px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;transition:all .12s;white-space:nowrap;overflow:hidden}
-  .sb-logout:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8)}
-  .sidebar.collapsed .sb-logout{justify-content:center;padding:7px 0}
-  .sb-logout-lbl{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden}
-  .sidebar.collapsed .sb-logout-lbl{opacity:0;max-width:0}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 </style>
+<script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
 <!-- 모바일 딤 -->
-<div class="sidebar" id="sidebar">
-  <div class="sb-brand">
-    <div class="sb-mark">GZ</div>
-    <div class="sb-brand-texts">
-      <div class="sb-brand-name">GZ Plan</div>
-      <div class="sb-brand-sub">경영기획팀</div>
-    </div>
-    <div class="sb-toggle-btn" id="sbToggleBtn">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
-    </div>
-  </div>
-  <div class="sb-user">
-    <div class="sb-avatar" id="sbAvatar">—</div>
-    <div class="sb-user-info">
-      <div class="sb-user-name" id="sbUserName"></div>
-      <div class="sb-user-role" id="sbUserRole">팀원</div>
-    </div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-sec">메뉴</div>
-    <div class="sb-item" data-nav="dashboard.html" data-label="홈">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
-      <div class="sb-label">홈</div>
-    </div>
-    <div class="sb-item" data-nav="member.html" data-label="내 업무">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg></div>
-      <div class="sb-label">내 업무</div><div class="sb-badge" id="urgentBadge" style="display:none"></div>
-    </div>
-    <div class="sb-item" data-nav="report.html" data-label="주간보고">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
-      <div class="sb-label">주간보고</div>
-    </div>
-    <div class="sb-item" data-nav="report_all.html" data-label="주간보고(전체)">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div class="sb-label">주간보고(전체)</div>
-    </div>
-    <div class="sb-sec">도구</div>
-    <div class="sb-item active" data-nav="calendar.html" data-label="캘린더">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-      <div class="sb-label">캘린더</div>
-    </div>
-    <div class="sb-item" data-nav="weekly.html" data-label="주간 스케줄">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
-      <div class="sb-label">주간 스케줄</div>
-    </div>
-    <div class="sb-item" data-nav="memo.html" data-label="메모장">
-      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-      <div class="sb-label">메모장</div>
-    </div>
-  </nav>
-  <div class="sb-bottom">
-    <div class="sb-logout" id="logoutBtn">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      <span class="sb-logout-lbl">로그아웃</span>
-    </div>
-  </div>
-</div>
+<div id="gz-sidebar" data-active="calendar.html"></div>
+
 <div class="main-wrap">
   <div class="topbar">
   <button class="hamburger" id="hamburgerBtn" aria-label="메뉴">
