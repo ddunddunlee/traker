@@ -397,6 +397,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 // ── 상태 ──
 let tasks     = [];
 let schedules = [];
+let sharedTasks = [];
 let calYear   = now.getFullYear();
 let calMonth  = now.getMonth();
 
@@ -442,6 +443,12 @@ onSnapshot(collection(db,'schedules'), snap => {
     .filter(s => s.source !== 'meeting' && !(s.category==='meeting' && s.title?.startsWith('📋')));
   renderCalendar();
 });
+// ── 공통업무 구독 ──
+onSnapshot(query(collection(db,'sharedTasks'), orderBy('createdAt','desc')), snap => {
+  sharedTasks = snap.docs.map(d => ({_id:d.id,...d.data()}));
+  renderCalendar();
+});
+
 
 // ── 팀 업데이트 (전 팀원 최신 업무) ──
 MEMBER_IDS.forEach(mid => {
@@ -617,6 +624,24 @@ function renderCalendar() {
       else if (taskMap[k].length===3) taskMap[k].push('more');
     }
   });
+  // 공통업무(sharedTasks) 캘린더 표시
+  sharedTasks.forEach(t => {
+    if (!t.startDate) return;
+    const sd = t.startDate, ed = t.endDate || t.startDate;
+    if (sd > lastDay || ed < firstDay) return;
+    // sd ~ ed 범위의 날짜에 표시
+    let d = new Date(sd);
+    const endD = new Date(ed);
+    while (d <= endD) {
+      const k = toStr(d);
+      if (!taskMap[k]) taskMap[k] = [];
+      if (taskMap[k].filter(x=>x!=='more').length < 3)
+        taskMap[k].push({title:'[공통] '+(t.title||'공통업무'), _type:'common'});
+      else if (taskMap[k].length === 3) taskMap[k].push('more');
+      d.setDate(d.getDate()+1);
+    }
+  });
+
   schedules.forEach(s => {
     if (!s.date) return;
     // 본인 개별일정 or 공통일정만 (타인 일정 제외)
