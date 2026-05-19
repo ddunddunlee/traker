@@ -62,7 +62,7 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 function go(role) {
-  var dest = 'dashboard.html';
+  var dest = role === 'admin' ? 'admin.html' : 'dashboard.html';
   setTimeout(function() { location.href = dest; }, 100);
 }
 
