@@ -442,6 +442,33 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   
   
   
+
+/* ── 칸반 뷰 ── */
+.view-toggle-wrap{display:flex;gap:4px;background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:3px}
+.view-btn{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;font-family:inherit}
+.view-btn.active{background:var(--bg);color:var(--text);border:0.5px solid var(--border);font-weight:500}
+.kanban-board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start;padding:14px 14px 80px}
+.kb-col{background:var(--bg2);border-radius:10px;border:0.5px solid var(--border)}
+.kb-col-head{padding:10px 12px;display:flex;align-items:center;justify-content:space-between}
+.kb-col-name{font-size:12px;font-weight:500;color:var(--text2)}
+.kb-col-count{font-size:11px;background:var(--bg);border:0.5px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--text2)}
+.kb-col-body{padding:6px 8px 8px;display:flex;flex-direction:column;gap:6px;min-height:60px}
+.kb-card{background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;user-select:none;transition:box-shadow .15s,opacity .15s}
+.kb-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.kb-card.kb-dragging{opacity:.35;cursor:grabbing}
+.kb-col-body.kb-drag-over{background:rgba(12,68,124,.06);border-radius:6px}
+.kb-card-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px;line-height:1.4}
+.kb-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kb-badge{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:500}
+.kb-badge-todo{background:#E6F1FB;color:#0C447C}
+.kb-badge-doing{background:#FAEEDA;color:#633806}
+.kb-badge-over{background:#FCEBEB;color:#791F1F}
+.kb-badge-done{background:#EAF3DE;color:#27500A}
+.kb-due{font-size:10px;color:var(--text3);margin-left:auto}
+.kb-hidden{display:none;flex-direction:column;gap:6px}
+.kb-hidden.open{display:flex}
+.kb-more-btn{width:100%;padding:7px;border-radius:7px;border:0.5px dashed var(--border);background:transparent;font-size:12px;color:var(--text2);cursor:pointer;transition:background .12s;font-family:inherit}
+.kb-more-btn:hover{background:var(--bg)}
 </style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
@@ -456,6 +483,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   </button>
     <div class="page-title" id="pageTitle">내 업무</div>
     <div class="topbar-right">
+      <div class="view-toggle-wrap">
+        <button class="view-btn active" id="viewListBtn" onclick="switchView('list')">리스트</button>
+        <button class="view-btn" id="viewKanbanBtn" onclick="switchView('kanban')">칸반</button>
+      </div>
       <button class="btn-solid" id="addTaskBtn" style="touch-action:manipulation">+ 업무 추가</button>
     </div>
   </div>
@@ -472,6 +503,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
       <div class="member-filter-row" id="memberFilterRow"></div>
       <div class="filter-row" id="assigneeRow"></div>
       <div class="task-list" id="taskList"></div>
+<div class="kanban-board" id="kanbanBoard" style="display:none"></div>
     </div>
     <div class="resizer" id="resizer"></div>
     <div class="detail-panel" id="detailPanel">
@@ -946,6 +978,7 @@ function renderTaskList() {
 
   el.innerHTML = html;
   initDrag();
+  if (currentView === 'kanban') renderKanban();
 }
 
 function renderDetail(t) {
@@ -1669,6 +1702,143 @@ if ('serviceWorker' in navigator) {
 
 loadReporters();
 
+
+// ── 칸반 뷰 ──
+let currentView = 'list';
+let kbDragId = null;
+
+const KB_COLS = [
+  {key:'todo',      label:'대기',      badge:'kb-badge-todo'},
+  {key:'inprogress',label:'진행 중',   badge:'kb-badge-doing'},
+  {key:'overdue',   label:'기한 초과', badge:'kb-badge-over'},
+  {key:'done',      label:'완료',      badge:'kb-badge-done'},
+];
+const KB_LIMIT = 4;
+const kbExpanded = {};
+
+function getKbStatus(t) {
+  if (isOverdue(t)) return 'overdue';
+  return t.status === 'inprogress' ? 'inprogress' : t.status === 'done' ? 'done' : 'todo';
+}
+
+function renderKanban() {
+  const board = document.getElementById('kanbanBoard');
+  if (!board) return;
+  board.innerHTML = '';
+
+  const others = [...activeMemberFilters]
+    .filter(id => id !== ME.id)
+    .flatMap(id => (otherTasks[id]||[]).map(t => ({...t, _isOther:true})));
+  const allTasks = [...tasks, ...others.filter(t => !t.isPrivate)];
+
+  KB_COLS.forEach(col => {
+    const items = allTasks.filter(t => getKbStatus(t) === col.key);
+    const visible = items.slice(0, KB_LIMIT);
+    const hidden  = items.slice(KB_LIMIT);
+
+    const colEl = document.createElement('div');
+    colEl.className = 'kb-col';
+
+    colEl.innerHTML = `<div class="kb-col-head">
+      <span class="kb-col-name">${col.label}</span>
+      <span class="kb-col-count">${items.length}</span>
+    </div>`;
+
+    const body = document.createElement('div');
+    body.className = 'kb-col-body';
+
+    const makeKbCard = (t) => {
+      const el = document.createElement('div');
+      el.className = 'kb-card';
+      el.draggable = !t._isOther;
+      el.dataset.id = t._id;
+      const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : '';
+      el.innerHTML = `<div class="kb-card-title">${t.title}</div>
+        <div class="kb-card-meta">
+          <span class="kb-badge ${col.badge}">${t._isOther ? (t._mid||t.assignee||'') : (t.assignee||ME.id)}</span>
+          ${due}
+        </div>`;
+      el.addEventListener('click', () => {
+        if (t._isOther) openOtherDetail && openOtherDetail(t._id, t._mid||'');
+        else selTask && selTask(t._id);
+      });
+      if (!t._isOther) {
+        el.addEventListener('dragstart', () => {
+          kbDragId = t._id;
+          setTimeout(() => el.classList.add('kb-dragging'), 0);
+        });
+        el.addEventListener('dragend', () => {
+          el.classList.remove('kb-dragging');
+          kbDragId = null;
+          document.querySelectorAll('.kb-drag-over').forEach(c => c.classList.remove('kb-drag-over'));
+        });
+      }
+      return el;
+    };
+
+    visible.forEach(t => body.appendChild(makeKbCard(t)));
+
+    if (hidden.length > 0) {
+      const hw = document.createElement('div');
+      hw.className = 'kb-hidden' + (kbExpanded[col.key] ? ' open' : '');
+      hidden.forEach(t => hw.appendChild(makeKbCard(t)));
+      body.appendChild(hw);
+
+      const btn = document.createElement('button');
+      btn.className = 'kb-more-btn';
+      btn.textContent = kbExpanded[col.key] ? '접기 ▲' : `+${hidden.length}개 더보기 ▼`;
+      btn.addEventListener('click', () => {
+        kbExpanded[col.key] = !kbExpanded[col.key];
+        hw.classList.toggle('open', kbExpanded[col.key]);
+        btn.textContent = kbExpanded[col.key] ? '접기 ▲' : `+${hidden.length}개 더보기 ▼`;
+      });
+      body.appendChild(btn);
+    }
+
+    colEl.appendChild(body);
+    board.appendChild(colEl);
+
+    // 드래그 드롭 - 상태 변경
+    body.addEventListener('dragover', e => { e.preventDefault(); body.classList.add('kb-drag-over'); });
+    body.addEventListener('dragleave', () => body.classList.remove('kb-drag-over'));
+    body.addEventListener('drop', async e => {
+      e.preventDefault();
+      body.classList.remove('kb-drag-over');
+      if (!kbDragId) return;
+      const task = tasks.find(t => t._id === kbDragId);
+      if (!task) return;
+      const newStatus = col.key === 'overdue' ? task.status : col.key; // overdue는 status 변경 안 함
+      if (col.key === 'overdue') return; // 기한초과는 날짜 기반이라 드롭 불가
+      if (task.status === newStatus) return;
+      try {
+        await updateDoc(doc(db, 'tasks', ME.id, 'items', kbDragId), {
+          status: newStatus, updated: new Date().toISOString().slice(0,10)
+        });
+      } catch(e) { console.error('[GZPlan]', e); }
+    });
+  });
+}
+
+window.switchView = function(view) {
+  currentView = view;
+  const listEl   = document.getElementById('taskList');
+  const kanbanEl = document.getElementById('kanbanBoard');
+  const listBtn  = document.getElementById('viewListBtn');
+  const kanbanBtn= document.getElementById('viewKanbanBtn');
+  if (!listEl || !kanbanEl) return;
+  if (view === 'kanban') {
+    listEl.style.display = 'none';
+    kanbanEl.style.display = 'grid';
+    listBtn.classList.remove('active');
+    kanbanBtn.classList.add('active');
+    renderKanban();
+  } else {
+    listEl.style.display = '';
+    kanbanEl.style.display = 'none';
+    listBtn.classList.add('active');
+    kanbanBtn.classList.remove('active');
+  }
+};
 </script>
 <script>
 // ── 버튼 바인딩 (일반 script - 즉시 실행) ──
