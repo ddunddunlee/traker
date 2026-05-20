@@ -628,10 +628,27 @@ function renderKPI() {
   if (overdue > 0) { urgSub.textContent = `기한초과 ${overdue}건`; urgSub.className='kpi-sub dn'; }
   else { urgSub.textContent = '7일 이내'; urgSub.className='kpi-sub'; }
 
+  // 사이드바 배지: 기한초과(빨강) > 기한임박 7일(주황) 우선
+  const isImminentFn = t => {
+    if (!t.due || t.status === 'done') return false;
+    const diff = (new Date(t.due) - new Date()) / 86400000;
+    return diff >= 0 && diff <= 7;
+  };
+  const imminentCount = myTasks.filter(isImminentFn).length;
   const badge = document.getElementById('urgentBadge');
-  const n = overdue + urgent;
-  if (n > 0) { badge.textContent = n; badge.style.display = ''; }
-  else badge.style.display = 'none';
+  if (badge) {
+    if (overdue > 0) {
+      badge.textContent = overdue;
+      badge.style.display = '';
+      badge.style.background = '#EF4444';
+    } else if (imminentCount > 0) {
+      badge.textContent = imminentCount;
+      badge.style.display = '';
+      badge.style.background = '#EF9F27';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
 }
 
 // ── 기한초과 알림 배너 ──
