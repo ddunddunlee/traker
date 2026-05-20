@@ -806,10 +806,28 @@ function renderStats() {
   const stale   = tasks.filter(isStale).length;
   const overdue = tasks.filter(isOverdue).length;
 
-  // 사이드바 긴급 배지
-  const urgent = tasks.filter(t => t.status !== 'done' && (isOverdue(t) || (t.priority||3) >= 4)).length;
-  const badge  = document.getElementById('urgentBadge');
-  if (badge) { badge.style.display = urgent ? '' : 'none'; badge.textContent = urgent; }
+  // 사이드바 배지: 기한초과(빨강) > 기한임박 7일(주황) 우선
+  const isImminentFn = t => {
+    if (!t.due || t.status === 'done') return false;
+    const diff = (new Date(t.due) - new Date()) / 86400000;
+    return diff >= 0 && diff <= 7;
+  };
+  const overdueCount  = tasks.filter(isOverdue).length;
+  const imminentCount = tasks.filter(isImminentFn).length;
+  const badge = document.getElementById('urgentBadge');
+  if (badge) {
+    if (overdueCount > 0) {
+      badge.textContent = overdueCount;
+      badge.style.display = '';
+      badge.style.background = '#EF4444'; // 빨강
+    } else if (imminentCount > 0) {
+      badge.textContent = imminentCount;
+      badge.style.display = '';
+      badge.style.background = '#EF9F27'; // 주황
+    } else {
+      badge.style.display = 'none';
+    }
+  }
 
   // 통계 카드
   document.getElementById('statsRow').innerHTML = `
