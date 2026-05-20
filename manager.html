@@ -111,6 +111,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .task-card.pinned{border-left:3px solid var(--blue)}
 .task-card.overdue{border-left:3px solid var(--red);background:#fff8f8}
 .task-card.stale{border-left:3px solid var(--orange);background:#fffbf3}
+.task-card.imminent{border-left:3px solid #EF9F27;background:#fffcf0}
+.flag-imminent{background:#FFF3CD;color:#8B5E00;font-weight:600}
 .flag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;flex-shrink:0}
 .flag-overdue{background:var(--red-bg);color:var(--red)}
 .flag-stale{background:var(--amber-bg);color:var(--amber-t)}
@@ -635,7 +637,13 @@ function timeAgo(s) {
   return `${Math.floor(hrs / 24)}일`;
 }
 
-const isOverdue = t => t.due && t.status !== 'done' && new Date(t.due) < new Date();
+const isOverdue   = t => t.due && t.status !== 'done' && new Date(t.due) < new Date();
+const isImminent  = t => {
+  if (t.status !== 'inprogress') return false;
+  const due = t.due || t.startDate; if (!due) return false;
+  const diff = (new Date(due) - new Date()) / 86400000;
+  return diff >= 0 && diff <= 7;
+};
 const isStale   = t => {
   if (t.status === 'done') return false;
   return Date.now() - new Date(t.updated).getTime() >= STALE_DAYS * DAY_MS;
@@ -984,7 +992,7 @@ function renderStats() {
   const inprog  = all.filter(t => t.status === 'inprogress').length;
   const stale    = all.filter(isStale).length;
   const imminent = all.filter(t => {
-    if (t.status === 'done') return false;
+    if (t.status !== 'inprogress') return false;
     const due = t.due || t.startDate; if (!due) return false;
     const diff = (new Date(due) - new Date()) / 86400000;
     return diff >= 0 && diff <= 7;
@@ -1000,7 +1008,7 @@ function renderStats() {
 function renderTaskList() {
   const all      = getAllTasks();
   const filtered = all.filter(t => {
-    const isImminent = t => { if (t.status==='done') return false; const due=t.due||t.startDate; if(!due) return false; const diff=(new Date(due)-new Date())/86400000; return diff>=0&&diff<=7; };
+    const isImminent = t => { if (t.status!=='inprogress') return false; const due=t.due||t.startDate; if(!due) return false; const diff=(new Date(due)-new Date())/86400000; return diff>=0&&diff<=7; };
     const byStatus = filter === 'active' ? t.status !== 'done' : filter === 'all' ? true : filter === 'stale' ? isStale(t) : filter === 'imminent' ? isImminent(t) : t.status === filter;
     return byStatus;
   });
@@ -1031,9 +1039,11 @@ function renderTaskList() {
   list.forEach(t => {
     const ov  = isOverdue(t);
     const st  = isStale(t);
+    const im  = isImminent(t);
     let cls = 'task-card';
     if (t.pinned)    cls += ' pinned';
     else if (ov)     cls += ' overdue';
+    else if (im)     cls += ' imminent';
     else if (st)     cls += ' stale';
     if (selDocId === t._id) cls += ' selected';
 
@@ -1042,6 +1052,7 @@ function renderTaskList() {
     if (t.isShared)  flag += `<span class="shared-badge">👥 공통 · ${(t.members||[]).join(', ')}</span>`;
     if (t.pinned)    flag += '<span class="flag flag-pinned">📌 고정됨</span>';
     else if (ov)     flag += '<span class="flag flag-overdue">기한 초과</span>';
+    else if (im)     flag += '<span class="flag flag-imminent">⏰ 기한임박</span>';
     else if (st)     flag += '<span class="flag flag-stale">업데이트 필요</span>';
 
     const ago     = timeAgo(t.updated);
