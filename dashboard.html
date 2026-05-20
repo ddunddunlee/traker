@@ -220,10 +220,11 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 .today-item .t-check.done{background:var(--green,#639922);color:#fff;border-color:var(--green,#639922)}
 
 .detail-panel{
-  width:300px;min-width:260px;flex-shrink:0;
-  background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);
-  display:none;position:sticky;top:calc(var(--topbar-h) + 20px);
-  max-height:calc(100vh - var(--topbar-h) - 40px);overflow-y:auto;
+  width:320px;
+  background:var(--bg);border-left:0.5px solid var(--border);
+  display:none;position:fixed;top:0;right:0;bottom:0;
+  z-index:400;overflow-y:auto;
+  box-shadow:-4px 0 16px rgba(0,0,0,.08);
 }
 .detail-panel.open{display:block}
 .dp-head{
