@@ -645,17 +645,36 @@ function renderCalendar() {
   });
 
   schedules.forEach(s => {
-    if (!s.date) return;
-    // 본인 개별일정 or 공통일정만 (타인 일정 제외)
-    if (!s.isCommon && s.assignee && s.assignee !== ME.id) return;
     if (s.source === 'meeting') return;
-    const [y,m] = s.date.split('-').map(Number);
-    if (y===calYear && m-1===calMonth) {
-      if (!taskMap[s.date]) taskMap[s.date]=[];
-      if (taskMap[s.date].filter(x=>x!=='more').length<3)
-        taskMap[s.date].push({title:s.title,_sch:true});
+    // 타인 개인일정 제외 (공통일정은 모두 표시)
+    const isCommon = s.type === 'common' || s.isCommon;
+    if (!isCommon && s.authorId && s.authorId !== ME.id) return;
+
+    // startDate/endDate 기반 (캘린더 저장 방식)
+    const sd = s.startDate || s.date;
+    const ed = s.endDate || s.date || sd;
+    if (!sd) return;
+
+    const firstDay = toStr(new Date(calYear, calMonth, 1));
+    const lastDay2  = toStr(new Date(calYear, calMonth+1, 0));
+    if (sd > lastDay2 || ed < firstDay) return;
+
+    // 날짜 범위 순회
+    let cur = new Date(sd);
+    const endD = new Date(ed);
+    while (cur <= endD) {
+      const k = toStr(cur);
+      const [ky, km] = k.split('-').map(Number);
+      if (ky === calYear && km-1 === calMonth) {
+        if (!taskMap[k]) taskMap[k] = [];
+        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal'};
+        if (taskMap[k].filter(x=>x!=='more').length < 3) taskMap[k].push(pill);
+        else if (taskMap[k].length === 3) taskMap[k].push('more');
+      }
+      cur.setDate(cur.getDate()+1);
     }
   });
+;
 
   const pillColor = t => {
     if (t._sch) return 'blue';
