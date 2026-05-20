@@ -493,7 +493,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 });
 
 // ── 상태 ──
-let tasks     = [];
+let tasks = []; const _tasksByMid = {}; // mid별 업무 안전하게 관리
 let schedules = [];
 let sharedTasks = [];
 let calYear   = now.getFullYear();
@@ -524,12 +524,12 @@ if (taskQuery) {
   });
 }
 
-// 팀장: 전체 팀원 업무 구독
+// 팀장: 전체 팀원 업무 구독 (mid별 Map으로 안전하게 관리)
 if (isMgr) {
   MEMBER_IDS.forEach(mid => {
     onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
-      tasks = tasks.filter(t => t._mid !== mid);
-      snap.docs.forEach(d => tasks.push({_id:d.id, _mid:mid, ...d.data()}));
+      _tasksByMid[mid] = snap.docs.map(d => ({_id:d.id, _mid:mid, ...d.data()}));
+      tasks = Object.values(_tasksByMid).flat();
       renderKPI(); renderToday(); renderCalendar(); renderShortcut(); renderAlert();
     });
   });
