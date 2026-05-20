@@ -1849,14 +1849,14 @@ window.switchView = function(view) {
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>window.switchView&&window.switchView('kanban'));}else{window.switchView&&window.switchView('kanban');}
 
 window.changeTaskStatus = async function(newStatus) {
-  if (!selTask) return;
-  const t = tasks.find(t => t._id === selTask);
+  if (!selId) return;
+  const t = tasks.find(t => t._id === selId);
   if (!t || t.status === newStatus) return;
   const ts = new Date().toISOString().slice(0,10);
   const labels = {todo:'대기', inprogress:'진행 중', done:'완료'};
   const histEntry = {id:Date.now()+'', type:'status', text:'상태 변경: '+(labels[t.status]||t.status)+' → '+(labels[newStatus]||newStatus), date:ts};
   try {
-    await fsUpd(selTask, {status:newStatus, updated:ts, history:[...(t.history||[]), histEntry]});
+    await fsUpd(selId, {status:newStatus, updated:ts, history:[...(t.history||[]), histEntry]});
     toast('상태가 변경됐어요 ✓');
   } catch(e) { console.error('[GZPlan]', e); }
 };

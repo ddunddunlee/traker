@@ -742,8 +742,8 @@ function renderCalendar() {
     const sd = t.startDate, ed = t.endDate || t.startDate;
     if (sd > _calLastDay || ed < _calFirstDay) return;
     // sd ~ ed 범위의 날짜에 표시
-    let d = new Date(sd);
-    const endD = new Date(ed);
+    let d = new Date(sd + 'T00:00:00');
+    const endD = new Date(ed + 'T00:00:00');
     while (d <= endD) {
       const k = toStr(d);
       if (!taskMap[k]) taskMap[k] = [];
@@ -770,10 +770,11 @@ function renderCalendar() {
     if (sd > lastDay2 || ed < firstDay) return;
 
     // 날짜 범위 순회
-    let cur = new Date(sd);
-    const endD = new Date(ed);
-    while (cur <= endD) {
-      const k = toStr(cur);
+    // 날짜 문자열 기반 순회 (시간대 문제 방지)
+    let curD = new Date(sd + 'T00:00:00');
+    const endD2 = new Date(ed + 'T00:00:00');
+    while (curD <= endD2) {
+      const k = toStr(curD);
       const [ky, km] = k.split('-').map(Number);
       if (ky === calYear && km-1 === calMonth) {
         if (!taskMap[k]) taskMap[k] = [];
@@ -781,7 +782,7 @@ function renderCalendar() {
         if (taskMap[k].filter(x=>x!=='more').length < 3) taskMap[k].push(pill);
         else if (taskMap[k].length === 3) taskMap[k].push('more');
       }
-      cur.setDate(cur.getDate()+1);
+      curD.setDate(curD.getDate()+1);
     }
   });
 ;
@@ -863,8 +864,9 @@ let selTask = null;
 const dr  = id     => doc(db, 'tasks', ME.id, 'items', id);
 const fsUpd = (id, data) => updateDoc(dr(id), data);
 
+window._dashSelTask = null;
 window.openTaskDetail = function(taskId, mid) {
-  selTask = taskId;
+  window._dashSelTask = taskId;
   // tasks에서 찾기 (팀장: tasks 배열에 _mid 있음)
   const t = tasks.find(t => t._id === taskId) || 
             tasks.find(t => t._id === taskId && t._mid === mid);
@@ -875,14 +877,14 @@ window.openTaskDetail = function(taskId, mid) {
 };
 
 window.closeDetail = function() {
-  selTask = null;
+  window._dashSelTask = null;
   const panel = document.getElementById('detailPanel');
   if (panel) panel.classList.remove('open');
 };
 
 window.changeTaskStatus = async function(newStatus) {
-  if (!selTask) return;
-  const t = tasks.find(t => t._id === selTask);
+  if (!window._dashSelTask) return;
+  const t = tasks.find(t => t._id === window._dashSelTask);
   if (!t || t.status === newStatus) return;
   const ts = new Date().toISOString().slice(0,10);
   const labels = {todo:'대기', inprogress:'진행 중', done:'완료'};
