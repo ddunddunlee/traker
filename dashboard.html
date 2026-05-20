@@ -294,7 +294,8 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   -webkit-tap-highlight-color:transparent;touch-action:manipulation;
 }
-</style>
+
+.t-due.no-due{color:var(--text3)}</style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
@@ -647,8 +648,8 @@ function renderToday() {
   const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id); // 본인 업무만
   const overdue = myTasks.filter(t => {
     if(t.status==='done') return false;
-    const due = t.due||t.startDate;
-    return due && due < today;
+    if(!t.due) return false; // 종료일 미설정 → 기한초과 아님
+    return t.due < today;
   });
   const todayT = myTasks.filter(t => {
     if(t.status==='done') return false;
@@ -669,8 +670,8 @@ function renderToday() {
 
   el.innerHTML = items.map(t => {
     const isDone = t.status==='done';
-    const dueStr = isDone ? '완료' : t._late ? '기한초과' : today===(t.due||t.startDate) ? '오늘' : '진행중';
-    const dueCls = isDone ? 'done' : t._late ? 'late' : today===(t.due||t.startDate) ? 'today' : 'soon';
+    const dueStr = isDone ? '완료' : t._late ? '기한초과' : !t.due ? '종료일 미설정' : today===t.due ? '오늘' : '진행중';
+    const dueCls = isDone ? 'done' : t._late ? 'late' : !t.due ? 'no-due' : today===t.due ? 'today' : 'soon';
     const mid    = t._mid || ME.id;
     const color  = MEMBER_COLORS[MEMBER_IDS.indexOf(mid)] || '#378ADD';
     return `<div class="today-item" data-id="${t._id}" onclick="toggleDone('${t._id}','${t.status}','${mid}')">
