@@ -367,6 +367,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
           <div class="card-link" onclick="location.href='calendar.html'" style="margin-left:8px">전체보기 →</div>
         </div>
       </div>
+      <div id="calMemberFilter" style="display:none;padding:6px 12px 0;gap:5px;flex-wrap:wrap;align-items:center"></div>
       <div class="cal-grid">
         <div class="cal-day-row">
           <div class="cal-dlbl">월</div><div class="cal-dlbl">화</div><div class="cal-dlbl">수</div>
@@ -496,6 +497,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 let tasks = []; const _tasksByMid = {}; // mid별 업무 안전하게 관리
 let schedules = [];
 let sharedTasks = [];
+let calMemberSel = null; // 캘린더 팀원 필터 (null=전체, 'xxx'=해당 팀원)
 let calYear   = now.getFullYear();
 let calMonth  = now.getMonth();
 
@@ -765,8 +767,11 @@ function renderCalendar() {
   });
 
   // ③ 본인 업무 (팀장이면 현주용 업무 포함)
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName);
-  myTasks.forEach(t => {
+  // 팀장: calMemberSel 필터 적용, 팀원: 본인 업무만
+  const calTasks = isMgr
+    ? (calMemberSel ? tasks.filter(t => t._mid === calMemberSel) : tasks)
+    : tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName);
+  calTasks.forEach(t => {
     const s = t.startDate||t.due; const e = t.due||t.startDate;
     if (!s) return;
     for (let d=new Date(s+'T00:00:00'); d<=new Date((e||s)+'T00:00:00'); d.setDate(d.getDate()+1)) {
@@ -845,6 +850,35 @@ document.getElementById('calPrev').addEventListener('click',()=>{
 document.getElementById('calNext').addEventListener('click',()=>{
   calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar();
 });
+
+// 팀장 캘린더 팀원 필터 칩 초기화
+(function initCalMemberFilter() {
+  if (!isMgr) return;
+  const wrap = document.getElementById('calMemberFilter');
+  if (!wrap) return;
+  wrap.style.display = 'flex';
+  calMemberSel = ME.id; // 기본: 본인(현주용)
+
+  const allMembers = [{ id: ME.id, label: ME.displayName || ME.id }, ...MEMBER_IDS.filter(id => id !== ME.id && id !== ME.displayName).map(id => ({ id, label: id }))];
+
+  function renderChips() {
+    wrap.innerHTML = allMembers.map(m => {
+      const ci = MEMBER_IDS.indexOf(m.id);
+      const color = ci >= 0 ? MEMBER_COLORS[ci] : '#888';
+      const active = calMemberSel === m.id;
+      return `<div onclick="window.setCalMember('${m.id}')" style="cursor:pointer;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500;border:1.5px solid ${color};background:${active ? color : 'transparent'};color:${active ? '#fff' : color};transition:.15s">${m.label}</div>`;
+    }).join('') +
+    `<div onclick="window.setCalMember(null)" style="cursor:pointer;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500;border:1.5px solid #aaa;background:${calMemberSel === null ? '#aaa' : 'transparent'};color:${calMemberSel === null ? '#fff' : '#aaa'};transition:.15s">전체</div>`;
+  }
+
+  window.setCalMember = function(mid) {
+    calMemberSel = mid;
+    renderChips();
+    renderCalendar();
+  };
+
+  renderChips();
+})();
 
 renderCalendar();
 
