@@ -412,7 +412,7 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
     <div class="fg"><label>최종보고자</label><select id="iReporter"><option value="">없음</option></select></div>
     <div class="modal-btns">
       <button class="btn-cancel" id="modalCancelBtn" style="touch-action:manipulation">취소</button>
-      <button class="btn-ok" id="addTaskOkBtn" onclick="if(window.addTask)window.addTask()" style="touch-action:manipulation">추가하기</button>
+      <button class="btn-ok" id="addTaskOkBtn" style="touch-action:manipulation">추가하기</button>
     </div>
   </div>
 </div>
@@ -1798,8 +1798,8 @@ function renderKanban() {
           <span class="kb-badge ${col.badge}">${assignee}</span>${due}
         </div>`;
       el.addEventListener('click', () => {
-        if (window.openDetail) window.openDetail(t._id, t._mid || ME.id);
-        else if (window.selTask) window.selTask(t._id);
+        const _mid = t._mid || ME.id;
+        if (window.selTask) window.selTask(t._id, _mid);
       });
       el.addEventListener('dragstart', () => {
         kbDragId = {id: t._id, mid: t._mid || ME.id};
@@ -1878,11 +1878,7 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 <script>
 document.addEventListener('DOMContentLoaded', function() {
 
-  // 업무 추가 버튼
-  var addBtn = document.getElementById('addBtn');
-  if (addBtn) addBtn.addEventListener('click', function() { if (window.openModal) window.openModal(); });
-  var addTaskOkBtn = document.getElementById('addTaskOkBtn');
-  if (addTaskOkBtn) addTaskOkBtn.addEventListener('click', function() { if (window.addTask) window.addTask(); });
+  // 업무 추가 버튼 (1677번에서 이미 바인딩됨)
   // 로그아웃
   var logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) logoutBtn.addEventListener('click', function() {
