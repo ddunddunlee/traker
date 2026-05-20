@@ -603,17 +603,21 @@ function relTime(d) {
 
 // ── KPI ──
 function renderKPI() {
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName); // 본인 업무만
-  const total   = myTasks.length;
-  const doing   = myTasks.filter(t => t.status==='inprogress').length;
-  const done    = myTasks.filter(t => t.status==='done').length;
-  const urgent  = myTasks.filter(t => {
+  // 팀장: 전체 팀원 업무 / 팀원: 본인 업무만
+  const kpiTasks = isMgr
+    ? tasks.filter(t => t.status !== undefined)
+    : tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName);
+
+  const total   = kpiTasks.length;
+  const doing   = kpiTasks.filter(t => t.status==='inprogress').length;
+  const done    = kpiTasks.filter(t => t.status==='done').length;
+  const urgent  = kpiTasks.filter(t => {
     if (t.status==='done') return false;
     const due = t.due||t.startDate; if(!due) return false;
     const diff = (new Date(due)-new Date())/86400000;
     return diff<=7 && diff>=0;
   }).length;
-  const overdue = myTasks.filter(t => {
+  const overdue = kpiTasks.filter(t => {
     if (t.status==='done') return false;
     const due = t.due||t.startDate;
     return due && due < today;
@@ -621,12 +625,21 @@ function renderKPI() {
 
   document.getElementById('kTotal').textContent  = String(total).padStart(2,'0');
   document.getElementById('kDoing').textContent  = String(doing).padStart(2,'0');
-  document.getElementById('kUrgent').textContent = String(urgent).padStart(2,'0');
   document.getElementById('kDone').textContent   = String(done).padStart(2,'0');
 
+  // 기한임박 카드: 임박+초과 합산, 서브텍스트에 분리 표시
   const urgSub = document.getElementById('kUrgentSub');
-  if (overdue > 0) { urgSub.textContent = `기한초과 ${overdue}건`; urgSub.className='kpi-sub dn'; }
-  else { urgSub.textContent = '7일 이내'; urgSub.className='kpi-sub'; }
+  document.getElementById('kUrgent').textContent = String(urgent + overdue).padStart(2,'0');
+  if (overdue > 0 && urgent > 0) {
+    urgSub.textContent = `임박 ${urgent} / 초과 ${overdue}`;
+    urgSub.className = 'kpi-sub dn';
+  } else if (overdue > 0) {
+    urgSub.textContent = `기한초과 ${overdue}건`;
+    urgSub.className = 'kpi-sub dn';
+  } else {
+    urgSub.textContent = '7일 이내';
+    urgSub.className = 'kpi-sub';
+  }
 
   // 사이드바 배지: 기한초과(빨강) > 기한임박 7일(주황) 우선
   const isImminentFn = t => {
@@ -634,7 +647,7 @@ function renderKPI() {
     const diff = (new Date(t.due) - new Date()) / 86400000;
     return diff >= 0 && diff <= 7;
   };
-  const imminentCount = myTasks.filter(isImminentFn).length;
+  const imminentCount = kpiTasks.filter(isImminentFn).length;
   const badge = document.getElementById('urgentBadge');
   if (badge) {
     if (overdue > 0) {
