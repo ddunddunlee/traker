@@ -296,8 +296,8 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
     <div class="page-title">팀 업무 현황</div>
     <div class="topbar-right">
       <div class="view-toggle-wrap">
-        <button class="view-btn active" id="viewListBtn" onclick="switchView('list')">리스트</button>
-        <button class="view-btn" id="viewKanbanBtn" onclick="switchView('kanban')">카드</button>
+        <button class="view-btn" id="viewListBtn" onclick="switchView('list')">리스트</button>
+        <button class="view-btn active" id="viewKanbanBtn" onclick="switchView('kanban')">카드</button>
       </div>
       <button class="btn-solid" id="addBtn" style="touch-action:manipulation">+ 업무 추가</button>
     </div>
@@ -323,7 +323,7 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
           <button class="chip" data-f="stale">⚠ 오래된 업무</button>
         </div>
         <div class="task-list" id="taskList"></div>
-<div class="kanban-board" id="kanbanBoard" style="display:none"></div>
+<div class="kanban-board" id="kanbanBoard" style="display:grid"></div>
       </div>
       <div class="resizer" id="resizer"></div>
       <div class="detail-panel" id="detailPanel">
@@ -1732,7 +1732,7 @@ var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textCon
 
 // ── 칸반 뷰 ──
 let kbDragId = null;
-let currentView = 'list';
+let currentView = 'kanban';
 
 const KB_COLS = [
   {key:'todo',      label:'대기',      badge:'kb-badge-todo'},
@@ -1857,6 +1857,9 @@ window.switchView = function(view) {
     kanbanBtn.classList.remove('active');
   }
 };
+
+// 기본 카드뷰
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>window.switchView&&window.switchView('kanban'));}else{window.switchView&&window.switchView('kanban');}
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
