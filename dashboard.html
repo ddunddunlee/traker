@@ -528,7 +528,9 @@ if (taskQuery) {
 
 // 팀장: 전체 팀원 업무 구독 (mid별 Map으로 안전하게 관리)
 if (isMgr) {
-  MEMBER_IDS.forEach(mid => {
+  // MEMBER_IDS + 본인(ME.id) 합쳐서 중복 제거 후 구독 (memberOrder에 본인 없어도 구독)
+  const subMids = [...new Set([...MEMBER_IDS, ME.id, ME.displayName].filter(Boolean))];
+  subMids.forEach(mid => {
     onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
       _tasksByMid[mid] = snap.docs.map(d => ({_id:d.id, _mid:mid, ...d.data()}));
       tasks = Object.values(_tasksByMid).flat();
