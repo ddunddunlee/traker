@@ -584,6 +584,12 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   .sidebar.collapsed .sb-logout{justify-content:center;padding:7px 0}
   .sb-logout-lbl{transition:opacity var(--sb-ease),max-width var(--sb-ease);max-width:200px;overflow:hidden}
   .sidebar.collapsed .sb-logout-lbl{opacity:0;max-width:0}
+
+
+.tab-row{display:flex;gap:4px;padding:8px 14px 0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.tab-btn{padding:7px 14px;border:none;background:transparent;border-radius:8px 8px 0 0;font-size:13px;font-family:inherit;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px}
+.tab-btn:hover{background:var(--bg2);color:var(--text)}
+.tab-btn.active{color:var(--blue-t,#0C447C);border-bottom:2px solid var(--blue-t,#0C447C);font-weight:500;background:var(--bg)}
 </style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
