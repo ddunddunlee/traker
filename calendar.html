@@ -960,7 +960,7 @@ function collect(year,month){
       const seen = new Map();
       taskEvents
         .filter(t=>isMgr?(memberFilter==='all'||t._mid===memberFilter):activeMemberCal.has(t._mid))
-        .filter(t=>t.startDate<=ld&&t.endDate>=fd)
+        .filter(t=>t.status!=='done'&&t.startDate<=ld&&t.endDate>=fd)
         .forEach(t=>{
           const sid = t.sharedTaskId || (t.isShared ? t.id : null);
           if(sid){
