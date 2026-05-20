@@ -432,7 +432,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 <script type="module">
 import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, doc, getDoc, onSnapshot, updateDoc, query, orderBy, where }
+import { getFirestore, collection, doc, getDoc, onSnapshot, updateDoc, deleteDoc, query, orderBy, where }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const FIREBASE_CONFIG = {
@@ -779,7 +779,7 @@ function renderCalendar() {
       const [ky, km] = k.split('-').map(Number);
       if (ky === calYear && km-1 === calMonth) {
         if (!taskMap[k]) taskMap[k] = [];
-        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal', _isCommon: isCommon, _mid: s.authorId||ME.id};
+        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal', _isCommon: isCommon, _mid: s.authorId||ME.id, _schId: s._id||s.id||''};
         if (taskMap[k].filter(x=>x!=='more').length < 3) taskMap[k].push(pill);
         else if (taskMap[k].length === 3) taskMap[k].push('more');
       }
@@ -815,7 +815,7 @@ function renderCalendar() {
       cell.addEventListener('click', (e) => {
         if (e.target.classList.contains('cal-more') || e.target.closest('.cal-more')) return;
         if (e.target.classList.contains('cal-pill') || e.target.closest('.cal-pill')) return;
-        location.href = 'calendar.html?date=' + dStr + '&add=1';
+        // 빈 날짜 클릭 시 아무 동작 없음
       });
     }
     if (!valid) { cell.innerHTML='<div class="cal-num dim">·</div>'; cells.appendChild(cell); continue; }
@@ -946,6 +946,49 @@ document.addEventListener('DOMContentLoaded', function() {
   var cb = document.getElementById('closeDetailBtn');
   if(cb) cb.addEventListener('click', function() { window.closeDetail && window.closeDetail(); });
 });
+
+window.openScheduleDetail = function(schId, isCommon, e) {
+  const s = schedules.find(x => (x._id||x.id) === schId);
+  if (!s) return;
+  // 기존 팝업 제거
+  var old = document.getElementById('schPopup');
+  if (old) old.remove();
+  const canDelete = isCommon ? isMgr : (s.authorId === ME.id || isMgr);
+  const popup = document.createElement('div');
+  popup.id = 'schPopup';
+  popup.style.cssText = 'position:fixed;background:#fff;border:0.5px solid #dde3ea;border-radius:10px;padding:14px 16px;box-shadow:0 4px 20px rgba(0,0,0,.15);z-index:999;min-width:220px;max-width:280px;font-size:13px;font-family:inherit';
+  popup.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span style="font-weight:600;color:#1a1a1a">${s.title||'일정'}</span>
+      <button onclick="document.getElementById('schPopup').remove()" style="background:none;border:none;cursor:pointer;font-size:16px;color:#aaa;padding:0 2px">✕</button>
+    </div>
+    <div style="color:#6b6b6b;font-size:12px;margin-bottom:4px">${isCommon ? '🏢 공통 일정' : '📅 개인 일정'}</div>
+    ${s.startDate ? `<div style="color:#6b6b6b;font-size:12px">${s.startDate}${s.endDate && s.endDate !== s.startDate ? ' ~ ' + s.endDate : ''}</div>` : ''}
+    ${s.memo ? `<div style="margin-top:8px;color:#333;font-size:12px;white-space:pre-wrap">${s.memo}</div>` : ''}
+    ${canDelete ? `<button onclick="window.deleteScheduleDash('${schId}')" style="margin-top:12px;width:100%;padding:7px;background:#EF4444;color:#fff;border:none;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit">🗑 삭제</button>` : ''}
+  `;
+  // 위치 계산
+  const x = e ? Math.min(e.clientX, window.innerWidth - 300) : window.innerWidth/2 - 140;
+  const y = e ? Math.min(e.clientY + 8, window.innerHeight - 250) : window.innerHeight/2;
+  popup.style.left = x + 'px';
+  popup.style.top = y + 'px';
+  document.body.appendChild(popup);
+  setTimeout(() => {
+    document.addEventListener('click', function h(ev) {
+      if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener('click', h); }
+    });
+  }, 100);
+};
+
+window.deleteScheduleDash = async function(schId) {
+  if (!confirm('이 일정을 삭제할까요?')) return;
+  try {
+    await deleteDoc(doc(db, 'schedules', schId));
+    const panel = document.getElementById('detailPanel');
+    if (panel) panel.classList.remove('open');
+    toast('일정을 삭제했어요 ✓');
+  } catch(e) { console.error('[GZPlan]', e); toast('삭제 실패'); }
+};
 </script>
 </body>
 </html>
