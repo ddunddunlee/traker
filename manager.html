@@ -296,9 +296,13 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
     <button class="hamburger" id="hamburgerBtn" aria-label="메뉴"><span></span><span></span><span></span></button>
     <div class="page-title">팀 업무 현황</div>
     <div class="topbar-right">
-      <div class="view-toggle-wrap">
-        <button class="view-btn" id="viewListBtn" onclick="switchView('list')">리스트</button>
-        <button class="view-btn active" id="viewKanbanBtn" onclick="switchView('kanban')">카드</button>
+      <div class="view-toggle-wrap" style="display:flex;gap:2px;background:var(--bg2);border:0.5px solid var(--border);border-radius:7px;padding:2px">
+        <button class="view-btn" id="viewListBtn" onclick="switchView('list')" title="리스트" style="padding:5px 8px;border-radius:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </button>
+        <button class="view-btn active" id="viewKanbanBtn" onclick="switchView('kanban')" title="카드" style="padding:5px 8px;border-radius:5px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
       </div>
       <button class="btn-solid" id="addBtn" style="touch-action:manipulation">+ 업무 추가</button>
     </div>
