@@ -1,0 +1,25 @@
+{
+  "name": "GZ Plan",
+  "short_name": "GZ Plan",
+  "description": "GZ 경영기획팀 업무관리 시스템",
+  "start_url": "/traker/index.html",
+  "scope": "/traker/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0C447C",
+  "theme_color": "#0C447C",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
