@@ -591,7 +591,7 @@ function relTime(d) {
 
 // ── KPI ──
 function renderKPI() {
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id); // 본인 업무만
+  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName); // 본인 업무만
   const total   = myTasks.length;
   const doing   = myTasks.filter(t => t.status==='inprogress').length;
   const done    = myTasks.filter(t => t.status==='done').length;
@@ -646,7 +646,7 @@ function renderAlert() {
 
 // ── 오늘 할 일 ──
 function renderToday() {
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id); // 본인 업무만
+  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName); // 본인 업무만
   const overdue = myTasks.filter(t => {
     if(t.status==='done') return false;
     if(!t.due) return false; // 종료일 미설정 → 기한초과 아님
@@ -765,7 +765,7 @@ function renderCalendar() {
   });
 
   // ③ 본인 업무 (팀장이면 현주용 업무 포함)
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id);
+  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName);
   myTasks.forEach(t => {
     const s = t.startDate||t.due; const e = t.due||t.startDate;
     if (!s) return;
