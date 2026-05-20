@@ -625,10 +625,12 @@ function renderCalendar() {
     }
   });
   // 공통업무(sharedTasks) 캘린더 표시
+  const _calFirstDay = toStr(new Date(calYear, calMonth, 1));
+  const _calLastDay  = toStr(new Date(calYear, calMonth+1, 0));
   sharedTasks.forEach(t => {
     if (!t.startDate) return;
     const sd = t.startDate, ed = t.endDate || t.startDate;
-    if (sd > lastDay || ed < firstDay) return;
+    if (sd > _calLastDay || ed < _calFirstDay) return;
     // sd ~ ed 범위의 날짜에 표시
     let d = new Date(sd);
     const endD = new Date(ed);
