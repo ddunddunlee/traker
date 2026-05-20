@@ -722,71 +722,67 @@ function renderCalendar() {
   const lastDate = new Date(calYear,calMonth+1,0).getDate();
   const total    = Math.ceil((startDow+lastDate)/7)*7;
 
-  // 날짜별 업무 맵
-  const taskMap = {}; window._calTaskMap = taskMap;
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id); // 본인 업무만
-  myTasks.forEach(t => {
-    const s = t.startDate||t.due; const e = t.due||t.startDate;
-    if (!s) return;
-    for (let d=new Date(s); d<=new Date(e||s); d.setDate(d.getDate()+1)) {
-      const k = toStr(new Date(d));
-      if (!taskMap[k]) taskMap[k]=[];
-      if (taskMap[k].length < 3) taskMap[k].push(t);
-      else if (taskMap[k].length===3) taskMap[k].push('more');
-    }
-  });
-  // 공통업무(sharedTasks) 캘린더 표시
+  // 날짜별 전체 데이터 맵 (표시 제한 없이 전부 저장)
+  const taskMapAll = {}; window._calTaskMap = taskMapAll;
+
+  // ① 공통일정(schedules type:common) 먼저
   const _calFirstDay = toStr(new Date(calYear, calMonth, 1));
   const _calLastDay  = toStr(new Date(calYear, calMonth+1, 0));
-  sharedTasks.forEach(t => {
-    if (!t.startDate) return;
-    const sd = t.startDate, ed = t.endDate || t.startDate;
-    if (sd > _calLastDay || ed < _calFirstDay) return;
-    // sd ~ ed 범위의 날짜에 표시
-    let d = new Date(sd + 'T00:00:00');
-    const endD = new Date(ed + 'T00:00:00');
-    while (d <= endD) {
-      const k = toStr(d);
-      if (!taskMap[k]) taskMap[k] = [];
-      if (taskMap[k].filter(x=>x!=='more').length < 3)
-        taskMap[k].push({title:'[공통] '+(t.title||'공통업무'), _type:'common', _isCommon:true});
-      else if (taskMap[k].length === 3) taskMap[k].push('more');
-      d.setDate(d.getDate()+1);
-    }
-  });
 
   schedules.forEach(s => {
     if (s.source === 'meeting') return;
-    // 타인 개인일정 제외 (공통일정은 모두 표시)
     const isCommon = s.type === 'common' || s.isCommon;
     if (!isCommon && s.authorId && s.authorId !== ME.id) return;
-
-    // startDate/endDate 기반 (캘린더 저장 방식)
     const sd = s.startDate || s.date;
     const ed = s.endDate || s.date || sd;
-    if (!sd) return;
-
-    const firstDay = toStr(new Date(calYear, calMonth, 1));
-    const lastDay2  = toStr(new Date(calYear, calMonth+1, 0));
-    if (sd > lastDay2 || ed < firstDay) return;
-
-    // 날짜 범위 순회
-    // 날짜 문자열 기반 순회 (시간대 문제 방지)
+    if (!sd || sd > _calLastDay || ed < _calFirstDay) return;
     let curD = new Date(sd + 'T00:00:00');
-    const endD2 = new Date(ed + 'T00:00:00');
-    while (curD <= endD2) {
+    const endD = new Date(ed + 'T00:00:00');
+    while (curD <= endD) {
       const k = toStr(curD);
       const [ky, km] = k.split('-').map(Number);
       if (ky === calYear && km-1 === calMonth) {
-        if (!taskMap[k]) taskMap[k] = [];
-        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal', _isCommon: isCommon, _mid: s.authorId||ME.id, _schId: s._id||s.id||''};
-        if (taskMap[k].filter(x=>x!=='more').length < 3) taskMap[k].push(pill);
-        else if (taskMap[k].length === 3) taskMap[k].push('more');
+        if (!taskMapAll[k]) taskMapAll[k] = [];
+        taskMapAll[k].push({title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal', _isCommon: isCommon, _mid: s.authorId||ME.id, _schId: s._id||s.id||''});
       }
       curD.setDate(curD.getDate()+1);
     }
   });
-;
+
+  // ② 공통업무(sharedTasks)
+  sharedTasks.forEach(t => {
+    if (!t.startDate) return;
+    const sd = t.startDate, ed = t.endDate || t.startDate;
+    if (sd > _calLastDay || ed < _calFirstDay) return;
+    let d = new Date(sd + 'T00:00:00');
+    const endD = new Date(ed + 'T00:00:00');
+    while (d <= endD) {
+      const k = toStr(d);
+      if (!taskMapAll[k]) taskMapAll[k] = [];
+      taskMapAll[k].push({title:'[공통] '+(t.title||'공통업무'), _type:'common', _isCommon:true});
+      d.setDate(d.getDate()+1);
+    }
+  });
+
+  // ③ 본인 업무 (팀장이면 현주용 업무 포함)
+  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id);
+  myTasks.forEach(t => {
+    const s = t.startDate||t.due; const e = t.due||t.startDate;
+    if (!s) return;
+    for (let d=new Date(s+'T00:00:00'); d<=new Date((e||s)+'T00:00:00'); d.setDate(d.getDate()+1)) {
+      const k = toStr(new Date(d));
+      if (!taskMapAll[k]) taskMapAll[k]=[];
+      taskMapAll[k].push(t);
+    }
+  });
+
+  // 표시용 taskMap: 날짜별 최대 3개 + 'more'
+  const taskMap = {};
+  Object.keys(taskMapAll).forEach(k => {
+    const all = taskMapAll[k];
+    if (all.length <= 3) { taskMap[k] = all; }
+    else { taskMap[k] = [...all.slice(0,3), 'more']; }
+  });
 
   const pillColor = t => {
     if (t._isCommon || t._type === 'common') return '#888'; // 공통 → 회색
