@@ -857,9 +857,14 @@ document.getElementById('calNext').addEventListener('click',()=>{
   const wrap = document.getElementById('calMemberFilter');
   if (!wrap) return;
   wrap.style.display = 'flex';
-  calMemberSel = ME.id; // 기본: 본인(현주용)
+  // ME.id 또는 ME.displayName과 일치하는 MEMBER_IDS 항목 찾기
+  const myMid = MEMBER_IDS.find(id => id === ME.id || id === ME.displayName) || ME.id;
+  calMemberSel = myMid; // 기본: 본인
 
-  const allMembers = [{ id: ME.id, label: ME.displayName || ME.id }, ...MEMBER_IDS.filter(id => id !== ME.id && id !== ME.displayName).map(id => ({ id, label: id }))];
+  const allMembers = [
+    { id: myMid, label: myMid },
+    ...MEMBER_IDS.filter(id => id !== myMid).map(id => ({ id, label: id }))
+  ];
 
   function renderChips() {
     wrap.innerHTML = allMembers.map(m => {
