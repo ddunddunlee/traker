@@ -936,6 +936,7 @@ function render() {
   renderMemberFilter();
   renderStats();
   renderTaskList();
+  if (typeof currentView !== 'undefined' && currentView === 'kanban') renderKanban();
 }
 
 window.setMemberFilter = function(m) {
