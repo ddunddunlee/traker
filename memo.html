@@ -463,6 +463,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   
   
   
+
+.memo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
+.memo-card{background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;transition:box-shadow .15s}
+.memo-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
 </style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
@@ -687,7 +691,7 @@ function render(){
   const groups={};filtered.forEach(m=>{const k=dateKey(m.date);if(!groups[k])groups[k]=[];groups[k].push(m);});
   el.innerHTML=Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(key=>{
     const items=groups[key].map(m=>`<div class="memo-card"><div class="memo-time">${fmtTime(m.date)}${m.author?' · '+m.author:''}${m.edited?' · 수정됨':''}</div><div class="memo-text">${hlText(m.text,search)}</div>${m.tags.length?`<div class="memo-tags">${m.tags.map(t=>`<span class="memo-tag" onclick="filterTag('${t}')">${t}</span>`).join('')}</div>`:''}<div class="memo-actions"><button class="act-btn" onclick="editMemo('${m._id}')" title="수정">&#9999;</button><button class="act-btn del" onclick="deleteMemo('${m._id}')" title="삭제">&#10005;</button></div></div>`).join('');
-    return`<div class="date-group"><div class="date-label">${fmtDate(key+'T00:00:00')}</div>${items}</div>`;
+    return`<div class="date-group"><div class="date-label">${fmtDate(key+'T00:00:00')}</div><div class="memo-grid">${items}</div></div>`;
   }).join('');
 }
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)window.closeModal();});

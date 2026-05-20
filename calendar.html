@@ -519,12 +519,8 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
     <div class="page-title">캘린더</div>
     <div class="topbar-right">
       
-      <div style="position:relative;display:inline-block">
-        <button class="btn-solid" id="addPersonalBtn" onclick="window._toggleAddMenu&&window._toggleAddMenu(event)">+ 일정 추가</button>
-        <div id="addMenuDrop" style="display:none;position:absolute;right:0;top:calc(100% + 4px);background:var(--bg);border:0.5px solid var(--border);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:200;min-width:150px;padding:4px">
-          <div onclick="if(window.openAddModal)window.openAddModal('personal');document.getElementById('addMenuDrop').style.display='none'" style="padding:8px 14px;font-size:13px;cursor:pointer;border-radius:6px;color:var(--text)" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">개별 일정</div>
-          <div id="addCommonMenuBtn" onclick="if(window.openAddModal)window.openAddModal('common');document.getElementById('addMenuDrop').style.display='none'" style="display:none;padding:8px 14px;font-size:13px;cursor:pointer;border-radius:6px;color:var(--text)" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">🏢 공통 일정</div>
-        </div>
+      <button class="btn-ghost" id="addCommonBtnTop" style="display:none;border-color:var(--border2)">🏢 공통 일정 추가</button>
+      <button class="btn-solid" id="addPersonalBtn" onclick="if(window.openAddModal)window.openAddModal('personal')">+ 개별 일정 추가</button>
       </div>
     </div>
   </div>
@@ -1264,40 +1260,7 @@ loadCategories();renderCalendar();
   }
 })();
 
-// 일정 추가 드롭다운
-window._toggleAddMenu = function(e) {
-  e.stopPropagation();
-  const drop = document.getElementById('addMenuDrop');
-  const commonBtn = document.getElementById('addCommonMenuBtn');
-  // 팀장이면 공통 메뉴 표시
-  if (commonBtn) commonBtn.style.display = isMgr ? '' : 'none';
-  if (!drop) return;
-  const isOpen = drop.style.display !== 'none';
-  drop.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) {
-    setTimeout(() => document.addEventListener('click', function h() {
-      drop.style.display = 'none';
-      document.removeEventListener('click', h);
-    }), 10);
-  }
-};
 
-// 팀원: 버튼 클릭 시 드롭다운 없이 바로 개별 추가
-(function() {
-  var btn = document.getElementById('addPersonalBtn');
-  if (btn) {
-    var orig = btn.onclick;
-    btn.onclick = function(e) {
-      if (!isMgr) {
-        e.stopPropagation();
-        if (window.openAddModal) window.openAddModal('personal');
-      } else {
-        if (orig) orig.call(btn, e);
-        else if (window._toggleAddMenu) window._toggleAddMenu(e);
-      }
-    };
-  }
-})();
 </script>
 </body>
 </html>

@@ -822,7 +822,7 @@ function renderCalendar() {
     let more=0;
     dayT.forEach(t => {
       if (t==='more'){more++;return;}
-      html+=`<div class="cal-pill" style="background:${pillColor(t)};color:#fff;border-color:${pillColor(t)}" onclick="event.stopPropagation();window.openTaskDetail('${t._id}','${t._mid||ME.id}')" style="cursor:pointer">${t.title||'(제목없음)'}</div>`;
+      html+=`<div class="cal-pill" style="background:${pillColor(t)};color:#fff;border-color:${pillColor(t)};cursor:pointer" onclick="event.stopPropagation();window.openTaskDetail('${t._id}','${t._mid||ME.id}')">${t.title||'(제목없음)'}</div>`;
     });
     if (more) html+=`<div class="cal-more" onclick="showMorePopup(event,'${dStr}')" style="cursor:pointer">+${more}개 더보기</div>`;
     cell.innerHTML=html;
