@@ -538,7 +538,10 @@ if (isMgr) {
   subMids.forEach(mid => {
     onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
       _tasksByMid[mid] = snap.docs.map(d => ({_id:d.id, _mid:mid, ...d.data()}));
-      tasks = Object.values(_tasksByMid).flat();
+      // _id 기준 중복 제거
+      const _flat = Object.values(_tasksByMid).flat();
+      const _seen = new Set();
+      tasks = _flat.filter(t => { if (_seen.has(t._id)) return false; _seen.add(t._id); return true; });
       renderKPI(); renderToday(); renderCalendar(); renderShortcut(); renderAlert();
     });
   });
