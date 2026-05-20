@@ -814,6 +814,7 @@ function renderCalendar() {
       cell.style.cursor = 'pointer';
       cell.addEventListener('click', (e) => {
         if (e.target.classList.contains('cal-more') || e.target.closest('.cal-more')) return;
+        if (e.target.classList.contains('cal-pill') || e.target.closest('.cal-pill')) return;
         location.href = 'calendar.html?date=' + dStr + '&add=1';
       });
     }
@@ -826,7 +827,7 @@ function renderCalendar() {
       const _pid = t._id || t.id || '';
       const _pmid = t._mid || ME.id;
       const _clickable = !!t._id; // 업무만 클릭 가능
-      html+=`<div class="cal-pill" style="background:${pillColor(t)};color:#fff;border-color:${pillColor(t)};${_clickable?'cursor:pointer':''}" ${_clickable?`onclick="event.stopPropagation();window.openTaskDetail('${_pid}','${_pmid}')"`:''} >${t.title||'(제목없음)'}</div>`;
+      html+=`<div class="cal-pill" style="background:${pillColor(t)};color:#fff;border-color:${pillColor(t)};${_clickable?'cursor:pointer':''}" ${_clickable?`onclick="event.stopPropagation();event.preventDefault();window.openTaskDetail('${_pid}','${_pmid}')"`:''} >${t.title||'(제목없음)'}</div>`;
     });
     if (more) html+=`<div class="cal-more" onclick="showMorePopup(event,'${dStr}')" style="cursor:pointer">+${more}개 더보기</div>`;
     cell.innerHTML=html;
