@@ -282,7 +282,8 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
 .kb-hidden{display:none;flex-direction:column;gap:6px}
 .kb-hidden.open{display:flex}
 .kb-more-btn{width:100%;padding:7px;border-radius:7px;border:0.5px dashed var(--border);background:transparent;font-size:12px;color:var(--text2);cursor:pointer;transition:background .12s;font-family:inherit}
-.kb-more-btn:hover{background:var(--bg)}</style>
+.kb-more-btn:hover{background:var(--bg)}
+.task-date.no-due{color:var(--text3);font-style:italic}</style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
@@ -1778,7 +1779,7 @@ function renderKanban() {
       el.draggable = true;
       el.dataset.id = t._id;
       el.dataset.mid = t._mid || ME.id;
-      const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : '';
+      const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : `<span class="kb-due" style="color:var(--text3)">종료일 미설정</span>`;
       const assignee = t._mid || t.assignee || '';
       el.innerHTML = `<div class="kb-card-title">${t.title||'(제목없음)'}</div>
         <div class="kb-card-meta">
