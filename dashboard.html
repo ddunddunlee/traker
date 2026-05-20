@@ -866,13 +866,18 @@ const fsUpd = (id, data) => updateDoc(dr(id), data);
 
 window._dashSelTask = null;
 window.openTaskDetail = function(taskId, mid) {
+  console.log('[GZPlan] openTaskDetail 호출:', taskId, mid);
   window._dashSelTask = taskId;
-  // tasks에서 찾기 (팀장: tasks 배열에 _mid 있음)
-  const t = tasks.find(t => t._id === taskId) || 
+  const t = tasks.find(t => t._id === taskId) ||
             tasks.find(t => t._id === taskId && t._mid === mid);
-  if (!t) return;
+  console.log('[GZPlan] 찾은 업무:', t ? t.title : '없음', '| tasks 수:', tasks.length);
+  if (!t) {
+    console.error('[GZPlan] 업무를 찾지 못했습니다. taskId:', taskId);
+    return;
+  }
   renderDashDetail(t);
   const panel = document.getElementById('detailPanel');
+  console.log('[GZPlan] detailPanel:', panel ? '있음' : '없음!');
   if (panel) panel.classList.add('open');
 };
 
