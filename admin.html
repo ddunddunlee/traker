@@ -721,6 +721,14 @@ window.loadOrder = async function() {
   try {
     const snap = await getDoc(doc(db,'config','memberOrder'));
     if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
+    // accounts에서 member/manager인데 order에 없는 계정 자동 추가
+    const accSnap = await getDocs(collection(db,'accounts'));
+    accSnap.docs.forEach(d => {
+      const data = d.data();
+      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && !currentOrder.includes(d.id)) {
+        currentOrder.push(d.id);
+      }
+    });
   } catch(e){console.error("[GZPlan]",e);}
   renderOrder();
 };
@@ -928,6 +936,19 @@ document.getElementById('addAccountOkBtn')?.addEventListener('click',async()=>{
   const ex=await getDoc(doc(db,'accounts',id));
   if(ex.exists()){err.textContent='이미 사용 중인 아이디예요';return}
   await setDoc(doc(db,'accounts',id),{displayName:name,password:pw,role,disabled:false,createdAt:new Date().toISOString()});
+  // member/manager면 팀원 순서에도 자동 추가
+  if (role === 'member' || role === 'manager') {
+    try {
+      const orderSnap = await getDoc(doc(db,'config','memberOrder'));
+      const existingOrder = orderSnap.exists() ? (orderSnap.data().order || [...currentOrder]) : [...currentOrder];
+      if (!existingOrder.includes(id)) {
+        existingOrder.push(id);
+        await setDoc(doc(db,'config','memberOrder'), { order: existingOrder, updatedAt: new Date().toISOString() });
+        currentOrder = existingOrder;
+        if (document.getElementById('orderList')) renderOrder();
+      }
+    } catch(e) { console.error('[GZPlan] memberOrder 업데이트 실패', e); }
+  }
   closeOverlay('addAccountOverlay');toast(`${name} 계정을 추가했어요 ✓`);loadAccounts();
 });
 document.getElementById('aPwShowBtn')?.addEventListener('click',()=>{const e=document.getElementById('aPw');e.type=e.type==='password'?'text':'password';});
