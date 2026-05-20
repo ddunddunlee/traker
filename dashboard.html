@@ -213,7 +213,12 @@ html,body{height:100%;overflow:hidden;margin:0;padding:0}
 }
 .toast.show{opacity:1}
 
-.card:has(.cal-wrap){overflow:visible}</style>
+.card:has(.cal-wrap){overflow:visible}
+.today-item{cursor:pointer;transition:opacity .15s}
+.today-item .t-check{cursor:pointer;transition:all .15s}
+.today-item .t-title.done{opacity:.4;text-decoration:line-through}
+.today-item .t-check.done{background:var(--green,#639922);color:#fff;border-color:var(--green,#639922)}
+</style>
 <script src="./shared/sidebar.js" defer></script>
 </head>
 <body>
@@ -577,7 +582,7 @@ function renderToday() {
     const dueCls = isDone ? 'done' : t._late ? 'late' : today===(t.due||t.startDate) ? 'today' : 'soon';
     const mid    = t._mid || ME.id;
     const color  = MEMBER_COLORS[MEMBER_IDS.indexOf(mid)] || '#378ADD';
-    return `<div class="today-item" onclick="toggleDone('${t._id}','${t.status}','${mid}')">
+    return `<div class="today-item" data-id="${t._id}" onclick="toggleDone('${t._id}','${t.status}','${mid}')">
       <div class="t-check${isDone?' done':'}'}">${isDone?'✓':''}</div>
       <div class="t-title${isDone?' done':''}">
         ${isMgr && t._mid ? `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${color};margin-right:5px;vertical-align:1px"></span>` : ''}
@@ -588,11 +593,24 @@ function renderToday() {
   }).join('');
 }
 
-window.toggleDone = async (id, status, mid) => {
-  const newStatus = status === 'done' ? 'inprogress' : 'done';
-  try {
-    await updateDoc(doc(db,'tasks',mid,'items',id), {status:newStatus, updated:today});
-  } catch(e) { toast('저장 실패'); }
+// 오늘할일 로컬 체크 상태 (새로고침 시 초기화)
+const _checkedToday = new Set();
+
+window.toggleDone = function(id, status, mid) {
+  if (_checkedToday.has(id)) {
+    _checkedToday.delete(id);
+  } else {
+    _checkedToday.add(id);
+  }
+  // 체크 상태 UI만 업데이트
+  const item = document.querySelector('.today-item[data-id="'+id+'"]');
+  if (item) {
+    const checked = _checkedToday.has(id);
+    const chk = item.querySelector('.t-check');
+    const title = item.querySelector('.t-title');
+    if (chk) { chk.textContent = checked ? '✓' : ''; chk.classList.toggle('done', checked); }
+    if (title) title.classList.toggle('done', checked);
+  }
 };
 
 // ── 바로가기 부제 ──
@@ -706,7 +724,7 @@ function renderCalendar() {
     let more=0;
     dayT.forEach(t => {
       if (t==='more'){more++;return;}
-      html+=`<div class="cal-pill ${pillColor(t)}">${t.title||'(제목없음)'}</div>`;
+      html+=`<div class="cal-pill ${pillColor(t)}" onclick="event.stopPropagation();location.href='member.html'" style="cursor:pointer">${t.title||'(제목없음)'}</div>`;
     });
     if (more) html+=`<div class="cal-more" onclick="showMorePopup(event,'${dStr}')" style="cursor:pointer">+${more}개 더보기</div>`;
     cell.innerHTML=html;
