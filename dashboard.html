@@ -528,13 +528,18 @@ if (taskQuery) {
 
 // 팀장: 전체 팀원 업무 구독 (mid별 Map으로 안전하게 관리)
 if (isMgr) {
-  // MEMBER_IDS + 본인(ME.id) 합쳐서 중복 제거 후 구독 (memberOrder에 본인 없어도 구독)
+  // 팀장 본인 ID를 MEMBER_IDS에 확실히 포함 (색상 매칭 보장)
+  const mgrId = MEMBER_IDS.includes(ME.id) ? ME.id
+    : MEMBER_IDS.includes(ME.displayName) ? ME.displayName
+    : ME.id;
+  if (!MEMBER_IDS.includes(mgrId)) MEMBER_IDS.push(mgrId);
+
   const subMids = [...new Set([...MEMBER_IDS, ME.id, ME.displayName].filter(Boolean))];
-  // ME.id → MEMBER_IDS 기준 정규화 (색상 매칭용)
-  const normMid = mid => MEMBER_IDS.includes(mid) ? mid : (MEMBER_IDS.find(id => id === ME.displayName) || mid);
   subMids.forEach(mid => {
+    // Firestore 경로용 mid (tasks/{mid}/items)
     onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
-      const canonical = normMid(mid);
+      // _mid는 항상 mgrId 또는 MEMBER_IDS에 있는 값으로 정규화
+      const canonical = MEMBER_IDS.includes(mid) ? mid : mgrId;
       _tasksByMid[canonical] = snap.docs.map(d => ({_id:d.id, _mid:canonical, ...d.data()}));
       tasks = Object.values(_tasksByMid).flat();
       renderKPI(); renderToday(); renderCalendar(); renderShortcut(); renderAlert();
