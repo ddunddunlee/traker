@@ -27,6 +27,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI",sans-s
 .spin{width:20px;height:20px;border:2px solid #e5e5e3;border-top-color:#1a1a1a;border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
 </style>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GZ Plan">
+  <meta name="theme-color" content="#0C447C">
 </head>
 <body>
 <div class="box">
@@ -114,5 +120,15 @@ async function doLogin() {
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
 </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('./sw.js')
+          .then(function(reg) { console.log('[GZPlan] SW 등록:', reg.scope); })
+          .catch(function(err) { console.warn('[GZPlan] SW 등록 실패:', err); });
+      });
+    }
+  </script>
 </body>
 </html>
