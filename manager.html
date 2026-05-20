@@ -1675,6 +1675,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') window.closeModal();
 });
 document.getElementById('addBtn')?.addEventListener('click', () => window.openModal());
+document.getElementById('addTaskOkBtn')?.addEventListener('click', () => { if(window.addTask) window.addTask(); });
 
 // ════════════════════════════════════════════
 // 상세 패널 리사이즈
@@ -1890,11 +1891,7 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('click', function() { location.href = el.dataset.nav; });
   });
 
-  // 업무 추가
-  var addBtn = document.getElementById('addBtn');
-  if (addBtn) addBtn.addEventListener('click', function() {
-    if (window.openModal) window.openModal();
-  });
+  // 업무 추가 (이미 위에서 바인딩됨)
 
   // 모달
   var cancelBtn = document.getElementById('modalCancelBtn');
