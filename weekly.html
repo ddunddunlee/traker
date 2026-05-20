@@ -1220,8 +1220,11 @@ function renderWeeklySchedule() {
       }
       
       if(e._type === 'task') {
-        const pr = e.priority || 3;
-        color = e.status === 'done' ? '#bbb' : (PRIORITY_COLORS[pr] || '#888');
+        // 담당자 팀원 색상
+        const _tmid = e._mid || (typeof ME !== 'undefined' ? ME.id : '');
+        const _tci = typeof MEMBER_IDS !== 'undefined' ? MEMBER_IDS.indexOf(_tmid) : -1;
+        const _tmc = _tci >= 0 && typeof MEMBER_COLORS !== 'undefined' ? MEMBER_COLORS[_tci] : '#888';
+        color = e.status === 'done' ? '#bbb' : _tmc;
         label = title;
       } else if(e._type === 'common') {
         color = '#5F5E5A';

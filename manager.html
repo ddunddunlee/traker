@@ -1781,7 +1781,10 @@ function renderKanban() {
       el.dataset.mid = t._mid || ME.id;
       const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : `<span class="kb-due" style="color:var(--text3)">종료일 미설정</span>`;
       const assignee = t._mid || t.assignee || '';
-      el.innerHTML = `<div class="kb-card-title">${t.title||'(제목없음)'}</div>
+      const _mid = t._mid || (typeof ME !== 'undefined' ? ME.id : '');
+      const _ci = typeof MEMBER_IDS !== 'undefined' ? MEMBER_IDS.indexOf(_mid) : -1;
+      const _mc = _ci >= 0 && typeof MEMBER_COLORS !== 'undefined' ? MEMBER_COLORS[_ci] : '#888';
+      el.innerHTML = `<div style="height:3px;background:${_mc};border-radius:4px 4px 0 0;margin:-10px -10px 8px;"></div><div class="kb-card-title">${t.title||'(제목없음)'}</div>
         <div class="kb-card-meta">
           <span class="kb-badge ${col.badge}">${assignee}</span>${due}
         </div>`;

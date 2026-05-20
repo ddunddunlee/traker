@@ -747,7 +747,7 @@ function renderCalendar() {
       const k = toStr(d);
       if (!taskMap[k]) taskMap[k] = [];
       if (taskMap[k].filter(x=>x!=='more').length < 3)
-        taskMap[k].push({title:'[공통] '+(t.title||'공통업무'), _type:'common'});
+        taskMap[k].push({title:'[공통] '+(t.title||'공통업무'), _type:'common', _isCommon:true});
       else if (taskMap[k].length === 3) taskMap[k].push('more');
       d.setDate(d.getDate()+1);
     }
@@ -776,7 +776,7 @@ function renderCalendar() {
       const [ky, km] = k.split('-').map(Number);
       if (ky === calYear && km-1 === calMonth) {
         if (!taskMap[k]) taskMap[k] = [];
-        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal'};
+        const pill = {title: (isCommon ? '[공통] ' : '') + (s.title||'일정'), _type: s.type||'personal', _isCommon: isCommon, _mid: s.authorId||ME.id};
         if (taskMap[k].filter(x=>x!=='more').length < 3) taskMap[k].push(pill);
         else if (taskMap[k].length === 3) taskMap[k].push('more');
       }
@@ -786,12 +786,17 @@ function renderCalendar() {
 ;
 
   const pillColor = t => {
-    if (t._sch) return 'blue';
-    if (t.status==='done') return 'green';
-    const p = t.priority||3;
-    if (p>=5) return 'red';
-    if (p>=4) return 'amber';
-    return 'blue';
+    if (t._isCommon || t._type === 'common') return '#888'; // 공통 → 회색
+    if (t._sch) {
+      // 개인일정 → 담당자 색상
+      const mid = t._mid || ME.id;
+      const ci = MEMBER_IDS.indexOf(mid);
+      return ci >= 0 ? MEMBER_COLORS[ci] : '#888';
+    }
+    // 업무 → 담당자 색상
+    const mid = t._mid || ME.id;
+    const ci = MEMBER_IDS.indexOf(mid);
+    return ci >= 0 ? MEMBER_COLORS[ci] : '#888';
   };
 
   cells.innerHTML = '';
@@ -815,7 +820,7 @@ function renderCalendar() {
     let more=0;
     dayT.forEach(t => {
       if (t==='more'){more++;return;}
-      html+=`<div class="cal-pill ${pillColor(t)}" onclick="event.stopPropagation();window.openTaskDetail('${t._id}','${t._mid||ME.id}')" style="cursor:pointer">${t.title||'(제목없음)'}</div>`;
+      html+=`<div class="cal-pill" style="background:${pillColor(t)};color:#fff;border-color:${pillColor(t)}" onclick="event.stopPropagation();window.openTaskDetail('${t._id}','${t._mid||ME.id}')" style="cursor:pointer">${t.title||'(제목없음)'}</div>`;
     });
     if (more) html+=`<div class="cal-more" onclick="showMorePopup(event,'${dStr}')" style="cursor:pointer">+${more}개 더보기</div>`;
     cell.innerHTML=html;
