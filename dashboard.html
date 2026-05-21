@@ -681,14 +681,11 @@ function renderKPI() {
   const imminentCount = kpiTasks.filter(isImminentFn).length;
   const badge = document.getElementById('urgentBadge');
   if (badge) {
-    if (overdue > 0) {
-      badge.textContent = overdue;
+    const total = overdue + imminentCount;
+    if (total > 0) {
+      badge.textContent = total;
       badge.style.display = '';
-      badge.style.background = '#EF4444';
-    } else if (imminentCount > 0) {
-      badge.textContent = imminentCount;
-      badge.style.display = '';
-      badge.style.background = '#EF9F27';
+      badge.style.background = overdue > 0 ? '#EF4444' : '#EF9F27';
     } else {
       badge.style.display = 'none';
     }
