@@ -924,23 +924,29 @@ window.deletePoolTask = async (poolId, e) => {
 // ════════════════════════════════════════════
 function getAllTasks() {
   const dedupShared = (tasks) => {
-    const seenShared = new Map();
-    // 공통업무는 sharedTaskId 기준으로 members 합쳐서 대표 하나만 노출
+    const repMap = new Map();
+    // 1패스: sharedTaskId 기준으로 대표 선정 + members 합산
+    // 현재 탭 팀원 업무를 우선 대표로 (없으면 첫 번째)
     tasks.forEach(t => {
       const sid = t.sharedTaskId || (t.isShared ? t._id : null);
       if (!sid) return;
-      if (!seenShared.has(sid)) {
-        seenShared.set(sid, t);
+      if (!repMap.has(sid)) {
+        repMap.set(sid, t);
       } else {
-        const rep = seenShared.get(sid);
+        const rep = repMap.get(sid);
+        // 현재 탭 팀원 업무면 대표로 교체
+        if (curTab !== '__all__' && t._mid === curTab) repMap.set(sid, t);
         const mems = [...new Set([...(rep.members||[rep._mid||rep.assignee||'']), t._mid||t.assignee||''].filter(Boolean))];
         rep.members = mems;
+        repMap.get(sid).members = mems;
       }
     });
     const seen2 = new Set();
     return tasks.filter(t => {
       const sid = t.sharedTaskId || (t.isShared ? t._id : null);
       if (!sid) return true;
+      const rep = repMap.get(sid);
+      if (rep !== t) return false; // 대표가 아니면 제외
       if (seen2.has(sid)) return false;
       seen2.add(sid);
       return true;
