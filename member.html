@@ -522,11 +522,11 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
       </div>
       <div class="dp-meta" id="dpMeta"></div>
       <div class="dp-sec">히스토리</div>
-      <div class="timeline" id="dpTimeline"></div>
       <div class="dp-note">
         <textarea class="note-input" id="noteInput" placeholder="메모 또는 업데이트 입력..."></textarea>
         <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
       </div>
+      <div class="timeline" id="dpTimeline"></div>
     </div>
   </div>
 </div>
@@ -1180,7 +1180,7 @@ function renderDetail(t) {
     </div>`;
 
   // 타임라인(히스토리)
-  const history = [...(t.history || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const history = [...(t.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
   document.getElementById('dpTimeline').innerHTML = history.map((h, i) => `
     <div class="tl-item">
       <div class="tl-dot ${h.type}"></div>
@@ -1189,7 +1189,7 @@ function renderDetail(t) {
         <div class="tl-row">
           <div class="tl-text">
             ${h.author ? `<span class="tl-author">${h.author}</span>` : ''}
-            ${h.text}
+            ${h.text.replace(/^상태 변경: /, '').replace(/ \(팀장\)$/, '').replace(/ \(팀원\)$/, '')}
           </div>
           <button class="tl-del" onclick="deleteHistory('${t._id}', '${h.id}')">✕</button>
         </div>
@@ -1239,7 +1239,7 @@ window.openOtherDetail = (docId, memberId) => {
   const PC = {5:'#A32D2D',4:'#EF9F27',3:'#378ADD',2:'#639922',1:'#888'};
   const fmtD = s => { if(!s) return '-'; const d=new Date(s+'T00:00:00'); return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`; };
   const fmtDt = s => { if(!s) return '-'; const d=new Date(s); return `${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
-  const history = [...(t.history||[])].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const history = [...(t.history||[])].sort((a,b)=>new Date(b.date)-new Date(a.date));
 
   const dp = document.getElementById('detailPanel');
   if (!dp) return;
