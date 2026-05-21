@@ -615,15 +615,24 @@ function relTime(d) {
 function renderKPI() {
   // 공통업무 sharedTaskId 기준 중복 제거 + _id 중복 제거
   const _dedupTasks = (arr) => {
-    const seenSid = new Set();
+    // sharedTaskId별 대표 선정: 비완료 우선
+    const repMap = new Map();
+    arr.forEach(t => {
+      const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+      if (!sid) return;
+      if (!repMap.has(sid)) { repMap.set(sid, t); }
+      else if (repMap.get(sid).status === 'done' && t.status !== 'done') { repMap.set(sid, t); }
+    });
     const seenId  = new Set();
+    const seenSid = new Set();
     return arr.filter(t => {
       if (seenId.has(t._id)) return false;
       seenId.add(t._id);
       const sid = t.sharedTaskId || (t.isShared ? t._id : null);
       if (!sid) return true;
       if (seenSid.has(sid)) return false;
-      seenSid.add(sid); return true;
+      seenSid.add(sid);
+      return repMap.get(sid) === t;
     });
   };
   // 팀장: 전체 팀원 업무 / 팀원: 본인 업무만
