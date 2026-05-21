@@ -423,11 +423,11 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
       </div>
       <div class="dp-meta" id="dpMeta"></div>
       <div class="dp-sec">히스토리</div>
-      <div class="timeline" id="dpTimeline"></div>
       <div class="dp-note">
         <textarea class="note-input" id="noteInput" placeholder="메모 또는 업데이트 입력..."></textarea>
         <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
       </div>
+      <div class="timeline" id="dpTimeline"></div>
     </div>
 <div class="toast" id="toast"></div>
 
@@ -994,24 +994,20 @@ const dr  = id     => doc(db, 'tasks', ME.id, 'items', id);
 const fsUpd = (id, data) => updateDoc(dr(id), data);
 
 window._dashSelTask = null;
+window._dashSelMid  = null;
 window.openTaskDetail = function(taskId, mid) {
-  console.log('[GZPlan] openTaskDetail 호출:', taskId, mid);
   window._dashSelTask = taskId;
-  const t = tasks.find(t => t._id === taskId) ||
-            tasks.find(t => t._id === taskId && t._mid === mid);
-  console.log('[GZPlan] 찾은 업무:', t ? t.title : '없음', '| tasks 수:', tasks.length);
-  if (!t) {
-    console.error('[GZPlan] 업무를 찾지 못했습니다. taskId:', taskId);
-    return;
-  }
-  renderDashDetail(t);
+  window._dashSelMid  = mid;
+  const t = tasks.find(t => t._id === taskId);
+  if (!t) return;
+  renderDashDetail(t, mid);
   const panel = document.getElementById('detailPanel');
-  console.log('[GZPlan] detailPanel:', panel ? '있음' : '없음!');
   if (panel) panel.classList.add('open');
 };
 
 window.closeDetail = function() {
   window._dashSelTask = null;
+  window._dashSelMid  = null;
   const panel = document.getElementById('detailPanel');
   if (panel) panel.classList.remove('open');
 };
@@ -1020,21 +1016,49 @@ window.changeTaskStatus = async function(newStatus) {
   if (!window._dashSelTask) return;
   const t = tasks.find(t => t._id === window._dashSelTask);
   if (!t || t.status === newStatus) return;
+  const mid = window._dashSelMid || t._mid || ME.id;
   const ts = new Date().toISOString().slice(0,10);
   const labels = {todo:'대기', inprogress:'진행 중', done:'완료'};
-  const mid = t._mid || ME.id;
+  const hist = [...(t.history||[]), {
+    id: Date.now()+'', type:'status',
+    text: `${labels[t.status]||t.status} → ${labels[newStatus]||newStatus}`,
+    date: new Date().toISOString(), author: ME.displayName||ME.id
+  }];
   try {
-    await updateDoc(doc(db,'tasks',mid,'items',selTask), {status:newStatus, updated:ts});
+    await updateDoc(doc(db,'tasks',mid,'items',window._dashSelTask), {status:newStatus, updated:ts, history:hist});
+    t.status = newStatus; t.updated = ts; t.history = hist;
+    renderDashDetail(t, mid);
   } catch(e) { console.error('[GZPlan]', e); }
 };
 
-function renderDashDetail(t) {
+// 대시보드 메모 추가
+window._dashAddNote = async function() {
+  const inp = document.getElementById('noteInput');
+  if (!inp || !inp.value.trim()) return;
+  const text = inp.value.trim();
+  if (!window._dashSelTask) return;
+  const t = tasks.find(t => t._id === window._dashSelTask);
+  if (!t) return;
+  const mid = window._dashSelMid || t._mid || ME.id;
+  const ts = new Date().toISOString();
+  const hist = [...(t.history||[]), {
+    id: Date.now()+'', type:'note',
+    text, date: ts, author: ME.displayName||ME.id
+  }];
+  try {
+    await updateDoc(doc(db,'tasks',mid,'items',window._dashSelTask), {history:hist, updated:ts.slice(0,10)});
+    t.history = hist; t.updated = ts.slice(0,10);
+    inp.value = '';
+    renderDashDetail(t, mid);
+  } catch(e) { console.error('[GZPlan]', e); }
+};
+
+function renderDashDetail(t, mid) {
   const el = document.getElementById('dpTitle');
   if (el) el.value = t.title || '';
   
   const sl = {todo:'대기', inprogress:'진행 중', done:'완료'};
-  const statusColor = t.status==='done'?'badge-done':t.status==='inprogress'?'badge-inprogress':'badge-todo';
-  const mid = t._mid || ME.id;
+  mid = mid || t._mid || ME.id;
   
   const body = document.getElementById('dpMeta');
   if (!body) return;
@@ -1104,6 +1128,10 @@ function renderDashDetail(t) {
 document.addEventListener('DOMContentLoaded', function() {
   var cb = document.getElementById('closeDetailBtn');
   if(cb) cb.addEventListener('click', function() { window.closeDetail && window.closeDetail(); });
+  var nb = document.getElementById('addNoteBtn');
+  if(nb) nb.addEventListener('click', function() { window._dashAddNote && window._dashAddNote(); });
+  var ni = document.getElementById('noteInput');
+  if(ni) ni.addEventListener('keydown', function(e) { if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)) window._dashAddNote&&window._dashAddNote(); });
 });
 
 window.openScheduleDetail = function(schId, isCommon, e) {
