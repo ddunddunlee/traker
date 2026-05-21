@@ -619,8 +619,7 @@ function renderKPI() {
   }).length;
   const overdue = kpiTasks.filter(t => {
     if (t.status==='done') return false;
-    const due = t.due||t.startDate;
-    return due && due < today;
+    return t.due && t.due < today;
   }).length;
 
   document.getElementById('kTotal').textContent  = String(total).padStart(2,'0');
