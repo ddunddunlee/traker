@@ -1008,22 +1008,27 @@ function renderMemberFilter() {
 
 
 function renderStats() {
-  const all     = getAllTasks();
-  const total   = all.length;
-  const inprog  = all.filter(t => t.status === 'inprogress').length;
-  const stale    = all.filter(isStale).length;
+  const all      = getAllTasks();
+  const total    = all.length;
+  const inprog   = all.filter(t => t.status === 'inprogress').length;
+  const done     = all.filter(t => t.status === 'done').length;
   const imminent = all.filter(t => {
     if (t.status !== 'inprogress') return false;
     const due = t.due || t.startDate; if (!due) return false;
     const diff = (new Date(due) - new Date()) / 86400000;
     return diff >= 0 && diff <= 7;
   }).length;
-  const overdue = all.filter(isOverdue).length;
+  const overdue  = all.filter(isOverdue).length;
+  const urgentTotal = imminent + overdue;
+  let urgSub = '';
+  if (imminent > 0 && overdue > 0) urgSub = `<div style="font-size:10px;color:#BA7517;margin-top:2px">임박 ${imminent} / 초과 ${overdue}</div>`;
+  else if (overdue > 0) urgSub = `<div style="font-size:10px;color:var(--red);margin-top:2px">기한초과 ${overdue}건</div>`;
+  else if (imminent > 0) urgSub = `<div style="font-size:10px;color:#BA7517;margin-top:2px">7일 이내</div>`;
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-label">전체 업무</div><div class="stat-value">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-value">${inprog}</div></div>
-    <div class="stat-card"><div class="stat-label">기한 임박</div><div class="stat-value warn">${imminent}</div></div>
-    <div class="stat-card"><div class="stat-label">기한 초과</div><div class="stat-value danger">${overdue}</div></div>`;
+    <div class="stat-card"><div class="stat-label">전체 업무</div><div class="stat-value">${total}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">이번 달</div></div>
+    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-value" style="color:var(--blue)">${inprog}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">실시간</div></div>
+    <div class="stat-card"><div class="stat-label">기한 임박</div><div class="stat-value warn">${String(urgentTotal).padStart(2,'0')}</div>${urgSub}</div>
+    <div class="stat-card"><div class="stat-label">완료</div><div class="stat-value" style="color:var(--green)">${String(done).padStart(2,'0')}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">누적</div></div>`;
 }
 
 function renderTaskList() {
