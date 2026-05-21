@@ -269,7 +269,8 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
 .kb-col-name{font-size:12px;font-weight:500;color:var(--text2)}
 .kb-col-count{font-size:11px;background:var(--bg);border:0.5px solid var(--border);border-radius:999px;padding:1px 7px;color:var(--text2)}
 .kb-col-body{padding:6px 8px 8px;display:flex;flex-direction:column;gap:6px;min-height:60px}
-.kb-card{background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;user-select:none;transition:box-shadow .15s,opacity .15s}
+.kb-card{background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;user-select:none;transition:box-shadow .15s,opacity .15s,border-color .15s}
+.kb-card.selected{border-color:#0C447C;border-width:1.5px;box-shadow:0 0 0 2px rgba(12,68,124,0.12)}
 .kb-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .kb-card.kb-dragging{opacity:.35;cursor:grabbing}
 .kb-card.imminent{border-left:3px solid #EF9F27;background:#fffcf0}
@@ -1364,6 +1365,7 @@ window.closeDetail = () => {
   selDocId = null;
   selMId   = null;
   document.getElementById('detailPanel').classList.remove('open');
+  document.querySelectorAll('.kb-card.selected, .task-card.selected').forEach(c => c.classList.remove('selected'));
   render();
 };
 
@@ -1866,6 +1868,9 @@ function renderKanban() {
         </div>`;
       el.addEventListener('click', () => {
         const _mid = t._mid || ME.id;
+        // 기존 선택 해제
+        document.querySelectorAll('.kb-card.selected').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
         if (window.selTask) window.selTask(t._id, _mid);
       });
       el.addEventListener('dragstart', () => {
