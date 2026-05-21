@@ -349,11 +349,11 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
         </div>
         <div class="dp-meta" id="dpMeta"></div>
         <div class="dp-sec">히스토리</div>
-        <div class="timeline" id="dpTimeline"></div>
         <div class="dp-note">
           <textarea class="note-input" id="noteInput" placeholder="팀장 코멘트 입력..."></textarea>
           <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
         </div>
+        <div class="timeline" id="dpTimeline"></div>
       </div>
     </div>
   </div><!-- end viewWork -->
@@ -1161,8 +1161,9 @@ function renderDetail(t) {
     const label   = isDone ? '완료' : isOver
       ? `기한 초과 +${elapsed - total}일`
       : `${Math.max(0, elapsed)}일 / ${total}일 (${pct}%)`;
+    const labelColor = isDone ? 'var(--green)' : isOver ? 'var(--red)' : 'var(--text3)';
     return `<div class="progress-wrap">
-      <div class="progress-label"><span>진행</span><span>${label}</span></div>
+      <div class="progress-label"><span style="color:var(--text3)">진행률</span><span style="color:${labelColor};font-weight:${isOver?'600':'400'}">${label}</span></div>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill ${fillCls}" style="width:${pct}%"></div>
       </div>
@@ -1237,13 +1238,13 @@ function renderDetail(t) {
         ${(() => {
           const members = t.members && t.members.length ? t.members : [t._mid];
           return members.map(id => `
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:12px;background:#E6F1FB;color:#0C447C;border:0.5px solid #B5D4F4">
+            <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:999px;font-size:12px;font-weight:500;background:#E6F1FB;color:#0C447C;border:0.5px solid #B5D4F4">
               ${id}
-              ${!isAll && members.length > 1 ? `<span style="cursor:pointer;font-size:11px;color:#A32D2D" onclick="window.removeMember('${t._id}','${t._mid}','${id}')">✕</span>` : ''}
+              ${!isAll && members.length > 1 ? `<span style="cursor:pointer;font-size:12px;color:#A32D2D;line-height:1" onclick="window.removeMember('${t._id}','${t._mid}','${id}')">✕</span>` : ''}
             </span>`).join('');
         })()}
         ${!isAll ? `<button onclick="window.toggleAddMember('${t._id}')" 
-          style="padding:3px 10px;border-radius:999px;font-size:12px;border:0.5px dashed var(--border);background:transparent;color:var(--text3);cursor:pointer">+ 팀원 추가</button>` : ''}
+          style="padding:5px 12px;border-radius:999px;font-size:12px;border:1px dashed var(--border);background:transparent;color:var(--text3);cursor:pointer;transition:.15s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">+ 팀원 추가</button>` : ''}
       </div>
       <div id="dp-add-member-${t._id}" style="display:none;width:100%">
         <select id="dp-member-select-${t._id}" style="width:100%;padding:8px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2)">
@@ -1260,16 +1261,18 @@ function renderDetail(t) {
       </div>
     </div>
     <div class="dp-row" style="padding:10px 0">
-      <span class="dp-lbl">비공개 업무</span>
+      <span class="dp-lbl">비공개</span>
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-        <span style="font-size:11px;color:var(--text3)">${t.isPrivate ? '🔒 팀장+담당자만' : '전체 공개'}</span>
         <input type="checkbox" id="dp-private-${t._id}" ${t.isPrivate?'checked':''}
-          style="width:16px;height:16px;cursor:pointer"
+          style="width:15px;height:15px;cursor:pointer;accent-color:#0C447C"
           onchange="window.updatePrivate('${t._id}','${t._mid}',this.checked)"/>
+        <span style="font-size:12px;color:${t.isPrivate ? '#0C447C' : 'var(--text3)'}">
+          ${t.isPrivate ? '🔒 팀장+담당자만' : '전체 공개'}
+        </span>
       </label>
     </div>`;
 
-  const history = [...(t.history || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
+  const history = [...(t.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date)); // 최신 위로
   document.getElementById('dpTimeline').innerHTML = history.map((h, i) => `
     <div class="tl-item">
       <div class="tl-dot ${h.type}"></div>
@@ -1278,7 +1281,7 @@ function renderDetail(t) {
         <div class="tl-row">
           <div class="tl-text">
             ${h.author ? `<span class="tl-author">${h.author}</span>` : ''}
-            ${h.text}
+            ${h.text.replace(/^상태 변경: /, '').replace(/ \(팀장\)$/, '').replace(/ \(팀원\)$/, '')}
           </div>
           ${!isAll ? `<button class="tl-del" onclick="deleteHistory('${t._id}','${t._mid}','${h.id}')">✕</button>` : ''}
         </div>
