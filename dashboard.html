@@ -603,14 +603,17 @@ function relTime(d) {
 
 // ── KPI ──
 function renderKPI() {
-  // 공통업무 sharedTaskId 기준 중복 제거
+  // 공통업무 sharedTaskId 기준 중복 제거 + _id 중복 제거
   const _dedupTasks = (arr) => {
-    const seen = new Set();
+    const seenSid = new Set();
+    const seenId  = new Set();
     return arr.filter(t => {
+      if (seenId.has(t._id)) return false;
+      seenId.add(t._id);
       const sid = t.sharedTaskId || (t.isShared ? t._id : null);
       if (!sid) return true;
-      if (seen.has(sid)) return false;
-      seen.add(sid); return true;
+      if (seenSid.has(sid)) return false;
+      seenSid.add(sid); return true;
     });
   };
   // 팀장: 전체 팀원 업무 / 팀원: 본인 업무만
@@ -675,7 +678,14 @@ function renderKPI() {
 
 // ── 기한초과 알림 배너 ──
 function renderAlert() {
-  const overdue = tasks.filter(t => {
+  const _seenA = new Set();
+  const dedupedA = tasks.filter(t => {
+    const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+    if (!sid) return true;
+    if (_seenA.has(sid)) return false;
+    _seenA.add(sid); return true;
+  });
+  const overdue = dedupedA.filter(t => {
     if (t.status==='done') return false;
     const due = t.due||t.startDate;
     return due && due < today;
@@ -697,7 +707,14 @@ function renderAlert() {
 
 // ── 오늘 할 일 ──
 function renderToday() {
-  const myTasks = tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName); // 본인 업무만
+  const _seenT = new Set();
+  const myTasks = tasks.filter(t => {
+    if (!(!t._mid || t._mid === ME.id || t._mid === ME.displayName)) return false;
+    const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+    if (!sid) return true;
+    if (_seenT.has(sid)) return false;
+    _seenT.add(sid); return true;
+  }); // 본인 업무만 + 공통업무 중복 제거
   const overdue = myTasks.filter(t => {
     if(t.status==='done') return false;
     if(!t.due) return false; // 종료일 미설정 → 기한초과 아님
