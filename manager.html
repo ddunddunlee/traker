@@ -1921,6 +1921,13 @@ function renderKanban() {
       } catch(e) { console.error('[GZPlan]', e); }
     });
   });
+
+  // 선택된 카드 복원
+  if (selDocId) {
+    document.querySelectorAll('.kb-card').forEach(c => {
+      if (c.dataset.id === selDocId) c.classList.add('selected');
+    });
+  }
 }
 
 window.switchView = function(view) {
