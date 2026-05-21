@@ -824,14 +824,11 @@ function renderStats() {
   const imminentCount = tasks.filter(isImminentFn).length;
   const badge = document.getElementById('urgentBadge');
   if (badge) {
-    if (overdueCount > 0) {
-      badge.textContent = overdueCount;
+    const total = overdueCount + imminentCount;
+    if (total > 0) {
+      badge.textContent = total;
       badge.style.display = '';
-      badge.style.background = '#EF4444'; // 빨강
-    } else if (imminentCount > 0) {
-      badge.textContent = imminentCount;
-      badge.style.display = '';
-      badge.style.background = '#EF9F27'; // 주황
+      badge.style.background = overdueCount > 0 ? '#EF4444' : '#EF9F27';
     } else {
       badge.style.display = 'none';
     }
@@ -929,7 +926,27 @@ function renderTaskList() {
     ...others.filter(t => !t.isPrivate)
   ];
 
-  const filtered = allTasks.filter(t => {
+  // 공통업무 sharedTaskId 기준 중복 제거
+  const _seenShared = new Map();
+  allTasks.forEach(t => {
+    const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+    if (!sid) return;
+    if (!_seenShared.has(sid)) {
+      _seenShared.set(sid, t);
+    } else {
+      const rep = _seenShared.get(sid);
+      rep.members = [...new Set([...(rep.members||[rep._mid||'']), t._mid||''].filter(Boolean))];
+    }
+  });
+  const _seen2 = new Set();
+  const dedupedTasks = allTasks.filter(t => {
+    const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+    if (!sid) return true;
+    if (_seen2.has(sid)) return false;
+    _seen2.add(sid); return true;
+  });
+
+  const filtered = dedupedTasks.filter(t => {
     const byStatus = filter === 'active' ? t.status !== 'done' : filter === 'all' ? true : filter === 'stale' ? isStale(t) : t.status === filter;
     const byAssign = filterA === 'all' || t.assignee === filterA;
     const byMember = activeMemberFilters.has(t._mid || ME.id);
