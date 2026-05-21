@@ -538,10 +538,20 @@ if (isMgr) {
   subMids.forEach(mid => {
     onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
       _tasksByMid[mid] = snap.docs.map(d => ({_id:d.id, _mid:mid, ...d.data()}));
-      // _id 기준 중복 제거
+      // _id + sharedTaskId 기준 중복 제거
       const _flat = Object.values(_tasksByMid).flat();
-      const _seen = new Set();
-      tasks = _flat.filter(t => { if (_seen.has(t._id)) return false; _seen.add(t._id); return true; });
+      const _seenId  = new Set();
+      const _seenSid = new Set();
+      tasks = _flat.filter(t => {
+        if (_seenId.has(t._id)) return false;
+        _seenId.add(t._id);
+        const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+        if (sid) {
+          if (_seenSid.has(sid)) return false;
+          _seenSid.add(sid);
+        }
+        return true;
+      });
       renderKPI(); renderToday(); renderCalendar(); renderShortcut(); renderAlert();
     });
   });
@@ -632,7 +642,7 @@ function renderKPI() {
   }).length;
   const overdue = kpiTasks.filter(t => {
     if (t.status==='done') return false;
-    return t.due && t.due < today;
+    return t.due && new Date(t.due) < new Date();
   }).length;
 
   document.getElementById('kTotal').textContent  = String(total).padStart(2,'0');
@@ -687,8 +697,7 @@ function renderAlert() {
   });
   const overdue = dedupedA.filter(t => {
     if (t.status==='done') return false;
-    const due = t.due||t.startDate;
-    return due && due < today;
+    return t.due && new Date(t.due) < new Date();
   });
   const banner = document.getElementById('alertBanner');
   if (overdue.length > 0 && sessionStorage.getItem('gz_alert_closed') !== '1') {
