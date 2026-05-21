@@ -603,10 +603,20 @@ function relTime(d) {
 
 // ── KPI ──
 function renderKPI() {
+  // 공통업무 sharedTaskId 기준 중복 제거
+  const _dedupTasks = (arr) => {
+    const seen = new Set();
+    return arr.filter(t => {
+      const sid = t.sharedTaskId || (t.isShared ? t._id : null);
+      if (!sid) return true;
+      if (seen.has(sid)) return false;
+      seen.add(sid); return true;
+    });
+  };
   // 팀장: 전체 팀원 업무 / 팀원: 본인 업무만
-  const kpiTasks = isMgr
+  const kpiTasks = _dedupTasks(isMgr
     ? tasks.filter(t => t.status !== undefined)
-    : tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName);
+    : tasks.filter(t => !t._mid || t._mid === ME.id || t._mid === ME.displayName));
 
   const total   = kpiTasks.length;
   const doing   = kpiTasks.filter(t => t.status==='inprogress').length;
