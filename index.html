@@ -110,8 +110,8 @@ async function doLogin() {
   var btn = document.getElementById('loginBtn');
   err.textContent = '';
   
-  if (!teamId) { err.textContent = '팀을 선택해주세요'; return; }
   if (!id || !pw) { err.textContent = '아이디와 비밀번호를 입력해주세요'; return; }
+  if (!teamId && id !== 'admin') { err.textContent = '팀을 선택해주세요'; return; }
 
   btn.disabled = true;
   document.getElementById('spin').style.display = 'flex';
