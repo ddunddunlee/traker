@@ -824,7 +824,7 @@ window.loadOrder = async function() {
 
 function renderOrder() {
   const el = document.getElementById('orderList');
-  const filteredOrder = orderTeamFilter === 'all' ? currentOrder
+  const filteredOrder = window.orderTeamFilter === 'all' ? currentOrder
     : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orderTeamFilter);
   if (!el) return;
   el.innerHTML = currentOrder.map((name, i) => `
@@ -884,7 +884,7 @@ window.loadOrgs = async function() {
 function renderOrgs() {
   const el = document.getElementById('orgsList');
   if (!el) return;
-  const filteredIds = orgsTeamFilter === 'all' ? MEMBER_IDS
+  const filteredIds = window.orgsTeamFilter === 'all' ? MEMBER_IDS
     : MEMBER_IDS.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orgsTeamFilter);
   el.innerHTML = filteredIds.map(id => {
     const orgs = currentOrgs[id] || [];
@@ -940,7 +940,7 @@ async function init(){
 }
 
 window.setAdminTeamFilter = function(teamId) {
-  adminTeamFilter = teamId;
+  window.adminTeamFilter = teamId;
   document.querySelectorAll('#adminTeamFilterRow .chip').forEach(c => {
     c.classList.toggle('active', c.id === 'atf-' + teamId);
   });
@@ -948,12 +948,12 @@ window.setAdminTeamFilter = function(teamId) {
 };
 
 window.setOrderTeamFilter = function(teamId) {
-  orderTeamFilter = teamId;
+  window.orderTeamFilter = teamId;
   document.querySelectorAll('#orderTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'otf-' + teamId));
   renderOrder();
 };
 window.setOrgsTeamFilter = function(teamId) {
-  orgsTeamFilter = teamId;
+  window.orgsTeamFilter = teamId;
   document.querySelectorAll('#orgsTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'grtf-' + teamId));
   renderOrgs?.();
 };
@@ -994,7 +994,7 @@ function renderStats(){
 
 function renderList(){
   const el=document.getElementById('accountList');
-  const filtered = adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === adminTeamFilter);
+  const filtered = window.adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === adminTeamFilter);
   if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">해당 팀 계정이 없어요</div>';return;}
   const rl={admin:'어드민',manager:'팀장',member:'팀원'};
   const roleCls={admin:'role-admin',manager:'role-manager',member:'role-member'};
@@ -1121,10 +1121,10 @@ document.getElementById('roleOkBtn')?.addEventListener('click',async()=>{
 
 // 보고자
 async function loadReporters(){
-  try{const snap=await getDoc(doc(db,'teams',TEAM_ID,'settings','reporters'));reporters=snap.exists()?(snap.data().list||[]):[];}catch{reporters=[]}
+  try{const snap=await getDoc(doc(db,'settings','reporters'));reporters=snap.exists()?(snap.data().list||[]):[];}catch{reporters=[]}
   renderReporters();
 }
-async function saveReporters(){await setDoc(doc(db,'teams',TEAM_ID,'settings','reporters'),{list:reporters});}
+async function saveReporters(){await setDoc(doc(db,'settings','reporters'),{list:reporters});}
 function renderReporters(){
   const el=document.getElementById('reporterList');
   if(!reporters.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem 0">등록된 보고자가 없어요</div>';return;}
