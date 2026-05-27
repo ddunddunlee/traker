@@ -707,7 +707,7 @@ let accounts=[],reporters=[],currentUser=null,editingId=null;
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw'';}
 const u=JSON.parse(sess);
-const TEAM_ID = ME.teamId || 'planning';
+const TEAM_ID = u.teamId || 'planning';
 if(u.role!=='admin'){location.href='index.html';throw'';}
 currentUser=u;
 
