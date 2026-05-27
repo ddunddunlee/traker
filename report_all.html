@@ -217,9 +217,10 @@ try {
     getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'))
   ]);
   if (orgSnap.exists()) MEMBER_ORGS = orgSnap.data().orgs || MEMBER_ORGS;
+  // memberOrder가 없으면 빈 배열 — 다른 팀 데이터 표시 방지
+  MEMBER_IDS.length = 0;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
-    const saved = orderSnap.data().order;
-    MEMBER_IDS.length = 0; saved.forEach(id => MEMBER_IDS.push(id));
+    orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
   }
 } catch(e){console.error("[GZPlan]",e);}
 
