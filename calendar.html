@@ -716,6 +716,16 @@ const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw''}
 const ME=JSON.parse(sess);
 const TEAM_ID = ME.teamId || 'planning';
+
+// ── memberOrder 동적 로드 ──
+try {
+  const _orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
+  if (_orderSnap.exists() && _orderSnap.data().order?.length) {
+    MEMBER_IDS.length = 0;
+    _orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
+  }
+} catch(e) { console.error('[GZPlan] memberOrder 로드 실패', e); }
+
 if(!ME.id){location.href='index.html';throw''}
 const isMgr=ME.role==='manager'||ME.role==='admin';
 

@@ -524,6 +524,15 @@ if (!ME?.id || !ME?.role) { localStorage.removeItem('tt_user'); sessionStorage.c
 if (ME.role !== 'manager' && ME.role !== 'admin') { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
 const TEAM_ID = ME.teamId || 'planning';
 
+// ── memberOrder 동적 로드 (팀별 팀원 목록) ──
+try {
+  const _orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
+  if (_orderSnap.exists() && _orderSnap.data().order?.length) {
+    MEMBER_IDS.length = 0;
+    _orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
+  }
+} catch(e) { console.error('[GZPlan] memberOrder 로드 실패', e); }
+
 // ── 사이드바 이름 즉시 표시 ──
 (function initSidebar() {
   var nm = document.getElementById('sbUserName');

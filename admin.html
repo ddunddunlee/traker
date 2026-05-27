@@ -609,17 +609,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   </div>
   <div id="teamList" style="display:flex;flex-direction:column;gap:10px"></div>
 
-  <!-- 데이터 마이그레이션 -->
-  <div style="margin-top:32px;padding:20px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px">
-    <div style="font-size:14px;font-weight:700;color:#E65100;margin-bottom:6px">⚡ 기존 데이터 마이그레이션</div>
-    <div style="font-size:12px;color:#BF360C;margin-bottom:6px;line-height:1.7">
-      기존 루트 경로 데이터를 <code>teams/planning/</code> 구조로 복사합니다.<br>
-      <strong>최초 1회만 실행하세요.</strong> 기존 데이터는 삭제되지 않습니다.
-    </div>
-    <div style="font-size:11px;color:#E65100;margin-bottom:14px">복사 대상: tasks, schedules, memos, weeklyReports, weeklyMgrNote, sharedTasks, taskPool, meetings, config, settings/calCategories</div>
-    <button id="migrateBtn" style="padding:10px 20px;background:#E65100;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🚀 마이그레이션 실행</button>
-    <div id="migrateLog" style="margin-top:12px;font-size:12px;color:var(--text3);line-height:2;max-height:300px;overflow-y:auto"></div>
-  </div>
 </div>
 
 <!-- 팀 추가 모달 -->
@@ -797,6 +786,10 @@ window.loadOrder = async function() {
       if (!acc) return true;
       return (acc.teamId || 'planning') === TEAM_ID;
     });
+    // accData를 전역 accounts에도 동기화 (필터 참조용)
+    if (accounts.length === 0) {
+      accData.forEach(a => { if (!accounts.find(x=>x.docId===a.id)) accounts.push({docId:a.id,...a}); });
+    }
   } catch(e){console.error("[GZPlan]",e);}
   renderOrder();
 };
@@ -854,12 +847,17 @@ window.saveOrder = async function() {
 
 window.loadOrgs = async function() {
   try {
-    const [orgsSnap, orderSnap] = await Promise.all([
+    const [orgsSnap, orderSnap, accSnap] = await Promise.all([
       getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
       getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder')),
+      getDocs(collection(db,'accounts')),
     ]);
     if (orgsSnap.exists()) currentOrgs = orgsSnap.data().orgs || DEFAULT_ORGS;
     if (orderSnap.exists()) currentOrder = orderSnap.data().order || [...MEMBER_IDS];
+    // accounts 동기화
+    if (accounts.length === 0) {
+      accSnap.docs.forEach(d => accounts.push({docId:d.id,...d.data()}));
+    }
   } catch(e){console.error("[GZPlan]",e);}
   renderOrgs();
 };
@@ -1117,161 +1115,6 @@ init();
     if(nm && u.displayName) nm.textContent = u.displayName;
   } catch(e){}
 })();
-
-// ── 데이터 마이그레이션 JS ──
-document.getElementById('migrateBtn')?.addEventListener('click', async () => {
-  const btn = document.getElementById('migrateBtn');
-  const log = document.getElementById('migrateLog');
-  btn.disabled = true; btn.textContent = '실행 중...';
-  log.innerHTML = '';
-  const addLog = (msg, color='var(--text2)') => {
-    log.innerHTML += `<div style="color:${color}">${msg}</div>`;
-    log.scrollTop = log.scrollHeight;
-  };
-
-  try {
-    const TARGET = 'planning';
-
-    // 1. teams/planning 문서 생성
-    await setDoc(doc(db,'teams',TARGET), { name:'경영기획팀', createdAt: new Date().toISOString() });
-    addLog('✅ teams/planning 생성', 'var(--green)');
-
-    // 2. accounts에 teamId 추가
-    const accSnap = await getDocs(collection(db,'accounts'));
-    for (const d of accSnap.docs) {
-      if (!d.data().teamId) {
-        await updateDoc(doc(db,'accounts',d.id), { teamId: TARGET });
-        addLog(`✅ accounts/${d.id} → teamId: planning`);
-      }
-    }
-
-    // 3. config (memberOrder, memberOrgs) 복사
-    for (const docId of ['memberOrder','memberOrgs']) {
-      try {
-        const snap = await getDoc(doc(db,'config',docId));
-        if (snap.exists()) {
-          await setDoc(doc(db,'teams',TARGET,'config',docId), snap.data());
-          addLog(`✅ config/${docId} 복사`);
-        }
-      } catch(e) { addLog(`⚠️ config/${docId}: ${e.message}`, 'var(--orange)'); }
-    }
-
-    // 4. settings/calCategories 복사
-    try {
-      const snap = await getDoc(doc(db,'settings','calCategories'));
-      if (snap.exists()) {
-        await setDoc(doc(db,'teams',TARGET,'settings','calCategories'), snap.data());
-        addLog('✅ settings/calCategories 복사');
-      }
-    } catch(e) { addLog(`⚠️ calCategories: ${e.message}`, 'var(--orange)'); }
-
-    // 5. schedules 복사
-    try {
-      const snap = await getDocs(collection(db,'schedules'));
-      for (const d of snap.docs) {
-        await setDoc(doc(db,'teams',TARGET,'schedules',d.id), d.data());
-      }
-      addLog(`✅ schedules ${snap.size}건 복사`);
-    } catch(e) { addLog(`⚠️ schedules: ${e.message}`, 'var(--orange)'); }
-
-    // 6. sharedTasks 복사
-    try {
-      const snap = await getDocs(collection(db,'sharedTasks'));
-      for (const d of snap.docs) {
-        await setDoc(doc(db,'teams',TARGET,'sharedTasks',d.id), d.data());
-      }
-      addLog(`✅ sharedTasks ${snap.size}건 복사`);
-    } catch(e) { addLog(`⚠️ sharedTasks: ${e.message}`, 'var(--orange)'); }
-
-    // 7. taskPool 복사
-    try {
-      const snap = await getDocs(collection(db,'taskPool'));
-      for (const d of snap.docs) {
-        await setDoc(doc(db,'teams',TARGET,'taskPool',d.id), d.data());
-      }
-      addLog(`✅ taskPool ${snap.size}건 복사`);
-    } catch(e) { addLog(`⚠️ taskPool: ${e.message}`, 'var(--orange)'); }
-
-    // 8. meetings 복사
-    try {
-      const snap = await getDocs(collection(db,'meetings'));
-      for (const d of snap.docs) {
-        await setDoc(doc(db,'teams',TARGET,'meetings',d.id), d.data());
-      }
-      addLog(`✅ meetings ${snap.size}건 복사`);
-    } catch(e) { addLog(`⚠️ meetings: ${e.message}`, 'var(--orange)'); }
-
-    // 9. weeklyMgrNote 복사
-    try {
-      const snap = await getDocs(collection(db,'weeklyMgrNote'));
-      for (const d of snap.docs) {
-        await setDoc(doc(db,'teams',TARGET,'weeklyMgrNote',d.id), d.data());
-      }
-      addLog(`✅ weeklyMgrNote ${snap.size}건 복사`);
-    } catch(e) { addLog(`⚠️ weeklyMgrNote: ${e.message}`, 'var(--orange)'); }
-
-    // 10. tasks/{memberId}/items 복사
-    try {
-      const orderSnap = await getDoc(doc(db,'teams',TARGET,'config','memberOrder'));
-      const members = orderSnap.exists() ? orderSnap.data().order : [];
-      let taskTotal = 0;
-      for (const mid of members) {
-        try {
-          const snap = await getDocs(collection(db,'tasks',mid,'items'));
-          for (const d of snap.docs) {
-            await setDoc(doc(db,'teams',TARGET,'tasks',mid,'items',d.id), d.data());
-          }
-          taskTotal += snap.size;
-          addLog(`  ✅ tasks/${mid}/items ${snap.size}건`);
-        } catch(e) { addLog(`  ⚠️ tasks/${mid}: ${e.message}`, 'var(--orange)'); }
-      }
-      addLog(`✅ tasks 총 ${taskTotal}건 복사`);
-    } catch(e) { addLog(`⚠️ tasks: ${e.message}`, 'var(--orange)'); }
-
-    // 11. memos/{memberId}/items 복사
-    try {
-      const orderSnap = await getDoc(doc(db,'teams',TARGET,'config','memberOrder'));
-      const members = orderSnap.exists() ? orderSnap.data().order : [];
-      let memoTotal = 0;
-      for (const mid of members) {
-        try {
-          const snap = await getDocs(collection(db,'memos',mid,'items'));
-          for (const d of snap.docs) {
-            await setDoc(doc(db,'teams',TARGET,'memos',mid,'items',d.id), d.data());
-          }
-          memoTotal += snap.size;
-        } catch(e) {}
-      }
-      addLog(`✅ memos 총 ${memoTotal}건 복사`);
-    } catch(e) { addLog(`⚠️ memos: ${e.message}`, 'var(--orange)'); }
-
-    // 12. weeklyReports/{memberId}/weeks 복사
-    try {
-      const orderSnap = await getDoc(doc(db,'teams',TARGET,'config','memberOrder'));
-      const members = orderSnap.exists() ? orderSnap.data().order : [];
-      let wTotal = 0;
-      for (const mid of members) {
-        try {
-          const snap = await getDocs(collection(db,'weeklyReports',mid,'weeks'));
-          for (const d of snap.docs) {
-            await setDoc(doc(db,'teams',TARGET,'weeklyReports',mid,'weeks',d.id), d.data());
-          }
-          wTotal += snap.size;
-        } catch(e) {}
-      }
-      addLog(`✅ weeklyReports 총 ${wTotal}건 복사`);
-    } catch(e) { addLog(`⚠️ weeklyReports: ${e.message}`, 'var(--orange)'); }
-
-    addLog('<br>🎉 마이그레이션 완료!', 'var(--green)');
-    btn.textContent = '✅ 완료';
-    btn.style.background = 'var(--green)';
-
-  } catch(e) {
-    addLog('❌ 오류: ' + e.message, 'var(--red)');
-    btn.disabled = false;
-    btn.textContent = '🚀 마이그레이션 실행';
-  }
-});
 
 // ── 팀 관리 JS ──
 window.loadTeamList = async function() {
