@@ -610,16 +610,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   </div>
   <div id="teamList" style="display:flex;flex-direction:column;gap:10px"></div>
 
-  <div style="margin-top:32px;padding:20px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px">
-    <div style="font-size:14px;font-weight:700;color:#E65100;margin-bottom:6px">⚡ 초기 데이터 마이그레이션</div>
-    <div style="font-size:12px;color:#BF360C;margin-bottom:14px;line-height:1.6">
-      기존 계정 전체에 <code>teamId: 'planning'</code>을 추가하고,
-      <code>teams/planning</code>(경영기획팀) 문서를 생성합니다.<br>
-      <strong>최초 1회만 실행하세요.</strong>
-    </div>
-    <button id="migrateBtn" style="padding:10px 20px;background:#E65100;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🚀 마이그레이션 실행</button>
-    <div id="migrateLog" style="margin-top:12px;font-size:12px;color:var(--text3);line-height:1.8"></div>
-  </div>
 </div>
 
 <!-- 팀 추가 모달 -->
@@ -1180,35 +1170,30 @@ init();
   } catch(e){}
 })();
 
-// ── 팀 마이그레이션 (모듈 스코프) ──
-document.getElementById('migrateBtn')?.addEventListener('click', async () => {
-  const btn = document.getElementById('migrateBtn');
-  const log = document.getElementById('migrateLog');
-  btn.disabled = true; btn.textContent = '실행 중...';
-  log.innerHTML = '';
-  const addLog = (msg, color) => { log.innerHTML += '<div style="color:'+color+'">'+msg+'</div>'; };
-  try {
-    await setDoc(doc(db,'teams','planning'), { name:'경영기획팀', createdAt: new Date().toISOString() });
-    addLog('✅ teams/planning 생성 완료', 'var(--green)');
-    const snap = await getDocs(collection(db,'accounts'));
-    let cnt = 0;
-    for (const d of snap.docs) {
-      if (!d.data().teamId) {
-        await updateDoc(doc(db,'accounts',d.id), { teamId:'planning' });
-        addLog('✅ '+d.id+' → planning', 'var(--text2)');
-        cnt++;
-      } else {
-        addLog('⏭ '+d.id+' → 이미 있음', 'var(--text3)');
-      }
-    }
-    addLog('<br>🎉 완료! '+cnt+'개 업데이트', 'var(--green)');
-    btn.textContent = '✅ 완료'; btn.style.background = 'var(--green)';
-    window.loadTeamList?.();
-  } catch(e) {
-    addLog('❌ 오류: '+e.message, 'var(--red)');
-    btn.disabled = false; btn.textContent = '🚀 마이그레이션 실행';
-  }
+// ── 팀 추가 버튼 이벤트 ──
+document.getElementById('openAddTeamBtn')?.addEventListener('click', () => {
+  document.getElementById('tId').value = '';
+  document.getElementById('tName').value = '';
+  document.getElementById('addTeamErr').textContent = '';
+  document.getElementById('addTeamOverlay').classList.add('show');
 });
+document.getElementById('addTeamCancelBtn')?.addEventListener('click', () => closeOverlay('addTeamOverlay'));
+document.getElementById('addTeamOkBtn')?.addEventListener('click', async () => {
+  const id = document.getElementById('tId').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const name = document.getElementById('tName').value.trim();
+  const errEl = document.getElementById('addTeamErr');
+  if (!id) { errEl.textContent = '팀 ID를 입력해주세요'; return; }
+  if (!name) { errEl.textContent = '팀 이름을 입력해주세요'; return; }
+  try {
+    await setDoc(doc(db,'teams',id), { name, createdAt: new Date().toISOString() });
+    closeOverlay('addTeamOverlay');
+    toast(name + ' 팀을 추가했어요 ✓');
+    window.loadTeamList?.();
+    loadAdminTeamFilter();
+  } catch(e) { errEl.textContent = '오류: ' + e.message; }
+});
+
+
 </script>
 
 <script>
