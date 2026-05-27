@@ -991,7 +991,7 @@ window.showMorePopup = function(e, dateStr) {
 // ── 대시보드 업무 상세 패널 ──
 let selTask = null;
 
-const dr  = id     => doc(db, 'tasks', ME.id, 'items', id);
+const dr  = id     => doc(db,'teams',TEAM_ID,'tasks',ME.id,'items',id);
 const fsUpd = (id, data) => updateDoc(dr(id), data);
 
 window._dashSelTask = null;
@@ -1171,7 +1171,7 @@ window.openScheduleDetail = function(schId, isCommon, e) {
 window.deleteScheduleDash = async function(schId) {
   if (!confirm('이 일정을 삭제할까요?')) return;
   try {
-    await deleteDoc(doc(db, 'schedules', schId));
+    await deleteDoc(doc(db,'teams',TEAM_ID,'schedules',schId));
     const panel = document.getElementById('detailPanel');
     if (panel) panel.classList.remove('open');
     toast('일정을 삭제했어요 ✓');
