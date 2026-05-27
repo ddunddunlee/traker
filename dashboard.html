@@ -451,6 +451,7 @@ if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
 try { ME = JSON.parse(sess); } catch { location.href = 'index.html'; throw ''; }
 if (!ME?.id) { location.href = 'index.html'; throw ''; }
+const TEAM_ID = ME.teamId || 'planning'; // 팀 구분자
 const isMgr = ME.role === 'manager' || ME.role === 'admin';
 
 // ── 상수 ──
@@ -503,7 +504,7 @@ let calMonth  = now.getMonth();
 
 // ── memberOrder ──
 try {
-  const snap = await getDoc(doc(db,'config','memberOrder'));
+  const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
   if (snap.exists() && snap.data().order?.length) {
     MEMBER_IDS.length = 0;
     snap.data().order.forEach(id => MEMBER_IDS.push(id));
@@ -513,7 +514,7 @@ try {
 // ── 업무 구독 ──
 const taskQuery = isMgr
   ? null
-  : query(collection(db,'tasks',ME.id,'items'), orderBy('order','asc'));
+  : query(collection(db,'teams',TEAM_ID,'tasks',ME.id,'items'), orderBy('order','asc'));
 
 if (taskQuery) {
   onSnapshot(taskQuery, snap => {
@@ -536,7 +537,7 @@ if (isMgr) {
   // MEMBER_IDS만 구독 (mgrId가 이미 포함됨)
   const subMids = [...new Set(MEMBER_IDS)];
   subMids.forEach(mid => {
-    onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
+    onSnapshot(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items'), orderBy('order','asc')), snap => {
       _tasksByMid[mid] = snap.docs.map(d => ({_id:d.id, _mid:mid, ...d.data()}));
       // _id + sharedTaskId 기준 중복 제거
       const _flat = Object.values(_tasksByMid).flat();
@@ -558,13 +559,13 @@ if (isMgr) {
 }
 
 // ── 일정 구독 ──
-onSnapshot(collection(db,'schedules'), snap => {
+onSnapshot(collection(db,'teams',TEAM_ID,'schedules'), snap => {
   schedules = snap.docs.map(d => ({_id:d.id,...d.data()}))
     .filter(s => s.source !== 'meeting' && !(s.category==='meeting' && s.title?.startsWith('📋')));
   renderCalendar();
 });
 // ── 공통업무 구독 ──
-onSnapshot(query(collection(db,'sharedTasks'), orderBy('createdAt','desc')), snap => {
+onSnapshot(query(collection(db,'teams',TEAM_ID,'sharedTasks'), orderBy('createdAt','desc')), snap => {
   sharedTasks = snap.docs.map(d => ({_id:d.id,...d.data()}));
   renderCalendar();
 });
@@ -572,7 +573,7 @@ onSnapshot(query(collection(db,'sharedTasks'), orderBy('createdAt','desc')), sna
 
 // ── 팀 업데이트 (전 팀원 최신 업무) ──
 MEMBER_IDS.forEach(mid => {
-  onSnapshot(query(collection(db,'tasks',mid,'items'), orderBy('order','asc')), snap => {
+  onSnapshot(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items'), orderBy('order','asc')), snap => {
     renderUpdates(mid, snap.docs.map(d => ({_id:d.id,_mid:mid,...d.data()})));
   });
 });
@@ -1025,7 +1026,7 @@ window.changeTaskStatus = async function(newStatus) {
     date: new Date().toISOString(), author: ME.displayName||ME.id
   }];
   try {
-    await updateDoc(doc(db,'tasks',mid,'items',window._dashSelTask), {status:newStatus, updated:ts, history:hist});
+    await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',window._dashSelTask), {status:newStatus, updated:ts, history:hist});
     t.status = newStatus; t.updated = ts; t.history = hist;
     renderDashDetail(t, mid);
   } catch(e) { console.error('[GZPlan]', e); }
@@ -1046,7 +1047,7 @@ window._dashAddNote = async function() {
     text, date: ts, author: ME.displayName||ME.id
   }];
   try {
-    await updateDoc(doc(db,'tasks',mid,'items',window._dashSelTask), {history:hist, updated:ts.slice(0,10)});
+    await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',window._dashSelTask), {history:hist, updated:ts.slice(0,10)});
     t.history = hist; t.updated = ts.slice(0,10);
     inp.value = '';
     renderDashDetail(t, mid);

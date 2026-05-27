@@ -597,6 +597,7 @@ try { ME = JSON.parse(sess); } catch { localStorage.removeItem('tt_user'); sessi
 if (!ME?.id || !ME?.role) { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
 if (ME.role === 'manager' || ME.role === 'admin') { location.href = 'manager.html'; throw ''; }
 if (ME.role !== 'member') { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
+const TEAM_ID = ME.teamId || 'planning';
 
 // ── 사이드바 & 페이지 타이틀 초기화 (ME 정의 직후) ──
 (function() {
@@ -780,7 +781,7 @@ function statusBadge(status, id) {
 // ════════════════════════════════════════════
 // memberOrder 로드
 try {
-  const orderSnap = await getDoc(doc(db,'config','memberOrder'));
+  const orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
   if (orderSnap.exists() && orderSnap.data().order?.length) {
     MEMBER_IDS.length = 0;
     orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
@@ -886,7 +887,7 @@ async function loadOtherTasks() {
   await Promise.all(others.map(async id => {
     if (otherTasks[id]) return;
     try {
-      const snap = await getDocs(query(collection(db,'tasks',id,'items'), orderBy('order','asc')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',id,'items'), orderBy('order','asc')));
       otherTasks[id] = snap.docs.map(d => ({_id:d.id, _mid:id, ...d.data()}));
     } catch(e) { otherTasks[id] = []; }
   }));
@@ -1306,7 +1307,7 @@ window.memberAddMember = async (docId) => {
       members: newMembers, isShared: true, sharedTaskId: sharedId, updated: ts,
       history: [...(t.history||[]), { id:Date.now()+'', type:'edit', text:`${newMid} 담당자 추가`, date:ts, author:ME.displayName }]
     });
-    await addDoc(collection(db,'tasks',newMid,'items'), {
+    await addDoc(collection(db,'teams',TEAM_ID,'tasks',newMid,'items'), {
       title:t.title, desc:t.desc||'', priority:t.priority||3,
       occurredDate:t.occurredDate||'', startDate:t.startDate||'',
       due:t.due||'', reporter:t.reporter||'', status:'todo',
@@ -1318,9 +1319,9 @@ window.memberAddMember = async (docId) => {
     // 기존 멤버들 members 업데이트
     const otherMembers = currentMembers.filter(id => id !== ME.id);
     await Promise.all(otherMembers.map(async mid => {
-      const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
       const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-      if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { members: newMembers });
+      if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { members: newMembers });
     }));
     toast(`${newMid} 담당자로 추가됐어요 ✓`);
     window.memberToggleAddMember(docId);
@@ -1339,13 +1340,13 @@ window.memberRemoveMember = async (docId, targetMid) => {
       members: newMembers, isShared: newMembers.length > 1, updated: ts,
       history: [...(t.history||[]), { id:Date.now()+'', type:'edit', text:`${targetMid} 담당자 제거`, date:ts, author:ME.displayName }]
     });
-    const snap = await getDocs(query(collection(db,'tasks',targetMid,'items')));
+    const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',targetMid,'items')));
     const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-    if (linked) await deleteDoc(doc(db,'tasks',targetMid,'items',linked.id));
+    if (linked) await deleteDoc(doc(db,'teams',TEAM_ID,'tasks',targetMid,'items',linked.id));
     await Promise.all(newMembers.filter(id=>id!==ME.id).map(async mid => {
-      const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
       const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-      if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { members: newMembers, isShared: newMembers.length > 1 });
+      if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { members: newMembers, isShared: newMembers.length > 1 });
     }));
     toast(`${targetMid} 담당자에서 제거됐어요`);
   } catch(e) { toast('오류: ' + e.message); }
@@ -1364,9 +1365,9 @@ window.updatePrivate = async (docId, val) => {
     const otherMembers = (t.members||[]).filter(id => id !== ME.id);
     try {
       await Promise.all(otherMembers.map(async mid => {
-        const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+        const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
         const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-        if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { isPrivate: val, updated: ts });
+        if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { isPrivate: val, updated: ts });
       }));
     } catch(e) { console.error(e); }
   }

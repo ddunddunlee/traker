@@ -352,6 +352,7 @@ let MEMBER_ORGS = {
 const db = getFirestore(initializeApp(FIREBASE_CONFIG));
 const sess = localStorage.getItem('tt_user');
 if (!sess) { location.href = 'index.html'; throw ''; }
+const TEAM_ID = ME.teamId || 'planning'; // 팀 구분자
 let ME;
 try { ME = JSON.parse(sess); } catch { localStorage.removeItem('tt_user'); location.href = 'index.html'; throw ''; }
 if (!ME?.id || !ME?.role) { localStorage.removeItem('tt_user'); location.href = 'index.html'; throw ''; }
@@ -493,7 +494,7 @@ async function saveReport(memberId, weekKey, content, sections, tasks, taskMemo)
 
 async function registerTask(memberId, weekKey, taskName, taskMemo) {
   // taskPool에 담당자 없이 등록
-  await addDoc(collection(db,'taskPool'), {
+  await addDoc(collection(db,'teams',TEAM_ID,'taskPool'), {
     title: taskName,
     desc: taskMemo || '',
     priority: 3,
@@ -771,7 +772,7 @@ async function loadWeekSchedules(monDate, sunDate) {
   const monStr = monDate.toISOString().slice(0,10);
   const sunStr = sunDate.toISOString().slice(0,10);
   try {
-    const snap = await getDocs(query(collection(db,'schedules'), orderBy('startDate','asc')));
+    const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'schedules'), orderBy('startDate','asc')));
     const all = snap.docs.map(d => ({id:d.id,...d.data()}));
     return all.filter(ev => ev.startDate <= sunStr && (ev.endDate || ev.startDate) >= monStr);
   } catch(e) { return []; }

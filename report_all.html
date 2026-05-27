@@ -198,6 +198,7 @@ if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
 try { ME = JSON.parse(sess); } catch { location.href = 'index.html'; throw ''; }
 if (!ME?.id) { location.href = 'index.html'; throw ''; }
+const TEAM_ID = ME.teamId || 'planning'; // 팀 구분자
 
 // 사이드바 초기화
 var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=(ME.displayName||ME.id||'--').slice(0,1);
@@ -212,8 +213,8 @@ if (taskLabel) taskLabel.textContent = isMgr ? '팀 업무 현황' : '내 업무
 // Firestore 설정 로드
 try {
   const [orgSnap, orderSnap] = await Promise.all([
-    getDoc(doc(db,'config','memberOrgs')),
-    getDoc(doc(db,'config','memberOrder'))
+    getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
+    getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'))
   ]);
   if (orgSnap.exists()) MEMBER_ORGS = orgSnap.data().orgs || MEMBER_ORGS;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
@@ -256,7 +257,7 @@ async function loadWeekSchedules(mon, sun) {
   const monStr = mon.toISOString().slice(0,10);
   const sunStr = sun.toISOString().slice(0,10);
   try {
-    const snap = await getDocs(query(collection(db,'schedules'), orderBy('startDate','asc')));
+    const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'schedules'), orderBy('startDate','asc')));
     return snap.docs.map(d=>({id:d.id,...d.data()}))
       .filter(ev => ev.startDate<=sunStr && (ev.endDate||ev.startDate)>=monStr);
   } catch(e) { return []; }
@@ -268,9 +269,9 @@ async function render() {
 
   const [allSchedules, mgrNoteSnap, ...reportResults] = await Promise.all([
     loadWeekSchedules(mon, sun),
-    getDoc(doc(db,'weeklyMgrNote',key)).catch(()=>null),
+    getDoc(doc(db,'teams',TEAM_ID,'weeklyMgrNote',key)).catch(()=>null),
     ...MEMBER_IDS.map(id =>
-      getDoc(doc(db,'weeklyReports',id,'weeks',key)).then(s=>({id,data:s.exists()?s.data():null})).catch(()=>({id,data:null}))
+      getDoc(doc(db,'teams',TEAM_ID,'weeklyReports',id,'weeks',key)).then(s=>({id,data:s.exists()?s.data():null})).catch(()=>({id,data:null}))
     )
   ]);
 

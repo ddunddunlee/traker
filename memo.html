@@ -618,10 +618,11 @@ const db=getFirestore(initializeApp(C));
 const sess=localStorage.getItem('tt_user');
 if(!sess)location.href='index.html';
 const ME=JSON.parse(sess||'{}');
+const TEAM_ID = ME.teamId || 'planning';
 // 모든 역할 접근 가능 (팀원 개인별 메모)
 let memos=[],activeTag=null,editingId=null;
-const mRef=()=>collection(db,'memos',ME.id,'items');
-const mDoc=id=>doc(db,'memos',ME.id,'items',id);
+const mRef=()=>collection(db,'teams',TEAM_ID,'memos',ME.id,'items');
+const mDoc=id=>doc(db,'teams',TEAM_ID,'memos',ME.id,'items',id);
 const nStr=()=>new Date().toISOString();
 const fmtDate=s=>{const d=new Date(s),days=['일','월','화','수','목','금','토'];return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'. ('+days[d.getDay()]+')';};
 const fmtTime=s=>{const d=new Date(s);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};

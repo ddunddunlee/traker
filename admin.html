@@ -508,6 +508,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
       <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
       <div class="sb-label">보고 라인</div>
     </div>
+    <div class="sb-item" id="navTeams" onclick="window.switchAdminTab('teams')">
+      <div class="sb-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="sb-label">팀 관리</div>
+    </div>
   </nav>
   <div class="sb-bottom">
     <div class="sb-logout" id="logoutBtn">
@@ -589,6 +593,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
     <div class="fg"><label>표시 이름</label><input id="aName" placeholder="예: 홍길동"/></div>
     <div class="fg"><label>아이디</label><input id="aId" placeholder="예: 홍길동"/></div>
     <div class="fg"><label>비밀번호</label><div class="pw-row"><input id="aPw" type="password" placeholder="초기 비밀번호"/><button class="pw-show" id="aPwShowBtn">보기</button></div></div>
+    <div class="fg"><label>소속 팀</label><select id="aTeam" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px"><option value="planning">경영기획팀</option></select></div>
     <div class="fg"><label>역할</label><select id="aRole"><option value="member">팀원</option><option value="manager">팀장</option><option value="admin">어드민</option></select></div>
     <div class="err-line" id="addErr"></div>
     <div class="modal-btns"><button class="btn-cancel" id="addAccountCancelBtn" style="touch-action:manipulation">취소</button><button class="btn-ok" id="addAccountOkBtn">추가하기</button></div>
@@ -664,6 +669,7 @@ let accounts=[],reporters=[],currentUser=null,editingId=null;
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw'';}
 const u=JSON.parse(sess);
+const TEAM_ID = ME.teamId || 'planning';
 if(u.role!=='admin'){location.href='index.html';throw'';}
 currentUser=u;
 
@@ -719,7 +725,7 @@ let dragSrcIdx = null;
 
 window.loadOrder = async function() {
   try {
-    const snap = await getDoc(doc(db,'config','memberOrder'));
+    const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
     if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
     // accounts에서 member/manager인데 order에 없는 계정 자동 추가
     const accSnap = await getDocs(collection(db,'accounts'));
@@ -775,7 +781,7 @@ function renderOrder() {
 
 window.saveOrder = async function() {
   try {
-    await setDoc(doc(db,'config','memberOrder'), { order: currentOrder, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'), { order: currentOrder, updatedAt: new Date().toISOString() });
     toast('순서가 저장됐어요 ✓');
   } catch(e) {
     toast('저장 실패: ' + e.message);
@@ -784,7 +790,7 @@ window.saveOrder = async function() {
 
 window.loadOrgs = async function() {
   try {
-    const snap = await getDoc(doc(db,'config','memberOrgs'));
+    const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs'));
     if (snap.exists()) currentOrgs = snap.data().orgs || DEFAULT_ORGS;
   } catch(e){console.error("[GZPlan]",e);}
   renderOrgs();
@@ -833,7 +839,7 @@ window.removeOrg = function(member, idx) {
 
 window.saveOrgs = async function() {
   try {
-    await setDoc(doc(db,'config','memberOrgs'), { orgs: currentOrgs, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs'), { orgs: currentOrgs, updatedAt: new Date().toISOString() });
     toast('담당 조직이 저장됐어요 ✓');
   } catch(e) {
     toast('저장 실패: ' + e.message);
@@ -935,15 +941,16 @@ document.getElementById('addAccountOkBtn')?.addEventListener('click',async()=>{
   if(pw.length<4){err.textContent='비밀번호는 4자 이상이어야 해요';return}
   const ex=await getDoc(doc(db,'accounts',id));
   if(ex.exists()){err.textContent='이미 사용 중인 아이디예요';return}
-  await setDoc(doc(db,'accounts',id),{displayName:name,password:pw,role,disabled:false,createdAt:new Date().toISOString()});
+  const teamId = document.getElementById('aTeam')?.value || 'planning';
+  await setDoc(doc(db,'accounts',id),{displayName:name,password:pw,role,teamId,disabled:false,createdAt:new Date().toISOString()});
   // member/manager면 팀원 순서에도 자동 추가
   if (role === 'member' || role === 'manager') {
     try {
-      const orderSnap = await getDoc(doc(db,'config','memberOrder'));
+      const orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
       const existingOrder = orderSnap.exists() ? (orderSnap.data().order || [...currentOrder]) : [...currentOrder];
       if (!existingOrder.includes(id)) {
         existingOrder.push(id);
-        await setDoc(doc(db,'config','memberOrder'), { order: existingOrder, updatedAt: new Date().toISOString() });
+        await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'), { order: existingOrder, updatedAt: new Date().toISOString() });
         currentOrder = existingOrder;
         if (document.getElementById('orderList')) renderOrder();
       }
@@ -973,10 +980,10 @@ document.getElementById('roleOkBtn')?.addEventListener('click',async()=>{
 
 // 보고자
 async function loadReporters(){
-  try{const snap=await getDoc(doc(db,'settings','reporters'));reporters=snap.exists()?(snap.data().list||[]):[];}catch{reporters=[]}
+  try{const snap=await getDoc(doc(db,'teams',TEAM_ID,'settings','reporters'));reporters=snap.exists()?(snap.data().list||[]):[];}catch{reporters=[]}
   renderReporters();
 }
-async function saveReporters(){await setDoc(doc(db,'settings','reporters'),{list:reporters});}
+async function saveReporters(){await setDoc(doc(db,'teams',TEAM_ID,'settings','reporters'),{list:reporters});}
 function renderReporters(){
   const el=document.getElementById('reporterList');
   if(!reporters.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem 0">등록된 보고자가 없어요</div>';return;}

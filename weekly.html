@@ -881,6 +881,7 @@ const db=getFirestore(initializeApp(FC));
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw''}
 const ME=JSON.parse(sess);
+const TEAM_ID = ME.teamId || 'planning';
 if(!ME.id){location.href='index.html';throw''}
 const isMgr=ME.role==='manager'||ME.role==='admin';
 
@@ -961,7 +962,7 @@ window.toggleMemberWeekly = (id) => {
     taskEvents = taskEvents.filter(t => t._mid !== id);
   } else {
     activeMemberWeekly.add(id);
-    weeklySubUnsubs[id] = onSnapshot(query(collection(db,'tasks',id,'items'),orderBy('order','asc')), snap => {
+    weeklySubUnsubs[id] = onSnapshot(query(collection(db,'teams',TEAM_ID,'tasks',id,'items'),orderBy('order','asc')), snap => {
       taskEvents = taskEvents.filter(t => t._mid !== id);
       snap.docs.forEach(d => {
         const t = d.data();
@@ -987,7 +988,7 @@ let pendingRepeatAction=null,pendingDelId=null;
 function rebuildCatMap(){CAT_MAP={};CAT_LIST.forEach(c=>{CAT_MAP[c.id]=c})}
 async function loadCategories(){
   try{
-    const snap=await getDoc(doc(db,'settings','calCategories'));
+    const snap=await getDoc(doc(db,'teams',TEAM_ID,'settings','calCategories'));
     if(snap.exists()){
       const{overrides=[],list=[]}=snap.data();
       const base=DEFAULT_CATS.map(d=>{const ov=overrides.find(o=>o.id===d.id);return ov?{...d,...ov}:{...d}});
@@ -999,7 +1000,7 @@ async function loadCategories(){
 async function saveCats(){
   const overrides=CAT_LIST.filter(c=>{const d=DEFAULT_CATS.find(x=>x.id===c.id);return d&&(d.label!==c.label||d.color!==c.color)});
   const custom=CAT_LIST.filter(c=>!DEFAULT_CATS.find(d=>d.id===c.id));
-  await setDoc(doc(db,'settings','calCategories'),{list:custom,overrides});
+  await setDoc(doc(db,'teams',TEAM_ID,'settings','calCategories'),{list:custom,overrides});
 }
 function renderCatSelect(){const s=document.getElementById('eCategory');if(!s)return;s.innerHTML=CAT_LIST.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}
 function renderCatList(){
@@ -1018,11 +1019,11 @@ window.updCatColor=async(id,color)=>{const c=CAT_LIST.find(x=>x.id===id);if(c)c.
 window.updCatLabel=async(id,label)=>{const c=CAT_LIST.find(x=>x.id===id);if(!c||!label.trim())return;c.label=label.trim();await saveCats();rebuildCatMap();renderCatSelect();renderLegend();renderWeeklySchedule();toast('이름 변경됐어요 ✓')};
 window.addCategory=async()=>{const n=document.getElementById('newCatName').value.trim(),color=document.getElementById('newCatColor').value;if(!n){toast('이름을 입력해주세요');return}CAT_LIST.push({id:'cat_'+Date.now(),label:n,color});await saveCats();rebuildCatMap();renderCatSelect();renderCatList();renderLegend();document.getElementById('newCatName').value='';toast(`"${n}" 추가됐어요 ✓`)};
 window.delCat=async(id)=>{const c=CAT_LIST.find(x=>x.id===id);if(!c||!confirm(`"${c.label}" 삭제할까요?`))return;CAT_LIST=CAT_LIST.filter(x=>x.id!==id);await saveCats();rebuildCatMap();renderCatSelect();renderCatList();renderLegend();renderWeeklySchedule();toast('삭제됐어요')};
-onSnapshot(query(collection(db,'schedules'),orderBy('startDate','asc')),snap=>{schedules=[...DEMO_SCHEDULES,...snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>d.source!=='meeting'&&!(d.category==='meeting'&&d.title?.startsWith('📋')))];renderWeeklySchedule()});
+onSnapshot(query(collection(db,'teams',TEAM_ID,'schedules'),orderBy('startDate','asc')),snap=>{schedules=[...DEMO_SCHEDULES,...snap.docs.map(d=>({id:d.id,...d.data()})).filter(d=>d.source!=='meeting'&&!(d.category==='meeting'&&d.title?.startsWith('📋')))];renderWeeklySchedule()});
 function subTasks(){
   const members=isMgr?MEMBER_IDS:[ME.id];
   members.forEach(mid=>{
-    onSnapshot(query(collection(db,'tasks',mid,'items'),orderBy('order','asc')),snap=>{
+    onSnapshot(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items'),orderBy('order','asc')),snap=>{
       taskEvents=taskEvents.filter(t=>t._mid!==mid);
       snap.docs.forEach(d=>{const t=d.data();
       // 비공개 업무: 본인 것만 표시
@@ -1396,20 +1397,20 @@ window.submitEvent=async()=>{
     if(editingId){
       if(editScope==='this'){
         const orig=schedules.find(e=>e.id===editingId);
-        await updateDoc(doc(db,'schedules',editingId),{exceptions:[...(orig?.exceptions||[]),editInstanceDate]});
-        await addDoc(collection(db,'schedules'),{...data,type:orig?.type||'personal',repeat:{type:'none'},isException:true,seriesId:orig?.seriesId||editingId,createdAt:new Date().toISOString()});
+        await updateDoc(doc(db,'teams',TEAM_ID,'schedules',editingId),{exceptions:[...(orig?.exceptions||[]),editInstanceDate]});
+        await addDoc(collection(db,'teams',TEAM_ID,'schedules'),{...data,type:orig?.type||'personal',repeat:{type:'none'},isException:true,seriesId:orig?.seriesId||editingId,createdAt:new Date().toISOString()});
         toast('이 일정만 수정됐어요 ✓');
       }else if(editScope==='future'){
         const orig=schedules.find(e=>e.id===editingId);
         const prev=toStr(new Date(parse(editInstanceDate).getTime()-86400000));
-        await updateDoc(doc(db,'schedules',editingId),{repeat:{...orig?.repeat,endDate:prev}});
-        await addDoc(collection(db,'schedules'),{...data,type:orig?.type||'personal',seriesId:Date.now()+'_'+ME.id,createdAt:new Date().toISOString()});
+        await updateDoc(doc(db,'teams',TEAM_ID,'schedules',editingId),{repeat:{...orig?.repeat,endDate:prev}});
+        await addDoc(collection(db,'teams',TEAM_ID,'schedules'),{...data,type:orig?.type||'personal',seriesId:Date.now()+'_'+ME.id,createdAt:new Date().toISOString()});
         toast('이후 일정이 수정됐어요 ✓');
-      }else{await updateDoc(doc(db,'schedules',editingId),data);toast('일정이 수정됐어요 ✓')}
+      }else{await updateDoc(doc(db,'teams',TEAM_ID,'schedules',editingId),data);toast('일정이 수정됐어요 ✓')}
     }else{
       if(repeat.type!=='none')data.seriesId=Date.now()+'_'+ME.id;
       data.type=editType;data.createdAt=new Date().toISOString();
-      await addDoc(collection(db,'schedules'),data);toast('일정을 추가했어요 ✓');
+      await addDoc(collection(db,'teams',TEAM_ID,'schedules'),data);toast('일정을 추가했어요 ✓');
     }
     closeModal('addOverlay');
   }catch(e){document.getElementById('addErrLine').textContent='오류: '+e.message}
@@ -1447,14 +1448,14 @@ window.reqDel=(id,instanceDate)=>{
   if(ev._demo){toast('샘플 데이터예요. 실제 일정을 추가해보세요 :)');return;}
   closeModal('detailOverlay');
   if(ev.repeat&&ev.repeat.type!=='none'){pendingDelId={id,instanceDate};document.getElementById('repeatDelOverlay').classList.add('show');return}
-  if(confirm('이 일정을 삭제할까요?'))deleteDoc(doc(db,'schedules',id)).then(()=>toast('일정을 삭제했어요'));
+  if(confirm('이 일정을 삭제할까요?'))deleteDoc(doc(db,'teams',TEAM_ID,'schedules',id)).then(()=>toast('일정을 삭제했어요'));
 };
 window.confirmRepeatDel=async()=>{
   const scope=document.querySelector('input[name="repeatDel"]:checked').value;closeModal('repeatDelOverlay');
   const{id,instanceDate}=pendingDelId;const ev=schedules.find(e=>e.id===id);if(!ev)return;
-  if(scope==='this'){await updateDoc(doc(db,'schedules',id),{exceptions:[...(ev.exceptions||[]),instanceDate]});toast('이 일정을 삭제했어요')}
-  else if(scope==='future'){const prev=toStr(new Date(parse(instanceDate).getTime()-86400000));await updateDoc(doc(db,'schedules',id),{repeat:{...ev.repeat,endDate:prev}});toast('이후 일정을 삭제했어요')}
-  else{await deleteDoc(doc(db,'schedules',id));toast('모든 반복 일정을 삭제했어요')}
+  if(scope==='this'){await updateDoc(doc(db,'teams',TEAM_ID,'schedules',id),{exceptions:[...(ev.exceptions||[]),instanceDate]});toast('이 일정을 삭제했어요')}
+  else if(scope==='future'){const prev=toStr(new Date(parse(instanceDate).getTime()-86400000));await updateDoc(doc(db,'teams',TEAM_ID,'schedules',id),{repeat:{...ev.repeat,endDate:prev}});toast('이후 일정을 삭제했어요')}
+  else{await deleteDoc(doc(db,'teams',TEAM_ID,'schedules',id));toast('모든 반복 일정을 삭제했어요')}
 };
 window.switchView=tab=>{
   document.getElementById('view-cal').style.display=tab==='cal'?'':'none';

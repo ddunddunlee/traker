@@ -522,6 +522,7 @@ let ME;
 try { ME = JSON.parse(sess); } catch { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
 if (!ME?.id || !ME?.role) { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
 if (ME.role !== 'manager' && ME.role !== 'admin') { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html'; throw ''; }
+const TEAM_ID = ME.teamId || 'planning';
 
 // ── 사이드바 이름 즉시 표시 ──
 (function initSidebar() {
@@ -736,7 +737,7 @@ window.switchViewTab = function(tab) {
 // ════════════════════════════════════════════
 // sharedTasks 컬렉션
 let sharedTasks = [];
-onSnapshot(query(collection(db,'sharedTasks'), orderBy('createdAt','desc')), snap => {
+onSnapshot(query(collection(db,'teams',TEAM_ID,'sharedTasks'), orderBy('createdAt','desc')), snap => {
   sharedTasks = snap.docs.map(d => ({_id:d.id, ...d.data()}));
   renderAllMemberTasks();
 });
@@ -744,7 +745,7 @@ onSnapshot(query(collection(db,'sharedTasks'), orderBy('createdAt','desc')), sna
 // 업무 관리 풀 (taskPool)
 // ════════════════════════════════════════════
 let poolTasks = [];
-onSnapshot(query(collection(db,'taskPool'), orderBy('createdAt','desc')), snap => {
+onSnapshot(query(collection(db,'teams',TEAM_ID,'taskPool'), orderBy('createdAt','desc')), snap => {
   poolTasks = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
   renderTaskPool();
 });
@@ -866,7 +867,7 @@ window.addPoolTask = async () => {
     reporter: document.getElementById('pReporter').value||'',
     status: 'todo', createdAt: new Date().toISOString(), createdBy: ME.displayName,
   };
-  try { await addDoc(collection(db,'taskPool'), data); window.closePoolModal(); toast('업무가 추가됐어요 ✓'); }
+  try { await addDoc(collection(db,'teams',TEAM_ID,'taskPool'), data); window.closePoolModal(); toast('업무가 추가됐어요 ✓'); }
   catch(e) { toast('오류: '+e.message); }
 };
 
@@ -884,7 +885,7 @@ window.assignTask = async (poolId) => {
       order:Date.now(), updated:ts,
       history:[{id:Date.now()+'', type:'create', text:`팀장이 배정한 업무 (${ME.displayName})`, date:ts}],
       createdAt:ts });
-    await deleteDoc(doc(db,'taskPool',poolId));
+    await deleteDoc(doc(db,'teams',TEAM_ID,'taskPool',poolId));
     toast(memberId+'에게 배정됐어요 ✓');
   } catch(e) { toast('오류: '+e.message); }
 };
@@ -916,7 +917,7 @@ window.savePoolEdit = async (poolId) => {
 window.deletePoolTask = async (poolId, e) => {
   e?.stopPropagation();
   if (!confirm('삭제할까요?')) return;
-  try { await deleteDoc(doc(db,'taskPool',poolId)); toast('삭제됐어요'); }
+  try { await deleteDoc(doc(db,'teams',TEAM_ID,'taskPool',poolId)); toast('삭제됐어요'); }
   catch(e) { toast('오류: '+e.message); }
 };
 
@@ -1491,9 +1492,9 @@ window.addMember = async (docId, ownerMid) => {
     // 기존 공유 멤버들도 members 업데이트
     const otherMembers = currentMembers.filter(id => id !== ownerMid);
     await Promise.all(otherMembers.map(async mid => {
-      const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
       const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-      if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { members: newMembers });
+      if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { members: newMembers });
     }));
     toast(`${newMid} 담당자로 추가됐어요 ✓`);
     window.toggleAddMember(docId);
@@ -1518,15 +1519,15 @@ window.removeMember = async (docId, ownerMid, targetMid) => {
     });
     // 제거된 팀원 tasks에서 삭제
     if (targetMid !== ownerMid) {
-      const snap = await getDocs(query(collection(db,'tasks',targetMid,'items')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',targetMid,'items')));
       const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-      if (linked) await deleteDoc(doc(db,'tasks',targetMid,'items',linked.id));
+      if (linked) await deleteDoc(doc(db,'teams',TEAM_ID,'tasks',targetMid,'items',linked.id));
     }
     // 나머지 멤버들 members 업데이트
     await Promise.all(newMembers.filter(id=>id!==ownerMid).map(async mid => {
-      const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+      const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
       const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-      if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { members: newMembers, isShared: newMembers.length > 1 });
+      if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { members: newMembers, isShared: newMembers.length > 1 });
     }));
     toast(`${targetMid} 담당자에서 제거됐어요`);
   } catch(e) { toast('오류: ' + e.message); }
@@ -1545,9 +1546,9 @@ window.updatePrivate = async (docId, memberId, val) => {
     const otherMembers = (t.members||[]).filter(id => id !== memberId);
     try {
       await Promise.all(otherMembers.map(async mid => {
-        const snap = await getDocs(query(collection(db,'tasks',mid,'items')));
+        const snap = await getDocs(query(collection(db,'teams',TEAM_ID,'tasks',mid,'items')));
         const linked = snap.docs.find(d => d.data().sharedTaskId === sharedId);
-        if (linked) await updateDoc(doc(db,'tasks',mid,'items',linked.id), { isPrivate: val, updated: ts });
+        if (linked) await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',linked.id), { isPrivate: val, updated: ts });
       }));
     } catch(e) { console.error(e); }
   }
@@ -1699,7 +1700,7 @@ window.addTask = async () => {
       const selected = [...document.querySelectorAll('#iSharedMembers .multi-member-chip.selected')].map(el => el.dataset.mid);
       if (selected.length < 2) { toast('공통업무는 2명 이상 선택해주세요'); btn.disabled=false; btn.textContent='추가하기'; return; }
       // sharedTasks 컬렉션에 저장
-      const sharedRef = await addDoc(collection(db,'sharedTasks'), {
+      const sharedRef = await addDoc(collection(db,'teams',TEAM_ID,'sharedTasks'), {
         ...base, members: selected, isShared: true,
         memberStatus: Object.fromEntries(selected.map(id => [id, 'todo'])),
         createdBy: ME.displayName, createdAt: ts
