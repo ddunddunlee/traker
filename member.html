@@ -653,8 +653,8 @@ async function loadReporters() {
     REPORTERS.map(r => `<option value="${r}">${r}</option>`).join('');
 }
 
-const col = ()     => collection(db,'teams',TEAM_ID,'tasks',ME.id,'items');
-const dr  = id     => doc(db,'teams',TEAM_ID,'tasks',ME.id,'items',id);
+const col = ()     => collection(db,'teams',TEAM_ID,'tasks', ME.id, 'items');
+const dr  = id     => doc(db,'teams',TEAM_ID,'tasks', ME.id, 'items', id);
 
 const fsAdd = data   => addDoc(col(), { ...data, createdAt: serverTimestamp() });
 const fsUpd = (id, data) => updateDoc(dr(id), data);
@@ -1875,7 +1875,7 @@ function renderKanban() {
       if (col.key === 'overdue') return; // 기한초과는 날짜 기반이라 드롭 불가
       if (task.status === newStatus) return;
       try {
-        await updateDoc(doc(db,'teams',TEAM_ID,'tasks',ME.id,'items',kbDragId), {
+        await updateDoc(doc(db,'teams',TEAM_ID,'tasks', ME.id, 'items', kbDragId), {
           status: newStatus, updated: new Date().toISOString().slice(0,10)
         });
       } catch(e) { console.error('[GZPlan]', e); }

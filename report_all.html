@@ -198,7 +198,7 @@ if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
 try { ME = JSON.parse(sess); } catch { location.href = 'index.html'; throw ''; }
 if (!ME?.id) { location.href = 'index.html'; throw ''; }
-const TEAM_ID = ME.teamId || 'planning'; // 팀 구분자
+const TEAM_ID = ME.teamId || 'planning';
 
 // 사이드바 초기화
 var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=(ME.displayName||ME.id||'--').slice(0,1);

@@ -20,8 +20,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI",sans-s
 .fg label{font-size:11px;font-weight:600;color:#a8a8a8;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
 .fg input{width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #e5e5e3;border-radius:6px;background:#f7f7f5;color:#1a1a1a;font-family:inherit;outline:none}
 .fg input:focus{border-color:#d0d0cc;background:#fff}
-.fg select{width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #e5e5e3;border-radius:6px;background:#f7f7f5;color:#1a1a1a;font-family:inherit;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-.fg select:focus{border-color:#d0d0cc;background-color:#fff}
 .btn{width:100%;padding:11px;font-size:14px;font-weight:600;background:#1a1a1a;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-top:.5rem}
 .btn:hover{opacity:.82}.btn:disabled{opacity:.4;cursor:not-allowed}
 .err{font-size:12px;color:#A32D2D;margin-top:10px;min-height:18px;text-align:center}
@@ -44,7 +42,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI",sans-s
   </div>
   <div class="fg">
     <label>팀 선택</label>
-    <select id="uteam">
+    <select id="uteam" style="width:100%;padding:10px 12px;font-size:14px;border:0.5px solid #e5e5e3;border-radius:6px;background:#f7f7f5;color:#1a1a1a;font-family:inherit;outline:none;cursor:pointer">
       <option value="">-- 팀을 선택하세요 --</option>
     </select>
   </div>
@@ -77,11 +75,10 @@ var db = firebase.firestore();
 
 // 팀 목록 동적 로드
 async function loadTeams() {
+  var sel = document.getElementById('uteam');
   try {
     var snap = await db.collection('teams').get();
-    var sel = document.getElementById('uteam');
     if (snap.empty) {
-      // 팀이 없으면 기본값
       sel.innerHTML = '<option value="">-- 팀을 선택하세요 --</option><option value="planning">경영기획팀</option>';
     } else {
       var opts = '<option value="">-- 팀을 선택하세요 --</option>';
@@ -91,8 +88,7 @@ async function loadTeams() {
       sel.innerHTML = opts;
     }
   } catch(e) {
-    // 오류 시 기본값
-    document.getElementById('uteam').innerHTML = '<option value="">-- 팀을 선택하세요 --</option><option value="planning">경영기획팀</option>';
+    sel.innerHTML = '<option value="">-- 팀을 선택하세요 --</option><option value="planning">경영기획팀</option>';
   }
 }
 loadTeams();
@@ -103,13 +99,13 @@ function go(role) {
 }
 
 async function doLogin() {
-  var teamId = document.getElementById('uteam').value;
   var id  = document.getElementById('uid').value.trim();
   var pw  = document.getElementById('upw').value;
   var err = document.getElementById('err');
   var btn = document.getElementById('loginBtn');
   err.textContent = '';
   
+  var teamId = document.getElementById('uteam').value;
   if (!id || !pw) { err.textContent = '아이디와 비밀번호를 입력해주세요'; return; }
   if (!teamId && id !== 'admin') { err.textContent = '팀을 선택해주세요'; return; }
 
@@ -127,7 +123,7 @@ async function doLogin() {
       } catch(e) { }
       if (dis) { err.textContent = '비활성화된 계정이에요'; return; }
       if (pw !== apw) { err.textContent = '아이디 또는 비밀번호가 틀렸어요'; return; }
-      userData = { id: 'admin', role: 'admin', displayName: 'admin', teamId: teamId };
+      userData = { id: 'admin', role: 'admin', displayName: 'admin', teamId: teamId || 'planning' };
     } else {
             var snap = await db.collection('accounts').doc(id).get();
             if (!snap.exists) { err.textContent = '아이디 또는 비밀번호가 틀렸어요'; return; }

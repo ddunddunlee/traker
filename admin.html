@@ -538,10 +538,9 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   <div id="tabAccounts" style="padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
     <div class="stats" id="statsRow" style="margin-bottom:1.25rem"></div>
     
-    <!-- 팀 필터 -->
     <div id="adminTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
-      <button class="chip active" id="atf-all" onclick="setAdminTeamFilter('all')">전체</button>
+      <span style="font-size:11px;color:var(--text3)">팀 필터:</span>
+      <button class="chip active" id="atf-all" onclick="window.setAdminTeamFilter('all')">전체</button>
     </div>
     <!-- 계정 목록 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
@@ -554,8 +553,8 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   <!-- 팀원 순서 관리 섹션 -->
   <div id="tabOrder" style="display:none;padding:1.5rem 24px 6rem;max-width:600px;margin:0 auto">
     <div id="orderTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
-      <button class="chip active" id="otf-all" onclick="setOrderTeamFilter('all')">전체</button>
+      <span style="font-size:11px;color:var(--text3)">팀 필터:</span>
+      <button class="chip active" id="otf-all" onclick="window.setOrderTeamFilter('all')">전체</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
@@ -570,8 +569,8 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   <!-- 담당 조직 관리 섹션 -->
   <div id="tabOrgs" style="display:none;padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
     <div id="orgsTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
-      <button class="chip active" id="grtf-all" onclick="setOrgsTeamFilter('all')">전체</button>
+      <span style="font-size:11px;color:var(--text3)">팀 필터:</span>
+      <button class="chip active" id="grtf-all" onclick="window.setOrgsTeamFilter('all')">전체</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
@@ -609,7 +608,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
     <button class="btn-solid" id="openAddTeamBtn">+ 팀 추가</button>
   </div>
   <div id="teamList" style="display:flex;flex-direction:column;gap:10px"></div>
-
 </div>
 
 <!-- 팀 추가 모달 -->
@@ -710,8 +708,8 @@ let accounts=[],reporters=[],currentUser=null,editingId=null;
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw'';}
 const u=JSON.parse(sess);
-const TEAM_ID = u.teamId || 'planning';
 if(u.role!=='admin'){location.href='index.html';throw'';}
+const TEAM_ID = u.teamId || 'planning';
 currentUser=u;
 
 // 사이드바
@@ -731,34 +729,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 
 // ── 관리 탭 전환 ──
-window.loadTeamList = async function() {
-  const el = document.getElementById('teamList');
-  if (!el) return;
-  try {
-    const snap = await getDocs(collection(db,'teams'));
-    if (snap.empty) {
-      el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:13px">등록된 팀이 없어요</div>';
-      return;
-    }
-    el.innerHTML = snap.docs.map(d => `
-      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px">
-        <div style="width:36px;height:36px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏢</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700">${d.data().name||d.id}</div>
-          <div style="font-size:11px;color:var(--text3);font-family:monospace">ID: ${d.id}</div>
-        </div>
-        <button onclick="window.deleteTeam('${d.id}')" style="padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--red);cursor:pointer">삭제</button>
-      </div>`).join('');
-  } catch(e) { console.error('[GZPlan]', e); }
-};
-window.deleteTeam = async function(teamId) {
-  if (!confirm(`'${teamId}' 팀을 삭제할까요?`)) return;
-  try {
-    await deleteDoc(doc(db,'teams',teamId));
-    toast('팀을 삭제했어요');
-    window.loadTeamList();
-  } catch(e) { console.error(e); }
-};
 window.switchAdminTab = function(tab) {
   const LABELS = {accounts:'계정 관리', order:'팀원 순서', orgs:'담당 조직', reporters:'보고 라인'};
   var pt = document.getElementById('pageTitle');
@@ -773,7 +743,7 @@ window.switchAdminTab = function(tab) {
   (document.getElementById('navOrder')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='order');
   (document.getElementById('navTeams')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='teams');
   const sTeams = document.getElementById('sectionTeams');
-  if (sTeams) sTeams.style.display = tab==='teams' ? '' : 'none';
+  if (sTeams) sTeams.style.display = tab === 'teams' ? '' : 'none';
   if (tab === 'orgs') window.loadOrgs?.();
   if (tab === 'order') window.loadOrder?.();
   if (tab === 'teams') window.loadTeamList?.();
@@ -802,18 +772,17 @@ window.loadOrder = async function() {
     if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
     // 현재 팀 소속 계정만 자동 추가
     const accSnap = await getDocs(collection(db,'accounts'));
-    accSnap.docs.forEach(d => {
-      const data = d.data();
+    const accData = accSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    accData.forEach(data => {
       const sameTeam = (data.teamId || 'planning') === TEAM_ID;
-      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !currentOrder.includes(d.id)) {
-        currentOrder.push(d.id);
+      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !currentOrder.includes(data.id)) {
+        currentOrder.push(data.id);
       }
     });
-    // 다른 팀 계정은 order에서 제거
-    const accData = accSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    // 다른 팀 계정 제거
     currentOrder = currentOrder.filter(id => {
       const acc = accData.find(a => a.id === id);
-      if (!acc) return true; // accounts에 없으면 유지
+      if (!acc) return true;
       return (acc.teamId || 'planning') === TEAM_ID;
     });
   } catch(e){console.error("[GZPlan]",e);}
@@ -825,7 +794,7 @@ function renderOrder() {
   if (!el) return;
   const filteredOrder = window.orderTeamFilter === 'all' ? currentOrder
     : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orderTeamFilter);
-  el.innerHTML = filteredOrder.map((name, i) => `
+  el.innerHTML = currentOrder.map((name, i) => `
     <div class="order-item" draggable="true" data-idx="${i}"
       style="display:flex;align-items:center;gap:12px;background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;cursor:grab;user-select:none">
       <span style="color:var(--text3);font-size:16px">⠿</span>
@@ -873,7 +842,6 @@ window.saveOrder = async function() {
 
 window.loadOrgs = async function() {
   try {
-    // memberOrder도 같이 로드 (렌더링 기준)
     const [orgsSnap, orderSnap] = await Promise.all([
       getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
       getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder')),
@@ -887,7 +855,6 @@ window.loadOrgs = async function() {
 function renderOrgs() {
   const el = document.getElementById('orgsList');
   if (!el) return;
-  // currentOrder가 로드됐으면 사용, 아니면 MEMBER_IDS 폴백
   const baseIds = currentOrder.length ? currentOrder : MEMBER_IDS;
   const filteredIds = window.orgsTeamFilter === 'all' ? baseIds
     : baseIds.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orgsTeamFilter);
@@ -944,49 +911,6 @@ async function init(){
   await Promise.all([loadAccounts(),loadReporters(),loadAdminTeamFilter()]);
 }
 
-window.setAdminTeamFilter = function(teamId) {
-  window.adminTeamFilter = teamId;
-  document.querySelectorAll('#adminTeamFilterRow .chip').forEach(c => {
-    c.classList.toggle('active', c.id === 'atf-' + teamId);
-  });
-  renderList();
-};
-
-window.setOrderTeamFilter = function(teamId) {
-  window.orderTeamFilter = teamId;
-  document.querySelectorAll('#orderTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'otf-' + teamId));
-  renderOrder();
-};
-window.setOrgsTeamFilter = function(teamId) {
-  window.orgsTeamFilter = teamId;
-  document.querySelectorAll('#orgsTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'grtf-' + teamId));
-  renderOrgs?.();
-};
-
-async function loadAdminTeamFilter() {
-  try {
-    const snap = await getDocs(collection(db,'teams'));
-    // 계정/순서/조직 3개 필터 행 모두 업데이트
-    [
-      { rowId: 'adminTeamFilterRow', prefix: 'atf', fn: 'setAdminTeamFilter' },
-      { rowId: 'orderTeamFilterRow', prefix: 'otf', fn: 'setOrderTeamFilter' },
-      { rowId: 'orgsTeamFilterRow',  prefix: 'grtf', fn: 'setOrgsTeamFilter' },
-    ].forEach(({ rowId, prefix, fn }) => {
-      const row = document.getElementById(rowId);
-      if (!row) return;
-      row.querySelectorAll('.chip:not([id$="-all"])').forEach(e => e.remove());
-      snap.docs.forEach(d => {
-        const btn = document.createElement('button');
-        btn.className = 'chip';
-        btn.id = prefix + '-' + d.id;
-        btn.textContent = d.data().name || d.id;
-        btn.onclick = () => window[fn]?.(d.id);
-        row.appendChild(btn);
-      });
-    });
-  } catch(e) { console.error(e); }
-}
-
 async function loadAccounts(){
   try{const snap=await getDocs(collection(db,'accounts'));accounts=snap.docs.map(d=>{return {docId:d.id,...d.data()}});accounts.sort((a,b)=>{const o={admin:0,manager:1,member:2};return(o[a.role]??3)-(o[b.role]??3)||a.docId.localeCompare(b.docId,'ko')})}catch{accounts=[]}
   renderStats();renderList();
@@ -1000,7 +924,7 @@ function renderStats(){
 function renderList(){
   const el=document.getElementById('accountList');
   const filtered = window.adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === window.adminTeamFilter);
-  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">해당 팀 계정이 없어요</div>';return;}
+  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">등록된 계정이 없어요</div>';return;}
   const rl={admin:'어드민',manager:'팀장',member:'팀원'};
   const roleCls={admin:'role-admin',manager:'role-manager',member:'role-member'};
   el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+filtered.map(a=>{
@@ -1065,15 +989,12 @@ document.getElementById('changePwBtn')?.addEventListener('click', window._change
 window._openAddAccount = async () => {
   ['aName','aId','aPw'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('aRole').value='member';document.getElementById('addErr').textContent='';
-  // 팀 목록 동적 로드
   const sel = document.getElementById('aTeam');
   if (sel) {
     try {
       const snap = await getDocs(collection(db,'teams'));
-      if (!snap.empty) {
-        sel.innerHTML = snap.docs.map(d => `<option value="${d.id}">${d.data().name||d.id}</option>`).join('');
-      }
-    } catch(e) { /* 기본값 유지 */ }
+      if (!snap.empty) sel.innerHTML = snap.docs.map(d=>`<option value="${d.id}">${d.data().name||d.id}</option>`).join('');
+    } catch(e) {}
   }
   document.getElementById('addAccountOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('aName').focus(),80);
@@ -1185,7 +1106,79 @@ init();
   } catch(e){}
 })();
 
-// ── 팀 추가 버튼 이벤트 ──
+// ── 팀 관리 JS ──
+window.loadTeamList = async function() {
+  const el = document.getElementById('teamList');
+  if (!el) return;
+  try {
+    const snap = await getDocs(collection(db,'teams'));
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:13px">등록된 팀이 없어요</div>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(d => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏢</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${d.data().name||d.id}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:monospace">ID: ${d.id}</div>
+        </div>
+        <button onclick="window.deleteTeam('${d.id}')" style="padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--red);cursor:pointer">삭제</button>
+      </div>`).join('');
+  } catch(e) { console.error('[GZPlan]', e); }
+};
+
+window.deleteTeam = async function(teamId) {
+  if (!confirm(`'${teamId}' 팀을 삭제할까요?`)) return;
+  try {
+    await deleteDoc(doc(db,'teams',teamId));
+    toast('팀을 삭제했어요');
+    window.loadTeamList();
+  } catch(e) { console.error(e); }
+};
+
+// 팀 필터 함수
+window.setAdminTeamFilter = function(teamId) {
+  window.adminTeamFilter = teamId;
+  document.querySelectorAll('#adminTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'atf-' + teamId));
+  renderList();
+};
+window.setOrderTeamFilter = function(teamId) {
+  window.orderTeamFilter = teamId;
+  document.querySelectorAll('#orderTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'otf-' + teamId));
+  renderOrder();
+};
+window.setOrgsTeamFilter = function(teamId) {
+  window.orgsTeamFilter = teamId;
+  document.querySelectorAll('#orgsTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'grtf-' + teamId));
+  renderOrgs?.();
+};
+
+// 팀 필터 칩 동적 로드 (3개 탭 동시)
+async function loadAdminTeamFilter() {
+  try {
+    const snap = await getDocs(collection(db,'teams'));
+    [
+      { rowId: 'adminTeamFilterRow', prefix: 'atf', fn: 'setAdminTeamFilter' },
+      { rowId: 'orderTeamFilterRow', prefix: 'otf', fn: 'setOrderTeamFilter' },
+      { rowId: 'orgsTeamFilterRow',  prefix: 'grtf', fn: 'setOrgsTeamFilter' },
+    ].forEach(({ rowId, prefix, fn }) => {
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      row.querySelectorAll('.chip:not([id$="-all"])').forEach(e => e.remove());
+      snap.docs.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'chip';
+        btn.id = prefix + '-' + d.id;
+        btn.textContent = d.data().name || d.id;
+        btn.onclick = () => window[fn]?.(d.id);
+        row.appendChild(btn);
+      });
+    });
+  } catch(e) { console.error(e); }
+}
+
+// 팀 추가/삭제 이벤트
 document.getElementById('openAddTeamBtn')?.addEventListener('click', () => {
   document.getElementById('tId').value = '';
   document.getElementById('tName').value = '';
@@ -1207,8 +1200,6 @@ document.getElementById('addTeamOkBtn')?.addEventListener('click', async () => {
     loadAdminTeamFilter();
   } catch(e) { errEl.textContent = '오류: ' + e.message; }
 });
-
-
 </script>
 
 <script>
@@ -1220,14 +1211,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (lb) lb.addEventListener('click', function() {
     localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';
   });
-
-
   // 사이드바 네비
   document.querySelectorAll('[data-nav]').forEach(function(el) {
     el.addEventListener('click', function() { location.href = el.dataset.nav; });
   });
-
-
 });
 </script>
 
