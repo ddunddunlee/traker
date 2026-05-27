@@ -586,6 +586,44 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 </div>
 
+<!-- 팀 관리 섹션 -->
+<div id="sectionTeams" style="display:none;padding:24px 32px 80px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-size:18px;font-weight:700">팀 관리</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:3px">팀을 추가하면 로그인 화면에 자동으로 반영됩니다</div>
+    </div>
+    <button class="btn-solid" id="openAddTeamBtn">+ 팀 추가</button>
+  </div>
+  <div id="teamList" style="display:flex;flex-direction:column;gap:10px"></div>
+
+  <div style="margin-top:32px;padding:20px;background:#FFF8E1;border:1px solid #FFE082;border-radius:10px">
+    <div style="font-size:14px;font-weight:700;color:#E65100;margin-bottom:6px">⚡ 초기 데이터 마이그레이션</div>
+    <div style="font-size:12px;color:#BF360C;margin-bottom:14px;line-height:1.6">
+      기존 계정 전체에 <code>teamId: 'planning'</code>을 추가하고,
+      <code>teams/planning</code>(경영기획팀) 문서를 생성합니다.<br>
+      <strong>최초 1회만 실행하세요.</strong>
+    </div>
+    <button id="migrateBtn" style="padding:10px 20px;background:#E65100;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">🚀 마이그레이션 실행</button>
+    <div id="migrateLog" style="margin-top:12px;font-size:12px;color:var(--text3);line-height:1.8"></div>
+  </div>
+</div>
+
+<!-- 팀 추가 모달 -->
+<div class="overlay" id="addTeamOverlay">
+  <div class="modal">
+    <h3>팀 추가</h3>
+    <div class="modal-note">팀 ID는 영문 소문자로 입력하세요. (예: finance, sales)</div>
+    <div class="fg"><label>팀 ID</label><input id="tId" placeholder="예: finance"/></div>
+    <div class="fg"><label>팀 이름</label><input id="tName" placeholder="예: 재무팀"/></div>
+    <div class="err-line" id="addTeamErr"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" id="addTeamCancelBtn">취소</button>
+      <button class="btn-ok" id="addTeamOkBtn">추가하기</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="addAccountOverlay">
   <div class="modal">
     <h3>계정 추가</h3>
@@ -690,6 +728,34 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelect
 
 
 // ── 관리 탭 전환 ──
+window.loadTeamList = async function() {
+  const el = document.getElementById('teamList');
+  if (!el) return;
+  try {
+    const snap = await getDocs(collection(db,'teams'));
+    if (snap.empty) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:40px 0;font-size:13px">등록된 팀이 없어요</div>';
+      return;
+    }
+    el.innerHTML = snap.docs.map(d => `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏢</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700">${d.data().name||d.id}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:monospace">ID: ${d.id}</div>
+        </div>
+        <button onclick="window.deleteTeam('${d.id}')" style="padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--red);cursor:pointer">삭제</button>
+      </div>`).join('');
+  } catch(e) { console.error('[GZPlan]', e); }
+};
+window.deleteTeam = async function(teamId) {
+  if (!confirm(`'${teamId}' 팀을 삭제할까요?`)) return;
+  try {
+    await deleteDoc(doc(db,'teams',teamId));
+    toast('팀을 삭제했어요');
+    window.loadTeamList();
+  } catch(e) { console.error(e); }
+};
 window.switchAdminTab = function(tab) {
   const LABELS = {accounts:'계정 관리', order:'팀원 순서', orgs:'담당 조직', reporters:'보고 라인'};
   var pt = document.getElementById('pageTitle');
@@ -702,8 +768,12 @@ window.switchAdminTab = function(tab) {
   (document.getElementById('navReporters')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='reporters');
   (document.getElementById('navOrgs')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='orgs');
   (document.getElementById('navOrder')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='order');
+  (document.getElementById('navTeams')||{classList:{toggle:()=>{}}}).classList.toggle('active', tab==='teams');
+  const sTeams = document.getElementById('sectionTeams');
+  if (sTeams) sTeams.style.display = tab==='teams' ? '' : 'none';
   if (tab === 'orgs') window.loadOrgs?.();
   if (tab === 'order') window.loadOrder?.();
+  if (tab === 'teams') window.loadTeamList?.();
 };
 
 const MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형"];
@@ -1049,6 +1119,56 @@ document.addEventListener('DOMContentLoaded', function() {
   if (lb) lb.addEventListener('click', function() {
     localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';
   });
+  // 팀 관리 이벤트
+  document.getElementById('migrateBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('migrateBtn');
+    const log = document.getElementById('migrateLog');
+    btn.disabled = true; btn.textContent = '실행 중...';
+    log.innerHTML = '';
+    const addLog = (msg, color='var(--text2)') => { log.innerHTML += `<div style="color:${color}">${msg}</div>`; };
+    try {
+      await setDoc(doc(db,'teams','planning'), { name:'경영기획팀', createdAt: new Date().toISOString() });
+      addLog('✅ teams/planning 문서 생성 완료', 'var(--green)');
+      const snap = await getDocs(collection(db,'accounts'));
+      let cnt = 0;
+      for (const d of snap.docs) {
+        if (!d.data().teamId) {
+          await updateDoc(doc(db,'accounts',d.id), { teamId:'planning' });
+          addLog(`✅ ${d.id} → teamId: planning`, 'var(--text2)');
+          cnt++;
+        } else {
+          addLog(`⏭ ${d.id} → 이미 있음 (${d.data().teamId})`, 'var(--text3)');
+        }
+      }
+      addLog(`<br>🎉 완료! 계정 ${cnt}개 업데이트`, 'var(--green)');
+      btn.textContent = '✅ 완료'; btn.style.background = 'var(--green)';
+      window.loadTeamList?.();
+    } catch(e) {
+      addLog('❌ 오류: ' + e.message, 'var(--red)');
+      btn.disabled = false; btn.textContent = '🚀 마이그레이션 실행';
+    }
+  });
+  document.getElementById('openAddTeamBtn')?.addEventListener('click', () => {
+    document.getElementById('tId').value = '';
+    document.getElementById('tName').value = '';
+    document.getElementById('addTeamErr').textContent = '';
+    document.getElementById('addTeamOverlay').classList.add('show');
+  });
+  document.getElementById('addTeamCancelBtn')?.addEventListener('click', () => closeOverlay('addTeamOverlay'));
+  document.getElementById('addTeamOkBtn')?.addEventListener('click', async () => {
+    const id = document.getElementById('tId').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+    const name = document.getElementById('tName').value.trim();
+    const errEl = document.getElementById('addTeamErr');
+    if (!id) { errEl.textContent = '팀 ID를 입력해주세요'; return; }
+    if (!name) { errEl.textContent = '팀 이름을 입력해주세요'; return; }
+    try {
+      await setDoc(doc(db,'teams',id), { name, createdAt: new Date().toISOString() });
+      closeOverlay('addTeamOverlay');
+      toast(`${name} 팀을 추가했어요 ✓`);
+      window.loadTeamList?.();
+    } catch(e) { errEl.textContent = '오류: ' + e.message; }
+  });
+
   // 사이드바 네비
   document.querySelectorAll('[data-nav]').forEach(function(el) {
     el.addEventListener('click', function() { location.href = el.dataset.nav; });
