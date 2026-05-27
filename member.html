@@ -812,10 +812,11 @@ function render() {
 }
 
 function renderStats() {
-  const total   = tasks.length;
-  const inprog  = tasks.filter(t => t.status === 'inprogress').length;
-  const stale   = tasks.filter(isStale).length;
-  const overdue = tasks.filter(isOverdue).length;
+  const total    = tasks.length;
+  const inprog   = tasks.filter(t => t.status === 'inprogress').length;
+  const overdue  = tasks.filter(isOverdue).length;
+  const imminent = tasks.filter(isImminent).length;
+  const done     = tasks.filter(t => t.status === 'done').length;
 
   // 사이드바 배지: 기한초과(빨강) > 기한임박 7일(주황) 우선
   const isImminentFn = t => {
@@ -838,11 +839,16 @@ function renderStats() {
   }
 
   // 통계 카드
+  const urgTotal = imminent + overdue;
+  let urgSub = '';
+  if (imminent > 0 && overdue > 0) urgSub = `<div style="font-size:10px;color:var(--red);margin-top:2px">임박 ${imminent} / 초과 ${overdue}</div>`;
+  else if (overdue > 0) urgSub = `<div style="font-size:10px;color:var(--red);margin-top:2px">기한초과 ${overdue}건</div>`;
+  else if (imminent > 0) urgSub = `<div style="font-size:10px;color:#BA7517;margin-top:2px">7일 이내</div>`;
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-label">전체 업무</div><div class="stat-value">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-value">${inprog}</div></div>
-    <div class="stat-card"><div class="stat-label">오래된 업무</div><div class="stat-value warn">${stale}</div></div>
-    <div class="stat-card"><div class="stat-label">기한 초과</div><div class="stat-value danger">${overdue}</div>`;
+    <div class="stat-card"><div class="stat-label">전체 업무</div><div class="stat-value">${total}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">이번 달</div></div>
+    <div class="stat-card"><div class="stat-label">진행 중</div><div class="stat-value" style="color:var(--blue)">${inprog}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">실시간</div></div>
+    <div class="stat-card"><div class="stat-label">기한 임박</div><div class="stat-value warn">${String(urgTotal).padStart(2,'0')}</div>${urgSub}</div>
+    <div class="stat-card"><div class="stat-label">완료</div><div class="stat-value" style="color:var(--green)">${String(done).padStart(2,'0')}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">누적</div></div>`;
 }
 
 // 팀원 필터 칩 렌더링
