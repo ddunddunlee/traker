@@ -1108,6 +1108,36 @@ init();
     if(nm && u.displayName) nm.textContent = u.displayName;
   } catch(e){}
 })();
+
+// ── 팀 마이그레이션 (모듈 스코프) ──
+document.getElementById('migrateBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('migrateBtn');
+  const log = document.getElementById('migrateLog');
+  btn.disabled = true; btn.textContent = '실행 중...';
+  log.innerHTML = '';
+  const addLog = (msg, color) => { log.innerHTML += '<div style="color:'+color+'">'+msg+'</div>'; };
+  try {
+    await setDoc(doc(db,'teams','planning'), { name:'경영기획팀', createdAt: new Date().toISOString() });
+    addLog('✅ teams/planning 생성 완료', 'var(--green)');
+    const snap = await getDocs(collection(db,'accounts'));
+    let cnt = 0;
+    for (const d of snap.docs) {
+      if (!d.data().teamId) {
+        await updateDoc(doc(db,'accounts',d.id), { teamId:'planning' });
+        addLog('✅ '+d.id+' → planning', 'var(--text2)');
+        cnt++;
+      } else {
+        addLog('⏭ '+d.id+' → 이미 있음', 'var(--text3)');
+      }
+    }
+    addLog('<br>🎉 완료! '+cnt+'개 업데이트', 'var(--green)');
+    btn.textContent = '✅ 완료'; btn.style.background = 'var(--green)';
+    window.loadTeamList?.();
+  } catch(e) {
+    addLog('❌ 오류: '+e.message, 'var(--red)');
+    btn.disabled = false; btn.textContent = '🚀 마이그레이션 실행';
+  }
+});
 </script>
 
 <script>
@@ -1126,55 +1156,7 @@ document.addEventListener('DOMContentLoaded', function() {
     el.addEventListener('click', function() { location.href = el.dataset.nav; });
   });
 
-  // ── 팀 관리 이벤트 (모듈 스코프 안에서 setDoc 등 접근) ──
-  document.getElementById('migrateBtn')?.addEventListener('click', async () => {
-    const btn = document.getElementById('migrateBtn');
-    const log = document.getElementById('migrateLog');
-    btn.disabled = true; btn.textContent = '실행 중...';
-    log.innerHTML = '';
-    const addLog = (msg, color='var(--text2)') => { log.innerHTML += `<div style="color:${color}">${msg}</div>`; };
-    try {
-      await setDoc(doc(db,'teams','planning'), { name:'경영기획팀', createdAt: new Date().toISOString() });
-      addLog('✅ teams/planning 문서 생성 완료', 'var(--green)');
-      const snap = await getDocs(collection(db,'accounts'));
-      let cnt = 0;
-      for (const d of snap.docs) {
-        if (!d.data().teamId) {
-          await updateDoc(doc(db,'accounts',d.id), { teamId:'planning' });
-          addLog(`✅ ${d.id} → teamId: planning`, 'var(--text2)');
-          cnt++;
-        } else {
-          addLog(`⏭ ${d.id} → 이미 있음 (${d.data().teamId})`, 'var(--text3)');
-        }
-      }
-      addLog(`<br>🎉 완료! 계정 ${cnt}개 업데이트`, 'var(--green)');
-      btn.textContent = '✅ 완료'; btn.style.background = 'var(--green)';
-      window.loadTeamList?.();
-    } catch(e) {
-      addLog('❌ 오류: ' + e.message, 'var(--red)');
-      btn.disabled = false; btn.textContent = '🚀 마이그레이션 실행';
-    }
-  });
-  document.getElementById('openAddTeamBtn')?.addEventListener('click', () => {
-    document.getElementById('tId').value = '';
-    document.getElementById('tName').value = '';
-    document.getElementById('addTeamErr').textContent = '';
-    document.getElementById('addTeamOverlay').classList.add('show');
-  });
-  document.getElementById('addTeamCancelBtn')?.addEventListener('click', () => closeOverlay('addTeamOverlay'));
-  document.getElementById('addTeamOkBtn')?.addEventListener('click', async () => {
-    const id = document.getElementById('tId').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-    const name = document.getElementById('tName').value.trim();
-    const errEl = document.getElementById('addTeamErr');
-    if (!id) { errEl.textContent = '팀 ID를 입력해주세요'; return; }
-    if (!name) { errEl.textContent = '팀 이름을 입력해주세요'; return; }
-    try {
-      await setDoc(doc(db,'teams',id), { name, createdAt: new Date().toISOString() });
-      closeOverlay('addTeamOverlay');
-      toast(`${name} 팀을 추가했어요 ✓`);
-      window.loadTeamList?.();
-    } catch(e) { errEl.textContent = '오류: ' + e.message; }
-  });
+
 });
 </script>
 
