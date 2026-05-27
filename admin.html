@@ -1119,7 +1119,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (lb) lb.addEventListener('click', function() {
     localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';
   });
-  // 팀 관리 이벤트
+
+
+  // 사이드바 네비
+  document.querySelectorAll('[data-nav]').forEach(function(el) {
+    el.addEventListener('click', function() { location.href = el.dataset.nav; });
+  });
+
+  // ── 팀 관리 이벤트 (모듈 스코프 안에서 setDoc 등 접근) ──
   document.getElementById('migrateBtn')?.addEventListener('click', async () => {
     const btn = document.getElementById('migrateBtn');
     const log = document.getElementById('migrateLog');
@@ -1167,11 +1174,6 @@ document.addEventListener('DOMContentLoaded', function() {
       toast(`${name} 팀을 추가했어요 ✓`);
       window.loadTeamList?.();
     } catch(e) { errEl.textContent = '오류: ' + e.message; }
-  });
-
-  // 사이드바 네비
-  document.querySelectorAll('[data-nav]').forEach(function(el) {
-    el.addEventListener('click', function() { location.href = el.dataset.nav; });
   });
 });
 </script>
