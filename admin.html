@@ -1004,6 +1004,10 @@ window._openAddAccount = async () => {
     try {
       const snap = await getDocs(collection(db,'teams'));
       if (!snap.empty) sel.innerHTML = snap.docs.map(d=>`<option value="${d.id}">${d.data().name||d.id}</option>`).join('');
+      // 현재 필터된 팀을 기본값으로 설정
+      if (window.adminTeamFilter && window.adminTeamFilter !== 'all') {
+        sel.value = window.adminTeamFilter;
+      }
     } catch(e) {}
   }
   document.getElementById('addAccountOverlay').classList.add('show');
@@ -1020,16 +1024,15 @@ document.getElementById('addAccountOkBtn')?.addEventListener('click',async()=>{
   if(ex.exists()){err.textContent='이미 사용 중인 아이디예요';return}
   const teamId = document.getElementById('aTeam')?.value || 'planning';
   await setDoc(doc(db,'accounts',id),{displayName:name,password:pw,role,teamId,disabled:false,createdAt:new Date().toISOString()});
-  // member/manager면 팀원 순서에도 자동 추가
+  // member/manager면 해당 팀의 memberOrder에 자동 추가
   if (role === 'member' || role === 'manager') {
     try {
-      const orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
-      const existingOrder = orderSnap.exists() ? (orderSnap.data().order || [...currentOrder]) : [...currentOrder];
+      const orderSnap = await getDoc(doc(db,'teams',teamId,'config','memberOrder'));
+      const existingOrder = orderSnap.exists() ? (orderSnap.data().order || []) : [];
       if (!existingOrder.includes(id)) {
         existingOrder.push(id);
-        await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'), { order: existingOrder, updatedAt: new Date().toISOString() });
-        currentOrder = existingOrder;
-        if (document.getElementById('orderList')) renderOrder();
+        await setDoc(doc(db,'teams',teamId,'config','memberOrder'), { order: existingOrder, updatedAt: new Date().toISOString() });
+        if (teamId === TEAM_ID) { currentOrder = existingOrder; if (document.getElementById('orderList')) renderOrder(); }
       }
     } catch(e) { console.error('[GZPlan] memberOrder 업데이트 실패', e); }
   }
