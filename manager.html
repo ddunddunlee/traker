@@ -584,8 +584,8 @@ window.logout = () => { localStorage.removeItem('tt_user'); sessionStorage.clear
 // ════════════════════════════════════════════
 // Firestore 헬퍼
 // ════════════════════════════════════════════
-const col   = memberId => collection(db, 'tasks', memberId, 'items');
-const dr    = (memberId, docId) => doc(db, 'tasks', memberId, 'items', docId);
+const col   = memberId => collection(db,'teams',TEAM_ID,'tasks',memberId,'items');
+const dr    = (memberId, docId) => doc(db,'teams',TEAM_ID,'tasks',memberId,'items',docId);
 const fsUpd = (memberId, docId, data) => { setSync(true); return updateDoc(dr(memberId, docId), data); };
 const fsAdd = (memberId, data)        => { setSync(true); return addDoc(col(memberId), { ...data, createdAt: serverTimestamp() }); };
 const fsDel = (memberId, docId)       => { setSync(true); return deleteDoc(dr(memberId, docId)); };
@@ -908,7 +908,7 @@ window.savePoolEdit = async (poolId) => {
     due:          document.getElementById('pe_due_' + poolId)?.value || '',
   };
   try {
-    await updateDoc(doc(db, 'taskPool', poolId), data);
+    await updateDoc(doc(db,'teams',TEAM_ID,'taskPool',poolId), data);
     toast('수정됐어요 ✓');
     window.togglePoolEdit(poolId);
   } catch(e) { toast('오류: ' + e.message); }
@@ -1916,7 +1916,7 @@ function renderKanban() {
       if (!kbDragId || col.key === 'overdue') return;
       try {
         const {id, mid} = kbDragId;
-        await updateDoc(doc(db, 'tasks', mid, 'items', id), {
+        await updateDoc(doc(db,'teams',TEAM_ID,'tasks',mid,'items',id), {
           status: col.key, updated: new Date().toISOString().slice(0,10)
         });
       } catch(e) { console.error('[GZPlan]', e); }
