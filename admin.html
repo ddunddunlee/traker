@@ -800,13 +800,21 @@ window.loadOrder = async function() {
   try {
     const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
     if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
-    // accounts에서 member/manager인데 order에 없는 계정 자동 추가
+    // 현재 팀 소속 계정만 자동 추가
     const accSnap = await getDocs(collection(db,'accounts'));
     accSnap.docs.forEach(d => {
       const data = d.data();
-      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && !currentOrder.includes(d.id)) {
+      const sameTeam = (data.teamId || 'planning') === TEAM_ID;
+      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !currentOrder.includes(d.id)) {
         currentOrder.push(d.id);
       }
+    });
+    // 다른 팀 계정은 order에서 제거
+    const accData = accSnap.docs.map(d => ({id: d.id, ...d.data()}));
+    currentOrder = currentOrder.filter(id => {
+      const acc = accData.find(a => a.id === id);
+      if (!acc) return true; // accounts에 없으면 유지
+      return (acc.teamId || 'planning') === TEAM_ID;
     });
   } catch(e){console.error("[GZPlan]",e);}
   renderOrder();
@@ -814,10 +822,10 @@ window.loadOrder = async function() {
 
 function renderOrder() {
   const el = document.getElementById('orderList');
-  const filteredOrder = window.orderTeamFilter === 'all' ? currentOrder
-    : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orderTeamFilter);
   if (!el) return;
-  el.innerHTML = currentOrder.map((name, i) => `
+  const filteredOrder = window.orderTeamFilter === 'all' ? currentOrder
+    : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orderTeamFilter);
+  el.innerHTML = filteredOrder.map((name, i) => `
     <div class="order-item" draggable="true" data-idx="${i}"
       style="display:flex;align-items:center;gap:12px;background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;cursor:grab;user-select:none">
       <span style="color:var(--text3);font-size:16px">⠿</span>
