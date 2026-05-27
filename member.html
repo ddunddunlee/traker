@@ -781,11 +781,11 @@ function statusBadge(status, id) {
 // ════════════════════════════════════════════
 // 실시간 데이터 구독
 // ════════════════════════════════════════════
-// memberOrder 로드
+// memberOrder 로드 (없으면 빈 배열 — 다른 팀 데이터 방지)
 try {
   const orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
+  MEMBER_IDS.length = 0;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
-    MEMBER_IDS.length = 0;
     orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
   }
 } catch(e){console.error("[GZPlan]",e);}
