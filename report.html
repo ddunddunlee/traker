@@ -362,8 +362,8 @@ const isMgr = ME.role === 'manager' || ME.role === 'admin';
 // Firestore에서 설정 로드 (순서 + 담당 조직)
 try {
   const [orgSnap, orderSnap] = await Promise.all([
-    getDoc(doc(db, 'config', 'memberOrgs')),
-    getDoc(doc(db, 'config', 'memberOrder'))
+    getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
+    getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'))
   ]);
   if (orgSnap.exists()) MEMBER_ORGS = orgSnap.data().orgs || MEMBER_ORGS;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
@@ -469,7 +469,7 @@ function toast(msg) {
 // ── 이번 주 개별 일정 로드 ──
 // ── Firestore ──
 function reportDoc(memberId, weekKey) {
-  return doc(db, 'weeklyReports', memberId, 'weeks', weekKey);
+  return doc(db,'teams',TEAM_ID,'weeklyReports',memberId,'weeks',weekKey);
 }
 
 async function loadReport(memberId, weekKey) {
@@ -516,7 +516,7 @@ async function registerTask(memberId, weekKey, taskName, taskMemo) {
 
 async function loadHistory(memberId) {
   try {
-    const q = query(collection(db, 'weeklyReports', memberId, 'weeks'), orderBy('weekKey', 'desc'));
+    const q = query(collection(db,'teams',TEAM_ID,'weeklyReports',memberId,'weeks'), orderBy('weekKey', 'desc'));
     const snap = await getDocs(q);
     return snap.docs.map(d => d.data());
   } catch(e) { return []; }
@@ -755,7 +755,7 @@ async function renderMemberView() {
 
 // ── 팀장 주요업무 로드/저장 ──
 function mgrNoteDoc(weekKey) {
-  return doc(db, 'weeklyMgrNote', weekKey);
+  return doc(db,'teams',TEAM_ID,'weeklyMgrNote',weekKey);
 }
 async function loadMgrNote(weekKey) {
   try {
