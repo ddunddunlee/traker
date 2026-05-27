@@ -538,6 +538,11 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
   <div id="tabAccounts" style="padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
     <div class="stats" id="statsRow" style="margin-bottom:1.25rem"></div>
     
+    <!-- 팀 필터 -->
+    <div id="adminTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
+      <button class="chip active" id="atf-all" onclick="setAdminTeamFilter('all')">전체</button>
+    </div>
     <!-- 계정 목록 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:15px;font-weight:700;color:var(--text)">계정 목록</div>
@@ -548,6 +553,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
   <!-- 팀원 순서 관리 섹션 -->
   <div id="tabOrder" style="display:none;padding:1.5rem 24px 6rem;max-width:600px;margin:0 auto">
+    <div id="orderTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
+      <button class="chip active" id="otf-all" onclick="setOrderTeamFilter('all')">전체</button>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
         <div style="font-size:15px;font-weight:700;color:var(--text)">팀원 순서 관리</div>
@@ -560,6 +569,10 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
   <!-- 담당 조직 관리 섹션 -->
   <div id="tabOrgs" style="display:none;padding:1.5rem 24px 6rem;max-width:900px;margin:0 auto">
+    <div id="orgsTeamFilterRow" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+      <span style="font-size:11px;color:var(--text3);margin-right:2px">팀 필터:</span>
+      <button class="chip active" id="grtf-all" onclick="setOrgsTeamFilter('all')">전체</button>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
         <div style="font-size:15px;font-weight:700;color:var(--text)">담당 조직 관리</div>
@@ -811,6 +824,8 @@ window.loadOrder = async function() {
 
 function renderOrder() {
   const el = document.getElementById('orderList');
+  const filteredOrder = orderTeamFilter === 'all' ? currentOrder
+    : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orderTeamFilter);
   if (!el) return;
   el.innerHTML = currentOrder.map((name, i) => `
     <div class="order-item" draggable="true" data-idx="${i}"
@@ -869,7 +884,9 @@ window.loadOrgs = async function() {
 function renderOrgs() {
   const el = document.getElementById('orgsList');
   if (!el) return;
-  el.innerHTML = MEMBER_IDS.map(id => {
+  const filteredIds = orgsTeamFilter === 'all' ? MEMBER_IDS
+    : MEMBER_IDS.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orgsTeamFilter);
+  el.innerHTML = filteredIds.map(id => {
     const orgs = currentOrgs[id] || [];
     return `
       <div style="background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:12px">
@@ -919,7 +936,50 @@ window.saveOrgs = async function() {
 async function init(){
   document.getElementById('gate').style.display='none';
   document.getElementById('appContent').style.display='block';
-  await Promise.all([loadAccounts(),loadReporters()]);
+  await Promise.all([loadAccounts(),loadReporters(),loadAdminTeamFilter()]);
+}
+
+window.setAdminTeamFilter = function(teamId) {
+  adminTeamFilter = teamId;
+  document.querySelectorAll('#adminTeamFilterRow .chip').forEach(c => {
+    c.classList.toggle('active', c.id === 'atf-' + teamId);
+  });
+  renderList();
+};
+
+window.setOrderTeamFilter = function(teamId) {
+  orderTeamFilter = teamId;
+  document.querySelectorAll('#orderTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'otf-' + teamId));
+  renderOrder();
+};
+window.setOrgsTeamFilter = function(teamId) {
+  orgsTeamFilter = teamId;
+  document.querySelectorAll('#orgsTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'grtf-' + teamId));
+  renderOrgs?.();
+};
+
+async function loadAdminTeamFilter() {
+  try {
+    const snap = await getDocs(collection(db,'teams'));
+    // 계정/순서/조직 3개 필터 행 모두 업데이트
+    [
+      { rowId: 'adminTeamFilterRow', prefix: 'atf', fn: 'setAdminTeamFilter' },
+      { rowId: 'orderTeamFilterRow', prefix: 'otf', fn: 'setOrderTeamFilter' },
+      { rowId: 'orgsTeamFilterRow',  prefix: 'grtf', fn: 'setOrgsTeamFilter' },
+    ].forEach(({ rowId, prefix, fn }) => {
+      const row = document.getElementById(rowId);
+      if (!row) return;
+      row.querySelectorAll('.chip:not([id$="-all"])').forEach(e => e.remove());
+      snap.docs.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'chip';
+        btn.id = prefix + '-' + d.id;
+        btn.textContent = d.data().name || d.id;
+        btn.onclick = () => window[fn]?.(d.id);
+        row.appendChild(btn);
+      });
+    });
+  } catch(e) { console.error(e); }
 }
 
 async function loadAccounts(){
@@ -934,10 +994,11 @@ function renderStats(){
 
 function renderList(){
   const el=document.getElementById('accountList');
-  if(!accounts.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">등록된 계정이 없어요</div>';return;}
+  const filtered = adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === adminTeamFilter);
+  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">해당 팀 계정이 없어요</div>';return;}
   const rl={admin:'어드민',manager:'팀장',member:'팀원'};
   const roleCls={admin:'role-admin',manager:'role-manager',member:'role-member'};
-  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+accounts.map(a=>{
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+filtered.map(a=>{
     const isMe=a.docId===currentUser?.id;
     return `<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:14px 16px">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
