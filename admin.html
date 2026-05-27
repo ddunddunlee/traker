@@ -996,9 +996,19 @@ window._changePw = async () => {
 document.getElementById('changePwBtn')?.addEventListener('click', window._changePw);;
 
 // 계정 추가
-window._openAddAccount = () => {
+window._openAddAccount = async () => {
   ['aName','aId','aPw'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('aRole').value='member';document.getElementById('addErr').textContent='';
+  // 팀 목록 동적 로드
+  const sel = document.getElementById('aTeam');
+  if (sel) {
+    try {
+      const snap = await getDocs(collection(db,'teams'));
+      if (!snap.empty) {
+        sel.innerHTML = snap.docs.map(d => `<option value="${d.id}">${d.data().name||d.id}</option>`).join('');
+      }
+    } catch(e) { /* 기본값 유지 */ }
+  }
   document.getElementById('addAccountOverlay').classList.add('show');
   setTimeout(()=>document.getElementById('aName').focus(),80);
 };
