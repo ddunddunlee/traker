@@ -873,8 +873,13 @@ window.saveOrder = async function() {
 
 window.loadOrgs = async function() {
   try {
-    const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs'));
-    if (snap.exists()) currentOrgs = snap.data().orgs || DEFAULT_ORGS;
+    // memberOrder도 같이 로드 (렌더링 기준)
+    const [orgsSnap, orderSnap] = await Promise.all([
+      getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
+      getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder')),
+    ]);
+    if (orgsSnap.exists()) currentOrgs = orgsSnap.data().orgs || DEFAULT_ORGS;
+    if (orderSnap.exists()) currentOrder = orderSnap.data().order || [...MEMBER_IDS];
   } catch(e){console.error("[GZPlan]",e);}
   renderOrgs();
 };
@@ -882,8 +887,10 @@ window.loadOrgs = async function() {
 function renderOrgs() {
   const el = document.getElementById('orgsList');
   if (!el) return;
-  const filteredIds = window.orgsTeamFilter === 'all' ? MEMBER_IDS
-    : MEMBER_IDS.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === orgsTeamFilter);
+  // currentOrder가 로드됐으면 사용, 아니면 MEMBER_IDS 폴백
+  const baseIds = currentOrder.length ? currentOrder : MEMBER_IDS;
+  const filteredIds = window.orgsTeamFilter === 'all' ? baseIds
+    : baseIds.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orgsTeamFilter);
   el.innerHTML = filteredIds.map(id => {
     const orgs = currentOrgs[id] || [];
     return `
@@ -992,7 +999,7 @@ function renderStats(){
 
 function renderList(){
   const el=document.getElementById('accountList');
-  const filtered = window.adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === adminTeamFilter);
+  const filtered = window.adminTeamFilter === 'all' ? accounts : accounts.filter(a => (a.teamId||'planning') === window.adminTeamFilter);
   if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">해당 팀 계정이 없어요</div>';return;}
   const rl={admin:'어드민',manager:'팀장',member:'팀원'};
   const roleCls={admin:'role-admin',manager:'role-manager',member:'role-member'};
