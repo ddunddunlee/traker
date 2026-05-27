@@ -824,7 +824,7 @@ let pendingRepeatAction=null,pendingDelId=null;
 function rebuildCatMap(){CAT_MAP={};CAT_LIST.forEach(c=>{CAT_MAP[c.id]=c})}
 async function loadCategories(){
   try{
-    const snap=await getDoc(doc(db,'settings','calCategories'));
+    const snap=await getDoc(doc(db,'teams',TEAM_ID,'settings','calCategories'));
     if(snap.exists()){
       const{overrides=[],list=[]}=snap.data();
       const base=DEFAULT_CATS.map(d=>{const ov=overrides.find(o=>o.id===d.id);return ov?{...d,...ov}:{...d}});
@@ -836,7 +836,7 @@ async function loadCategories(){
 async function saveCats(){
   const overrides=CAT_LIST.filter(c=>{const d=DEFAULT_CATS.find(x=>x.id===c.id);return d&&(d.label!==c.label||d.color!==c.color)});
   const custom=CAT_LIST.filter(c=>!DEFAULT_CATS.find(d=>d.id===c.id));
-  await setDoc(doc(db,'settings','calCategories'),{list:custom,overrides});
+  await setDoc(doc(db,'teams',TEAM_ID,'settings','calCategories'),{list:custom,overrides});
 }
 function renderCatSelect(){const s=document.getElementById('eCategory');if(!s)return;s.innerHTML=CAT_LIST.map(c=>`<option value="${c.id}">${c.label}</option>`).join('')}
 function renderCatList(){
