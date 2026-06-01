@@ -511,6 +511,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 <script type="module">
 import { db } from './shared/config.js';
+import { isOverdue, isImminent, isStale, priorityColor, priorityCls, getKbStatus } from './shared/task-core.js';
 import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
 
 import { collection, doc, getDoc,
