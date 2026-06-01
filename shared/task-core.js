@@ -74,10 +74,3 @@ export function dedupShared(tasks) {
   });
 }
 
-// ── 주차 계산 ──
-export function getWeekKey(date = new Date()) {
-  const d = new Date(date); d.setHours(0,0,0,0);
-  const day = d.getDay();
-  const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
-  return mon.toISOString().slice(0,10);
-}
