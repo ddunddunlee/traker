@@ -265,9 +265,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 <script type="module">
 import { db } from './shared/config.js';
-import { toast, fmtDate } from './shared/utils.js';
-import { collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
+import {
+  collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
 
 const MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 
@@ -393,6 +394,13 @@ function updateWeekLabel() {
 }
 
 // ── 토스트 ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
 // ── 이번 주 개별 일정 로드 ──
 // ── Firestore ──
 function reportDoc(memberId, weekKey) {
