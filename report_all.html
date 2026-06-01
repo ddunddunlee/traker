@@ -170,17 +170,6 @@ try {
 } catch(e){console.error("[GZPlan]",e);}
 
 // 주차 계산
-function getWeekKey(date) {
-  const d = new Date(date); d.setHours(0,0,0,0);
-  const day = d.getDay();
-  const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
-  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
-  const fmt = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-  return {
-    key: `${mon.getFullYear()}W${String(getISOWeek(mon)).padStart(2,'0')}`,
-    label: `${fmt(mon)} ~ ${fmt(sun)}`, mon, sun
-  };
-}
 function getISOWeek(date) {
   const d = new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
   const dayNum = d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-dayNum);

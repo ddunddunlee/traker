@@ -320,22 +320,6 @@ if (taskItem) taskItem.dataset.nav = isMgr ? 'manager.html' : 'member.html';
 if (taskLabel) taskLabel.textContent = isMgr ? '팀 업무 현황' : '내 업무';
 
 // ── 주차 계산 ──
-function getWeekKey(date) {
-  const d = new Date(date);
-  d.setHours(0,0,0,0);
-  const day = d.getDay();
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-  const sun = new Date(mon);
-  sun.setDate(mon.getDate() + 6);
-  const fmt = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-  return {
-    key: `${mon.getFullYear()}W${String(getISOWeek(mon)).padStart(2,'0')}`,
-    label: `${fmt(mon)} ~ ${fmt(sun)}`,
-    mon, sun
-  };
-}
-
 function weekKeyToMon(weekKey) {
   try {
     const [year, week] = weekKey.split('W').map(Number);
@@ -704,12 +688,6 @@ async function loadWeekSchedules(monDate, sunDate) {
     const all = snap.docs.map(d => ({id:d.id,...d.data()}));
     return all.filter(ev => ev.startDate <= sunStr && (ev.endDate || ev.startDate) >= monStr);
   } catch(e) { return []; }
-}
-
-function fmtDate(str) {
-  if (!str) return '';
-  const d = new Date(str + 'T00:00:00');
-  return `${d.getMonth()+1}/${d.getDate()}`;
 }
 
 // ── 팀장 화면 ──

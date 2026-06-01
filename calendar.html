@@ -689,7 +689,6 @@ const DEFAULT_CATS=[{id:'meeting',label:'회의',color:'#378ADD'},{id:'report',l
 const toStr=d=>d.toISOString().split('T')[0];
 const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 const fmt=s=>{if(!s)return'-';const d=parse(s);return`${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}.`};
-function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2400)}
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw''}
 const ME=JSON.parse(sess);

@@ -662,7 +662,6 @@ var _sbUserRole=document.getElementById('sbUserRole');if(_sbUserRole)_sbUserRole
 document.getElementById('logoutBtn')?.addEventListener('click',()=>{localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href = 'index.html';});
 document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click',()=>location.href=el.dataset.nav));
 
-function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2400)}
 function closeOverlay(id){var el=document.getElementById(id);if(el)el.classList.remove('show');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)e.target.classList.remove('show')}));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.show').forEach(o=>o.classList.remove('show'))});

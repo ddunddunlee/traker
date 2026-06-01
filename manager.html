@@ -553,47 +553,6 @@ let unsubs      = [];
 const now     = () => new Date().toISOString();
 const setSync = v => { const sd=document.getElementById('syncDot');if(sd)sd.classList.toggle('syncing',v); };
 
-function daysElapsed(d){if(!d)return 0;return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
-function fmtDate(s) {
-  if (!s) return '-';
-  const d = new Date(s);
-  const isDateOnly = s.length <= 10;
-  const base = `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
-  if (isDateOnly) return base;
-  return `${base} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
-
-function fmtShort(s) {
-  if (!s) return '';
-  const d = new Date(s);
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
-
-function timeAgo(s) {
-  const diff = Date.now() - new Date(s).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1)  return '방금';
-  if (mins < 60) return `${mins}분`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}시간`;
-  return `${Math.floor(hrs / 24)}일`;
-}
-
-const isOverdue   = t => t.due && t.status !== 'done' && new Date(t.due) < new Date();
-const isImminent  = t => {
-  if (t.status !== 'inprogress') return false;
-  const due = t.due || t.startDate; if (!due) return false;
-  const diff = (new Date(due) - new Date()) / 86400000;
-  return diff >= 0 && diff <= 7;
-};
-const isStale   = t => {
-  if (t.status === 'done') return false;
-  return Date.now() - new Date(t.updated).getTime() >= STALE_DAYS * DAY_MS;
-};
-
-function priorityColor(p) {
-  return ['','#c0c0bc','#378ADD','#EF9F27','#E24B4A','#A32D2D'][p||3] || '#c0c0bc';
-}
 window.priorityCls = function(p) {
   const n = p || 3;
   return 'priority-badge ' + ['','p1','p2','p3','p4','p5'][n];
@@ -974,8 +933,7 @@ function renderStats() {
 function renderTaskList() {
   const all      = getAllTasks();
   const filtered = all.filter(t => {
-    const isImminent = t => { if (t.status!=='inprogress') return false; const due=t.due||t.startDate; if(!due) return false; const diff=(new Date(due)-new Date())/86400000; return diff>=0&&diff<=7; };
-    const byStatus = filter === 'active' ? t.status !== 'done' : filter === 'all' ? true : filter === 'stale' ? isStale(t) : filter === 'imminent' ? isImminent(t) : t.status === filter;
+        const byStatus = filter === 'active' ? t.status !== 'done' : filter === 'all' ? true : filter === 'stale' ? isStale(t) : filter === 'imminent' ? isImminent(t) : t.status === filter;
     return byStatus;
   });
   const _now = new Date();
@@ -1751,11 +1709,6 @@ const KB_COLS = [
 ];
 const KB_LIMIT = 4;
 const kbExpanded = {};
-
-function getKbStatus(t) {
-  if (isOverdue(t)) return 'overdue';
-  return t.status === 'inprogress' ? 'inprogress' : t.status === 'done' ? 'done' : 'todo';
-}
 
 function renderKanban() {
   const board = document.getElementById('kanbanBoard');
