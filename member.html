@@ -1831,7 +1831,9 @@ function renderKanban() {
       el.dataset.id = t._id;
       const due = t.due ? `<span class="kb-due">${t.due.slice(5).replace('-','/')}</span>` : `<span class="kb-due" style="color:var(--text3)">종료일 미설정</span>`;
       const _imBadge = _isIm ? '<span style="font-size:9px;padding:1px 5px;border-radius:999px;background:#FFF3CD;color:#8B5E00;font-weight:600;margin-left:2px">⏰ 임박</span>' : '';
-      el.innerHTML = `<div class="kb-card-title">${t.title}</div>
+      const _priColor = priorityColor(t.priority||3);
+      el.innerHTML = `<div style="height:3px;background:${_priColor};border-radius:4px 4px 0 0;margin:-10px -10px 8px;"></div>
+        <div class="kb-card-title">${t.title}</div>
         <div class="kb-card-meta">
           <span class="kb-badge ${col.badge}">${t._isOther ? (t._mid||t.assignee||'') : (t.assignee||ME.id)}</span>
           ${due}${_imBadge}
@@ -1889,8 +1891,12 @@ function renderKanban() {
       if (col.key === 'overdue') return; // 기한초과는 날짜 기반이라 드롭 불가
       if (task.status === newStatus) return;
       try {
-        await updateDoc(doc(db,'teams',TEAM_ID,'tasks', ME.id, 'items', kbDragId), {
-          status: newStatus, updated: new Date().toISOString().slice(0,10)
+        const targetMid = task._mid || ME.id;
+        const ts = new Date().toISOString().slice(0,10);
+        const labels = {todo:'대기', inprogress:'진행 중', done:'완료'};
+        const histEntry = {id:Date.now()+'', type:'status', text:`${labels[task.status]||task.status} → ${labels[newStatus]||newStatus}`, date:new Date().toISOString(), author:ME.displayName||ME.id};
+        await updateDoc(doc(db,'teams',TEAM_ID,'tasks',targetMid,'items',kbDragId), {
+          status: newStatus, updated: ts, history:[...(task.history||[]), histEntry]
         });
       } catch(e) { console.error('[GZPlan]', e); }
     });
@@ -1923,13 +1929,15 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 
 window.changeTaskStatus = async function(newStatus) {
   if (!selId) return;
-  const t = tasks.find(t => t._id === selId);
+  const t = tasks.find(t => t._id === selId) || otherTasks?.find?.(t => t._id === selId);
   if (!t || t.status === newStatus) return;
   const ts = new Date().toISOString().slice(0,10);
   const labels = {todo:'대기', inprogress:'진행 중', done:'완료'};
-  const histEntry = {id:Date.now()+'', type:'status', text:'상태 변경: '+(labels[t.status]||t.status)+' → '+(labels[newStatus]||newStatus), date:ts};
+  const histEntry = {id:Date.now()+'', type:'status', text:'상태 변경: '+(labels[t.status]||t.status)+' → '+(labels[newStatus]||newStatus), date:new Date().toISOString(), author: ME.displayName||ME.id};
   try {
-    await fsUpd(selId, {status:newStatus, updated:ts, history:[...(t.history||[]), histEntry]});
+    const targetMid = t._mid || ME.id;
+    const targetDoc = doc(db,'teams',TEAM_ID,'tasks',targetMid,'items',selId);
+    await updateDoc(targetDoc, {status:newStatus, updated:ts, history:[...(t.history||[]), histEntry]});
     toast('상태가 변경됐어요 ✓');
   } catch(e) { console.error('[GZPlan]', e); }
 };
