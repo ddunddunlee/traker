@@ -1,0 +1,178 @@
+/* shared/theme.css — 디자인 토큰 + 공통 컴포넌트 */
+
+/* ── 색상 변수 ── */
+:root {
+  --bg:     #fff;
+  --bg2:    #f7f7f5;
+  --bg3:    #f0f0ee;
+  --text:   #1a1a1a;
+  --text2:  #6b6b6b;
+  --text3:  #a8a8a8;
+  --border: #e5e5e3;
+  --border2:#d0d0cc;
+
+  --radius:    10px;
+  --radius-sm:  6px;
+  --pill:     999px;
+
+  --blue:      #378ADD;
+  --blue-bg:   #E6F1FB;
+  --blue-t:    #0C447C;
+
+  --amber-bg:  #FAEEDA;
+  --amber-t:   #633806;
+
+  --green:     #639922;
+  --green-bg:  #EAF3DE;
+  --green-t:   #27500A;
+
+  --red:       #A32D2D;
+  --red-bg:    #FCEBEB;
+  --red-t:     #791F1F;
+
+  --orange:    #EF9F27;
+
+  --purple-bg: #EEEDFE;
+  --purple-t:  #3C3489;
+
+  --navy:      #0C447C;
+
+  /* 사이드바 */
+  --sw:        220px;
+  --sw-col:     56px;
+  --sb-ease:   .22s cubic-bezier(.4,0,.2,1);
+
+  --topbar-h:   52px;
+  --touch-min:  44px;
+}
+
+/* ── 기본 리셋 ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', 'Segoe UI', sans-serif;
+  background: var(--bg2);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── 공통 버튼 ── */
+.btn-solid {
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .15s;
+}
+.btn-solid:hover { opacity: .85; }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+}
+.btn-ghost:hover { border-color: var(--border2); }
+
+/* ── 칩 ── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--pill);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.chip:hover  { border-color: var(--blue); color: var(--blue); }
+.chip.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+/* ── 모달/오버레이 ── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.overlay.show { display: flex; }
+
+.modal {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: min(420px, 90vw);
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal-note { font-size: 12px; color: var(--text3); margin-bottom: 12px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.btn-ok     { background: var(--navy); color: #fff; border: none; padding: 8px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancel { background: var(--bg3); color: var(--text2); border: none; padding: 8px 18px; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; }
+
+/* ── 폼 그룹 ── */
+.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.fg label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.fg input, .fg select, .fg textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--blue); }
+
+/* ── 토스트 ── */
+#toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: var(--pill);
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity .25s, transform .25s;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── 중요도 배지 ── */
+.priority-badge { font-size:11px;font-weight:600;padding:3px 10px;border-radius:var(--pill);cursor:pointer;display:inline-block;white-space:nowrap }
+.priority-badge.p1 { background:#f0f0ee;color:#888 }
+.priority-badge.p2 { background:var(--blue-bg);color:var(--blue-t) }
+.priority-badge.p3 { background:var(--amber-bg);color:var(--amber-t) }
+.priority-badge.p4 { background:var(--red-bg);color:var(--red) }
+.priority-badge.p5 { background:var(--red);color:#fff }
+
+/* ── 상태 배지 ── */
+.badge-todo       { background:var(--bg3);color:var(--text3) }
+.badge-inprogress { background:var(--amber-bg);color:var(--amber-t) }
+.badge-done       { background:var(--green-bg);color:var(--green-t) }
+
+/* ── err ── */
+.err-line { font-size:12px;color:var(--red);min-height:16px;margin-top:2px }

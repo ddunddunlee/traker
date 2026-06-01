@@ -9,13 +9,6 @@
 <title>GZ Plan — 주간보고(전체)</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fff;--bg2:#F0F4F8;--bg3:#DDE3EA;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
-  --border:#DDE3EA;--radius:10px;--radius-sm:6px;--pill:999px;
-  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
-  --sw:220px;--topbar-h:52px;--touch-min:44px;
-}
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px}
@@ -102,49 +95,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
   .week-label{min-width:140px;font-size:13px}
 }
   /* ── 사이드바 표준 CSS ── */
-  :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-</style>
+  </style>
 <script src="./shared/sidebar.js" defer></script>
+  <link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 <div id="gz-sidebar" data-active="report_all.html"></div>
@@ -167,18 +120,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {
-  getFirestore, collection, doc, getDoc, getDocs, orderBy, query
+import { db } from './shared/config.js';
+import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { collection, doc, getDoc, getDocs, orderBy, query
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const FIREBASE_CONFIG = {
-  apiKey:"AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",
-  authDomain:"gzplan.firebaseapp.com",projectId:"gzplan",
-  storageBucket:"gzplan.firebasestorage.app",
-  messagingSenderId:"186255862586",
-  appId:"1:186255862586:web:f36d21f76012ca43b8fe03",
-};
 
 let MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 let MEMBER_ORGS = {
@@ -192,7 +138,6 @@ let MEMBER_ORGS = {
   "이윤형":["일본","사업지원본부(기획실)"]
 };
 
-const db = getFirestore(initializeApp(FIREBASE_CONFIG));
 const sess = localStorage.getItem('tt_user');
 if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
@@ -246,12 +191,6 @@ function getISOWeek(date) {
 let curDate = new Date();
 function updateWeekLabel() {
   document.getElementById('weekLabel').textContent = getWeekKey(curDate).label;
-}
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
 }
 
 async function loadWeekSchedules(mon, sun) {

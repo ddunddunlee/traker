@@ -10,22 +10,6 @@
 <title>GZ Plan — 홈</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ee;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
-  --border:#e5e5e3;--border2:#d0d0cc;
-  --radius:10px;--radius-sm:6px;--pill:999px;
-  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
-  --amber-bg:#FAEEDA;--amber-t:#633806;
-  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
-  --red:#A32D2D;--red-bg:#FCEBEB;--red-t:#791F1F;
-  --orange:#EF9F27;
-  --purple-bg:#EEEDFE;--purple-t:#3C3489;
-  --sw:220px;
-  --sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1);
-  --topbar-h:52px;
-  --touch-min:44px;
-}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px;
   -webkit-text-size-adjust:100%;margin:0;padding:0}
@@ -298,6 +282,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 .t-due.no-due{color:var(--text3)}</style>
 <script src="./shared/sidebar.js" defer></script>
+  <link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 
@@ -432,18 +417,11 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, doc, getDoc, onSnapshot, updateDoc, deleteDoc, query, orderBy, where }
+import { db } from './shared/config.js';
+import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { collection, doc, getDoc, onSnapshot, updateDoc, deleteDoc, query, orderBy, where }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const FIREBASE_CONFIG = {
-  apiKey:'AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ',
-  authDomain:'gzplan.firebaseapp.com', projectId:'gzplan',
-  storageBucket:'gzplan.firebasestorage.app',
-  messagingSenderId:'186255862586',
-  appId:'1:186255862586:web:f36d21f76012ca43b8fe03',
-};
-const db = getFirestore(initializeApp(FIREBASE_CONFIG));
 
 // ── 세션 확인 ──
 const sess = localStorage.getItem('tt_user');
@@ -462,12 +440,6 @@ const MEMBER_COLORS = ['#378ADD','#7F77DD','#EF9F27','#639922','#E24B4A','#D4537
 const toStr = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const today = toStr(new Date());
 const pad2  = n => String(n).padStart(2,'0');
-
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
-}
 
 // ── 사이드바 초기화 ──
 var _sbAvatar=document.getElementById('sbAvatar');if(_sbAvatar)_sbAvatar.textContent=(ME.displayName || ME.id).slice(0,1);

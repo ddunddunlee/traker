@@ -18,22 +18,6 @@
 
 /* ── Reset & 변수 ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ee;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
-  --border:#e5e5e3;--border2:#d0d0cc;
-  --radius:10px;--radius-sm:6px;--pill:999px;
-  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
-  --amber-bg:#FAEEDA;--amber-t:#633806;
-  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
-  --red:#A32D2D;--red-bg:#FCEBEB;--red-t:#791F1F;
-  --orange:#EF9F27;
-  --purple-bg:#EEEDFE;--purple-t:#3C3489;
-  --sw:220px;
-  --topbar-h:52px;
-  --touch-min:44px;
-}
-
 /* ── 기본 ── */
 html,body{height:100%}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
@@ -317,7 +301,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
    반응형 — 태블릿 (768px ~ 1023px)
 ══════════════════════════════════════════ */
 @media(max-width:1023px){
-  :root{--sw:220px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .detail-panel{width:280px;min-width:240px}
 }
@@ -326,8 +309,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
    반응형 — 모바일 (~ 767px)
 ══════════════════════════════════════════ */
 @media(max-width:767px){
-  :root{--sw:220px}
-
   /* 사이드바 슬라이드 */
 
   /* 햄버거 표시 */
@@ -527,55 +508,13 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 .td-hist-date{font-size:10px;color:var(--text3);margin-top:2px}
 .td-progress{padding:8px 0;border-bottom:0.5px solid var(--bg2)}
   /* ── 사이드바 표준 CSS ── */
-  :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-.tab-row{display:flex;gap:4px;padding:8px 14px 0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+  .tab-row{display:flex;gap:4px;padding:8px 14px 0;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
 .tab-btn{padding:7px 14px;border:none;background:transparent;border-radius:8px 8px 0 0;font-size:13px;font-family:inherit;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px}
 .tab-btn:hover{background:var(--bg2);color:var(--text)}
 .tab-btn.active{color:var(--blue-t,#0C447C);border-bottom:2px solid var(--blue-t,#0C447C);font-weight:500;background:var(--bg)}
 </style>
 <script src="./shared/sidebar.js" defer></script>
+  <link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 <!-- 모바일 딤 -->
@@ -865,8 +804,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </script>
 <script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {getFirestore,collection,doc,getDoc,setDoc,onSnapshot,addDoc,updateDoc,deleteDoc,query,orderBy} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { db } from './shared/config.js';
+import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { collection,doc,getDoc,setDoc,onSnapshot,addDoc,updateDoc,deleteDoc,query,orderBy} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 const FC={apiKey:"AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",authDomain:"gzplan.firebaseapp.com",projectId:"gzplan",storageBucket:"gzplan.firebasestorage.app",messagingSenderId:"186255862586",appId:"1:186255862586:web:f36d21f76012ca43b8fe03"};
 const MEMBER_IDS=["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 const MEMBER_COLORS=["#378ADD","#7F77DD","#EF9F27","#639922","#E24B4A","#D4537E","#1D9E75","#D85A30","#5B6AF0"];
@@ -877,7 +817,6 @@ const toStr=d=>d.toISOString().split('T')[0];
 const parse=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 const fmt=s=>{if(!s)return'-';const d=parse(s);return`${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}.`};
 function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2400)}
-const db=getFirestore(initializeApp(FC));
 const sess=localStorage.getItem('tt_user');
 if(!sess){location.href='index.html';throw''}
 const ME=JSON.parse(sess);

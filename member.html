@@ -17,22 +17,6 @@
 
 /* ── Reset & 변수 ── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fff;--bg2:#f7f7f5;--bg3:#f0f0ee;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
-  --border:#e5e5e3;--border2:#d0d0cc;
-  --radius:10px;--radius-sm:6px;--pill:999px;
-  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
-  --amber-bg:#FAEEDA;--amber-t:#633806;
-  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
-  --red:#A32D2D;--red-bg:#FCEBEB;--red-t:#791F1F;
-  --orange:#EF9F27;
-  --purple-bg:#EEEDFE;--purple-t:#3C3489;
-  --sw:220px;
-  --topbar-h:52px;
-  --touch-min:44px;
-}
-
 /* ── 기본 ── */
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
@@ -318,7 +302,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
    반응형 — 태블릿 (768px ~ 1023px)
 ══════════════════════════════════════════ */
 @media(max-width:1023px){
-  :root{--sw:220px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .detail-panel{width:280px;min-width:240px}
 }
@@ -327,8 +310,6 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
    반응형 — 모바일 (~ 767px)
 ══════════════════════════════════════════ */
 @media(max-width:767px){
-  :root{--sw:220px}
-
   /* 사이드바 슬라이드 */
 
   /* 햄버거 표시 */
@@ -403,49 +384,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 .btn-solid:hover{background:#0a3a6a !important;}
 .chip.active{background:#0C447C !important;border-color:#0C447C !important;color:#fff !important;}
   /* ── 사이드바 표준 CSS ── */
-  :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-/* ── 칸반 뷰 ── */
+  /* ── 칸반 뷰 ── */
 .view-toggle-wrap{display:flex;gap:4px;background:var(--bg2);border:0.5px solid var(--border);border-radius:8px;padding:3px}
 .view-btn{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:all .15s;font-family:inherit}
 .view-btn.active{background:var(--bg);color:var(--text);border:0.5px solid var(--border);font-weight:500}
@@ -476,6 +415,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 .task-date.no-due{color:var(--text3);font-style:italic}</style>
 <script src="./shared/sidebar.js" defer></script>
+  <link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 <!-- 모바일 딤 -->
@@ -570,28 +510,19 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 <div class="toast" id="toast"></div>
 
 <script type="module">
+import { db } from './shared/config.js';
+import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {
-  getFirestore, collection, doc, getDoc,
+import {, collection, doc, getDoc,
   onSnapshot, addDoc, updateDoc, deleteDoc, getDocs,
   serverTimestamp, query, orderBy
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",
-  authDomain:        "gzplan.firebaseapp.com",
-  projectId:         "gzplan",
-  storageBucket:     "gzplan.firebasestorage.app",
-  messagingSenderId: "186255862586",
-  appId:             "1:186255862586:web:f36d21f76012ca43b8fe03",
-};
 const DAY_MS    = 86400000;
 const STALE_DAYS = 14;
 let REPORTERS   = [];
 let MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 
-const db  = getFirestore(initializeApp(FIREBASE_CONFIG));
 const sess = localStorage.getItem('tt_user');
 if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
@@ -679,14 +610,6 @@ let dragId  = null;
 // ════════════════════════════════════════════
 const now   = ()  => new Date().toISOString();
 const setSync = v => { const _sd=document.getElementById('syncDot');if(_sd)_sd.classList.toggle('syncing',v); };
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2200);
-}
-
 
 function daysElapsed(dateStr) {
   if (!dateStr) return null;

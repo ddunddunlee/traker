@@ -10,18 +10,6 @@
 <title>GZ Plan — 주간 보고</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#fff;--bg2:#F0F4F8;--bg3:#DDE3EA;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#a8a8a8;
-  --border:#DDE3EA;--border2:#B8C6D6;
-  --radius:10px;--radius-sm:6px;--pill:999px;
-  --blue:#378ADD;--blue-bg:#E6F1FB;--blue-t:#0C447C;
-  --amber-bg:#FAEEDA;--amber-t:#633806;
-  --green:#639922;--green-bg:#EAF3DE;--green-t:#27500A;
-  --red:#A32D2D;--red-bg:#FCEBEB;
-  --orange:#EF9F27;
-  --sw:220px;--topbar-h:52px;--touch-min:44px;
-}
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
 body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif;
   background:var(--bg2);color:var(--text);min-height:100vh;font-size:14px}
@@ -244,59 +232,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 /* ── 반응형 ── */
 @media(max-width:767px){
-  :root{--sw:220px}
-  
-  
   .topbar{padding:0 14px}
   .content-wrap{padding:14px 14px 80px}
   .member-tabs{padding:12px 14px 0}
   .week-label{min-width:140px;font-size:13px}
 }
   /* ── 사이드바 표준 CSS ── */
-  :root{--sw:220px;--sw-col:56px;--sb-ease:.22s cubic-bezier(.4,0,.2,1)}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
-.week-label{display:none}</style>
+  .week-label{display:none}</style>
 <script src="./shared/sidebar.js" defer></script>
+  <link rel="stylesheet" href="shared/theme.css">
 </head>
 <body>
 <div id="gz-sidebar" data-active="report.html"></div>
@@ -320,19 +264,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import {
-  getFirestore, collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
+import { db } from './shared/config.js';
+import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",
-  authDomain:        "gzplan.firebaseapp.com",
-  projectId:         "gzplan",
-  storageBucket:     "gzplan.firebasestorage.app",
-  messagingSenderId: "186255862586",
-  appId:             "1:186255862586:web:f36d21f76012ca43b8fe03",
-};
 
 const MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 
@@ -349,7 +285,6 @@ let MEMBER_ORGS = {
 };
 
 
-const db = getFirestore(initializeApp(FIREBASE_CONFIG));
 const sess = localStorage.getItem('tt_user');
 if (!sess) { location.href = 'index.html'; throw ''; }
 let ME;
@@ -459,13 +394,6 @@ function updateWeekLabel() {
 }
 
 // ── 토스트 ──
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2500);
-}
-
 // ── 이번 주 개별 일정 로드 ──
 // ── Firestore ──
 function reportDoc(memberId, weekKey) {
