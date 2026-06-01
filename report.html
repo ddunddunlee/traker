@@ -265,33 +265,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 <script type="module">
 import { db } from './shared/config.js';
-import { esc, fmtDate, fmtShort,  timeAgo, toast } from './shared/utils.js';
-import { collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
+import { toast, fmtDate } from './shared/utils.js';
+import {, collection, doc, getDoc, setDoc, getDocs, addDoc, updateDoc, orderBy, query, where
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-function getISOWeek(date) {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
-  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
-}
-function getWeekKey(date) {
-  const d = new Date(date);
-  d.setHours(0,0,0,0);
-  const day = d.getDay();
-  const mon = new Date(d);
-  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
-  const sun = new Date(mon);
-  sun.setDate(mon.getDate() + 6);
-  const fmt = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
-  return {
-    key: `${mon.getFullYear()}W${String(getISOWeek(mon)).padStart(2,'0')}`,
-    label: `${fmt(mon)} ~ ${fmt(sun)}`,
-    mon, sun
-  };
-}
-
 
 const MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
 
@@ -343,6 +319,22 @@ if (taskItem) taskItem.dataset.nav = isMgr ? 'manager.html' : 'member.html';
 if (taskLabel) taskLabel.textContent = isMgr ? '팀 업무 현황' : '내 업무';
 
 // ── 주차 계산 ──
+function getWeekKey(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  const day = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  const fmt = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+  return {
+    key: `${mon.getFullYear()}W${String(getISOWeek(mon)).padStart(2,'0')}`,
+    label: `${fmt(mon)} ~ ${fmt(sun)}`,
+    mon, sun
+  };
+}
+
 function weekKeyToMon(weekKey) {
   try {
     const [year, week] = weekKey.split('W').map(Number);
@@ -711,6 +703,12 @@ async function loadWeekSchedules(monDate, sunDate) {
     const all = snap.docs.map(d => ({id:d.id,...d.data()}));
     return all.filter(ev => ev.startDate <= sunStr && (ev.endDate || ev.startDate) >= monStr);
   } catch(e) { return []; }
+}
+
+function fmtDate(str) {
+  if (!str) return '';
+  const d = new Date(str + 'T00:00:00');
+  return `${d.getMonth()+1}/${d.getDate()}`;
 }
 
 // ── 팀장 화면 ──
