@@ -805,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script type="module">
 import { db } from './shared/config.js';
-import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { daysElapsed, esc, fmtDate, fmtShort, timeAgo, toast } from './shared/utils.js';
 import { collection,doc,getDoc,setDoc,onSnapshot,addDoc,updateDoc,deleteDoc,query,orderBy} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 const FC={apiKey:"AIzaSyA7KylsSyT3_0oQvhBtcrPc-gcdfVq90IQ",authDomain:"gzplan.firebaseapp.com",projectId:"gzplan",storageBucket:"gzplan.firebasestorage.app",messagingSenderId:"186255862586",appId:"1:186255862586:web:f36d21f76012ca43b8fe03"};
 const MEMBER_IDS=["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];

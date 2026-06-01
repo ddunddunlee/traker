@@ -511,8 +511,8 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 
 <script type="module">
 import { db } from './shared/config.js';
-import { isOverdue, isImminent, isStale, priorityColor, priorityCls, getKbStatus } from './shared/task-core.js';
-import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { getKbStatus, isImminent, isOverdue, isStale, priorityCls, priorityColor, statusBadge } from './shared/task-core.js';
+import { daysElapsed, esc, fmtDate, fmtShort, timeAgo, toast } from './shared/utils.js';
 
 import { collection, doc, getDoc,
   onSnapshot, addDoc, updateDoc, deleteDoc, getDocs,
@@ -646,14 +646,6 @@ function priorityBadge(p) {
 }
 
 // 상태 배지 HTML
-function statusBadge(status, id) {
-  const labels = { todo: '대기 →', inprogress: '진행 중 →', done: '완료 →' };
-  const classes = { todo: 'badge-todo', inprogress: 'badge-inprogress', done: 'badge-done' };
-  return `<span class="badge ${classes[status]} badge-status"
-    onclick="cycleStat('${id}', event)"
-    title="클릭하면 상태 변경">${labels[status]}</span>`;
-}
-
 // ════════════════════════════════════════════
 // 실시간 데이터 구독
 // ════════════════════════════════════════════

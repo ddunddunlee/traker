@@ -400,8 +400,8 @@ button, [onclick], [data-nav], .sb-item, .task-card, .chip {
 
 <script type="module">
 import { db } from './shared/config.js';
-import { isOverdue, isImminent, isStale, dedupShared, priorityColor, priorityCls, getKbStatus } from './shared/task-core.js';
-import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { dedupShared, getKbStatus, isImminent, isOverdue, isStale, priorityCls, priorityColor, statusBadge } from './shared/task-core.js';
+import { daysElapsed, esc, fmtDate, fmtShort, timeAgo, toast } from './shared/utils.js';
 
 import { collection, doc, getDoc,
   onSnapshot, addDoc, updateDoc, deleteDoc,
@@ -586,12 +586,6 @@ function priorityBadge(p) {
   return `<span class="priority-badge ${cls}" title="중요도 ${n}">${dots}</span>`;
 }
 
-function statusBadge(status, docId, memberId, isReadOnly) {
-  const labels  = { todo: '대기 →', inprogress: '진행 중 →', done: '완료 →' };
-  const classes = { todo: 'badge-todo', inprogress: 'badge-inprogress', done: 'badge-done' };
-  if (isReadOnly) {
-    return `<span class="badge ${classes[status]}">${labels[status].replace(' →', '')}</span>`;
-  }
   return `<span class="badge ${classes[status]} badge-status"
     onclick="cycleStat('${docId}', '${memberId}', event)"
     title="클릭하면 상태 변경">${labels[status]}</span>`;

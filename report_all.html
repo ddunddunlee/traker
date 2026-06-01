@@ -121,7 +121,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 <script type="module">
 import { db } from './shared/config.js';
-import { toast, esc, fmtDate, fmtShort, timeAgo } from './shared/utils.js';
+import { esc, fmtDate, fmtShort, getWeekKey, timeAgo, toast } from './shared/utils.js';
 import { collection, doc, getDoc, getDocs, orderBy, query
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
