@@ -121,9 +121,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 
 <script type="module">
 import { db } from './shared/config.js';
-import { esc, fmtDate, fmtShort, getWeekKey, timeAgo, toast } from './shared/utils.js';
+import { esc, fmtDate, fmtShort,  timeAgo, toast } from './shared/utils.js';
 import { collection, doc, getDoc, getDocs, orderBy, query
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));
+  const dayNum = d.getUTCDay()||7; d.setUTCDate(d.getUTCDate()+4-dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-yearStart)/86400000)+1)/7);
+}
+function getWeekKey(date) {
+  const d = new Date(date); d.setHours(0,0,0,0);
+  const day = d.getDay();
+  const mon = new Date(d); mon.setDate(d.getDate() - (day===0?6:day-1));
+  const sun = new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt = d => `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+  return {
+    key: `${mon.getFullYear()}W${String(getISOWeek(mon)).padStart(2,'0')}`,
+    label: `${fmt(mon)} ~ ${fmt(sun)}`, mon, sun
+  };
+}
 
 
 let MEMBER_IDS = ["강신욱","김용욱","오문식","이길우","이도영","이상현","이영찬","이윤형","현주용"];
