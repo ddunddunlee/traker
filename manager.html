@@ -637,7 +637,7 @@ window.switchViewTab = function(tab) {
 let sharedTasks = [];
 onSnapshot(query(collection(db,'teams',TEAM_ID,'sharedTasks'), orderBy('createdAt','desc')), snap => {
   sharedTasks = snap.docs.map(d => ({_id:d.id, ...d.data()}));
-  renderAllMemberTasks();
+  render();
 });
 
 // 업무 관리 풀 (taskPool)
