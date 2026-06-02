@@ -649,13 +649,17 @@ function priorityBadge(p) {
 // ════════════════════════════════════════════
 // 실시간 데이터 구독
 // ════════════════════════════════════════════
-// memberOrder 로드 (없으면 빈 배열 — 다른 팀 데이터 방지)
+// memberOrder + accounts 로드
 try {
-  const orderSnap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
+  const [orderSnap, accSnap] = await Promise.all([
+    getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder')),
+    getDocs(collection(db,'accounts'))
+  ]);
   MEMBER_IDS.length = 0;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
     orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
   }
+  window._allAccounts = accSnap.docs.map(d => ({docId: d.id, ...d.data()}));
 } catch(e){console.error("[GZPlan]",e);}
 
 onSnapshot(query(col(), orderBy('order', 'asc')), snap => {
@@ -728,7 +732,12 @@ function renderMemberFilter() {
   const isMgr = ME.role === 'manager' || ME.role === 'admin';
   if (isMgr) { row.innerHTML = ''; return; } // 팀장은 별도 뷰 있으므로 숨김
   let html = '<span style="font-size:11px;color:var(--text3);flex-shrink:0;align-self:center">팀원</span>';
-  MEMBER_IDS.filter(id => id !== '현주용').forEach((id, i) => {
+  MEMBER_IDS.filter(id => {
+    // 팀장 role 계정은 필터에서 제외 (팀원은 팀장 업무 못 봄)
+    const acc = window._allAccounts?.find?.(a => (a.docId||a.id) === id);
+    if (acc && (acc.role === 'manager' || acc.role === 'admin')) return false;
+    return true;
+  }).forEach((id, i) => {
     const color = MEMBER_CHIP_COLORS[i % MEMBER_CHIP_COLORS.length];
     const isMe = id === ME.id;
     const isActive = activeMemberFilters.has(id);
