@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="GZ기획팀"/>
+<meta name="theme-color" content="#ffffff"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>경쟁사분석 — GZ 경영기획팀</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="shared/theme.css">
+<script src="./shared/sidebar.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-serif}
+body{background:#F0F4F8;color:var(--text);min-height:100vh;font-size:14px}
+.app,.main-wrap{display:flex;flex-direction:column;min-height:100vh}
+
+/* topbar — 다른 페이지와 동일 */
+.topbar{height:var(--topbar-h,52px);background:var(--bg);border-bottom:1px solid #DDE3EA;
+  display:flex;align-items:center;gap:12px;padding:0 24px;position:sticky;top:0;z-index:50}
+.hamburger{display:none;flex-direction:column;gap:4px;background:none;border:none;cursor:pointer;padding:6px}
+.hamburger span{width:20px;height:2px;background:var(--text2);border-radius:2px}
+.page-title{font-size:15px;font-weight:700;color:var(--navy)}
+
+.content{flex:1;padding:24px;max-width:1100px;width:100%;margin:0 auto}
+
+/* 검색 바 */
+.searchbox{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;padding:18px 20px;
+  display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px}
+.searchbox .fg{margin-bottom:0}
+.searchbox .fg.company{flex:1;min-width:200px}
+.searchbox .fg.year{width:110px}
+.searchbox .fg label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block}
+.searchbox input{padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-size:14px;width:100%;font-family:inherit}
+.searchbox input:focus{border-color:var(--blue);outline:none}
+.searchbox .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%}
+
+/* 상태 */
+.statebox{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;padding:48px 24px;text-align:center;color:var(--text2)}
+.statebox.err{border-color:var(--red-bg);background:var(--red-bg);color:var(--red-t)}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;
+  animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 리포트 */
+#report{display:none}
+.rpt-head{margin-bottom:6px}
+.rpt-eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);font-weight:600;margin-bottom:6px}
+.rpt-head h1{font-size:26px;font-weight:700;color:var(--navy);letter-spacing:-.01em}
+.rpt-sub{color:var(--text2);font-size:13px;margin-top:4px}
+.rpt-hr{height:2px;background:var(--navy);margin:18px 0 24px;opacity:.85}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.kpi{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;padding:16px}
+.kpi .label{font-size:12px;color:var(--text2);margin-bottom:8px}
+.kpi .val{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.kpi .val .unit{font-size:13px;color:var(--text3);font-weight:500;margin-left:3px}
+.kpi .delta{font-size:12px;margin-top:6px;font-weight:600}
+.kpi .delta.up{color:var(--green-t)}.kpi .delta.down{color:var(--red)}
+
+.callout{border-left:3px solid var(--blue);background:var(--blue-bg);padding:12px 16px;border-radius:0 8px 8px 0;
+  margin:14px 0;font-size:13.5px;color:var(--blue-t);line-height:1.6}
+
+h2.sec{font-size:18px;font-weight:700;color:var(--navy);margin:32px 0 10px;display:flex;align-items:center;gap:10px}
+h2.sec .no{font-size:12px;width:24px;height:24px;border:1.5px solid var(--navy);border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--navy)}
+h3.sub{font-size:14px;font-weight:600;margin:22px 0 8px;color:var(--text)}
+
+table.rpt{width:100%;border-collapse:collapse;background:var(--bg);border:1px solid #DDE3EA;
+  border-radius:10px;overflow:hidden;font-size:13px;margin:8px 0}
+table.rpt caption{caption-side:top;text-align:left;font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:500}
+table.rpt th,table.rpt td{padding:9px 12px;border-bottom:1px solid #EEF1F5;text-align:right;font-variant-numeric:tabular-nums}
+table.rpt th:first-child,table.rpt td:first-child{text-align:left}
+table.rpt thead th{background:#EEF2F7;font-weight:600;color:var(--navy);font-size:12px;border-bottom:1.5px solid #DDE3EA}
+table.rpt tbody tr:last-child td{border-bottom:none}
+table.rpt tr.total td{font-weight:700;background:#F4F7FA;border-top:1.5px solid #DDE3EA}
+.neg{color:var(--red)}.pos{color:var(--green-t)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.chartcard{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;padding:16px}
+.chartcard h3{margin:0 0 12px;font-size:14px;font-weight:600}
+.chartwrap{position:relative;height:240px}
+.note{font-size:12px;color:var(--text3);margin-top:8px;line-height:1.5}
+
+/* 위험/감사 */
+.audit-row{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+.audit-pill{font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--pill,999px)}
+.op-good{background:var(--green-bg);color:var(--green-t)}
+.op-warn{background:var(--amber-bg);color:var(--amber-t)}
+.op-bad{background:var(--red-bg);color:var(--red)}
+.op-na{background:var(--bg3);color:var(--text3)}
+.risk-item{background:var(--bg);border:1px solid #DDE3EA;border-radius:10px;padding:12px 14px;margin:8px 0;display:flex;gap:12px;align-items:flex-start}
+.risk-lv{font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--pill,999px);flex:0 0 auto;white-space:nowrap}
+.lv-high{background:var(--red);color:#fff}.lv-mid{background:var(--amber-bg);color:var(--amber-t)}
+.lv-low{background:var(--blue-bg);color:var(--blue-t)}.lv-none{background:var(--bg3);color:var(--text3)}
+.risk-body{font-size:13px;line-height:1.55}
+.risk-body .nm{font-weight:600}
+.risk-body .ev{color:var(--text2);font-size:12px;margin-top:3px}
+
+.filing-list{list-style:none}
+.filing-list li{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #EEF1F5;font-size:13px;gap:12px}
+.filing-list li:last-child{border-bottom:none}
+.filing-list .fdate{color:var(--text3);font-size:12px;white-space:nowrap}
+.filing-list a{color:var(--blue);text-decoration:none}
+.filing-list a:hover{text-decoration:underline}
+
+.rpt-footer{margin-top:36px;padding-top:14px;border-top:2px solid var(--navy);opacity:.85;font-size:11px;color:var(--text3);line-height:1.6}
+
+@media(max-width:1023px){.hamburger{display:flex}}
+@media(max-width:767px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+<div id="gz-sidebar" data-active="dart.html"></div>
+
+<div class="main-wrap">
+  <div class="topbar">
+    <button class="hamburger" id="hamburgerBtn" aria-label="메뉴"><span></span><span></span><span></span></button>
+    <div class="page-title">경쟁사분석</div>
+  </div>
+
+  <div class="content">
+    <!-- 검색 -->
+    <div class="searchbox">
+      <div class="fg company">
+        <label>회사명</label>
+        <input id="qCompany" placeholder="예: 크리에이츠" onkeydown="if(event.key==='Enter')runSearch()"/>
+      </div>
+      <div class="fg year">
+        <label>사업연도</label>
+        <input id="qYear" placeholder="2025"/>
+      </div>
+      <button class="btn-solid" style="padding:9px 20px" onclick="runSearch()">분석</button>
+      <div class="chips" id="quickChips"></div>
+    </div>
+
+    <!-- 상태/리포트 -->
+    <div id="state" class="statebox">회사명을 입력하고 <b>분석</b>을 누르면 DART 공시를 정리해서 보여드립니다.</div>
+    <div id="report"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   접근 가드 — 경영기획팀(planning) / admin 만 허용
+════════════════════════════════════════════════════════ */
+(function(){
+  var me={};
+  try{ me=JSON.parse(localStorage.getItem('tt_user')||'{}'); }catch(e){}
+  var allowed = (me.role==='admin') || (me.teamId==='planning');
+  if(!allowed){
+    location.replace('dashboard.html');
+  }
+})();
+
+/* ════════════════════════════════════════════════════════
+   설정 — 배포 후 Worker URL 입력
+════════════════════════════════════════════════════════ */
+const WORKER_URL = "https://gz-dart.YOUR-SUBDOMAIN.workers.dev"; // ← 배포 URL로 교체
+const UNIT_DIV   = 1000000; // 표시 단위: 백만원
+
+/* ════════════════════════════════════════════════════════
+   유틸
+════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+function toast(m){const t=$('toast');t.textContent=m;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';clearTimeout(t._t);t._t=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2200);}
+const fmt = n => (n===null||n===undefined||isNaN(n))?'-':Math.round(n).toLocaleString('ko-KR');
+const pct = (a,b)=>(!b||isNaN(a)||isNaN(b))?'-':((a-b)/Math.abs(b)*100).toFixed(1)+'%';
+function num(s){if(s===null||s===undefined)return NaN;const n=parseFloat(String(s).replace(/,/g,''));return isNaN(n)?NaN:n;}
+
+/* DART 계정 추출 — account_id(표준코드) 우선, 없으면 account_nm 매칭 */
+function pickAccount(list, ids, names){
+  for(const row of list){
+    const id=(row.account_id||'').trim();
+    if(ids && ids.includes(id)) return row;
+  }
+  for(const row of list){
+    const nm=(row.account_nm||'').replace(/\s/g,'');
+    if(names.some(n=>nm===n.replace(/\s/g,'')||nm.includes(n.replace(/\s/g,'')))) return row;
+  }
+  return null;
+}
+function val(row,field){return row?num(row[field]):NaN;}
+
+/* ════════════════════════════════════════════════════════
+   룰 엔진 — index.js 위험분석 포팅 (LLM 없음)
+════════════════════════════════════════════════════════ */
+const RISK_RULES = [
+  {key:'소송·우발부채', w:3, terms:['소송','피소','손해배상청구','우발부채','우발채무','계류']},
+  {key:'채무보증',     w:2, terms:['채무보증','지급보증','보증제공']},
+  {key:'담보·질권',    w:1, terms:['담보제공','질권설정','근저당']},
+  {key:'계속기업 불확실성', w:4, terms:['계속기업','존속능력','중대한 불확실성']},
+  {key:'특수관계자 거래', w:1, terms:['특수관계자','특수관계인']},
+  {key:'손상차손',     w:2, terms:['손상차손','영업권 손상','회수가능액']},
+];
+const NEGATERS = ['없습니다','해당사항 없음','해당 없음','중요하지 않','미미한'];
+
+function analyzeRisk(auditList){
+  // accnutAdtorNmNdAdtOpinion 응답에서 감사의견 텍스트 추출
+  const result = {opinion:'미확인', opinionClass:'op-na', auditor:'-', emphasis:[], risks:[]};
+  if(!auditList || !auditList.length) return result;
+
+  // 최신(당기) 행 우선
+  const row = auditList.find(r=>r.bsns_year && /당기|제\d/.test(r.bsns_year||'')) || auditList[auditList.length-1] || auditList[0];
+  result.auditor = row.adtor || row.auditor || '-';
+  const op = (row.adt_opinion || row.opinion || '').replace(/\s/g,'');
+  if(/적정/.test(op) && !/부적정/.test(op)){ result.opinion='적정'; result.opinionClass='op-good'; }
+  else if(/한정/.test(op)){ result.opinion='한정'; result.opinionClass='op-warn'; }
+  else if(/부적정/.test(op)){ result.opinion='부적정'; result.opinionClass='op-bad'; }
+  else if(/의견거절|거절/.test(op)){ result.opinion='의견거절'; result.opinionClass='op-bad'; }
+  else if(op){ result.opinion=op; }
+
+  // 강조사항/핵심감사사항 (필드가 있을 경우)
+  const emph = row.emphs_matter || row.emphasis || '';
+  if(emph && !NEGATERS.some(n=>emph.includes(n))) result.emphasis.push('강조사항 기재');
+  const kam = row.core_adt_matter || '';
+  if(kam) result.emphasis.push('핵심감사사항(KAM) 기재');
+
+  return result;
+}
+
+/* 공시목록 텍스트로 위험 신호 스캔 (보고서 제목·비고 기반, 추가 호출 없음) */
+function scanFilings(filings){
+  const hits = {};
+  for(const f of (filings||[])){
+    const text = `${f.report_nm||''} ${f.rm||''}`;
+    for(const rule of RISK_RULES){
+      if(rule.terms.some(t=>text.includes(t)) && !NEGATERS.some(n=>text.includes(n))){
+        hits[rule.key] = hits[rule.key] || {key:rule.key, w:rule.w, ev:[]};
+        if(f.report_nm && !hits[rule.key].ev.includes(f.report_nm)) hits[rule.key].ev.push(f.report_nm);
+      }
+    }
+  }
+  return Object.values(hits).map(h=>{
+    const lv = h.w>=4?'high':h.w>=2?'mid':'low';
+    return {...h, lv};
+  }).sort((a,b)=>b.w-a.w);
+}
+
+/* ════════════════════════════════════════════════════════
+   재무제표 → 표준 항목 추출
+════════════════════════════════════════════════════════ */
+function extractFinance(finList){
+  // 손익계산서(IS/CIS) + 재무상태표(BS)
+  const F = field => row => val(row, field);
+  const cur = 'thstrm_amount', prv = 'frmtrm_amount';
+
+  const rev   = pickAccount(finList, ['ifrs-full_Revenue','ifrs_Revenue'], ['수익(매출액)','매출액','영업수익']);
+  const op    = pickAccount(finList, ['dart_OperatingIncomeLoss'], ['영업이익','영업이익(손실)']);
+  const ni    = pickAccount(finList, ['ifrs-full_ProfitLoss'], ['당기순이익','당기순이익(손실)','분기순이익']);
+  const asset = pickAccount(finList, ['ifrs-full_Assets'], ['자산총계']);
+  const liab  = pickAccount(finList, ['ifrs-full_Liabilities'], ['부채총계']);
+  const equity= pickAccount(finList, ['ifrs-full_Equity'], ['자본총계']);
+  const cash  = pickAccount(finList, ['ifrs-full_CashAndCashEquivalents'], ['현금및현금성자산']);
+
+  const d = (row)=> row?{c:val(row,cur), p:val(row,prv)}:{c:NaN,p:NaN};
+  return {
+    rev:d(rev), op:d(op), ni:d(ni), asset:d(asset), liab:d(liab), equity:d(equity), cash:d(cash)
+  };
+}
+
+/* ════════════════════════════════════════════════════════
+   렌더링
+════════════════════════════════════════════════════════ */
+let charts=[];
+function clearCharts(){while(charts.length)charts.pop().destroy();}
+
+function setState(html, cls){
+  const s=$('state'); s.style.display='block'; s.className='statebox'+(cls?' '+cls:''); s.innerHTML=html;
+  $('report').style.display='none';
+}
+function loading(){
+  $('state').style.display='block'; $('state').className='statebox';
+  $('state').innerHTML='<div class="spinner"></div>DART 공시를 조회하고 분석 중입니다...';
+  $('report').style.display='none';
+}
+
+function kpiCard(label, valRaw, deltaRaw, dir){
+  const delta = deltaRaw ? `<div class="delta ${dir||''}">${deltaRaw}</div>` : '';
+  return `<div class="kpi"><div class="label">${label}</div><div class="val">${valRaw}</div>${delta}</div>`;
+}
+
+function row(cells, opt={}){
+  const cls = opt.total?' class="total"':'';
+  return `<tr${cls}><td>${cells[0]}</td>`+cells.slice(1).map((c,i)=>`<td class="${opt.dir?.[i]||''}">${c}</td>`).join('')+`</tr>`;
+}
+
+function render(data){
+  clearCharts();
+  const u = UNIT_DIV;
+  const f = extractFinance(data.finance);
+  const audit = analyzeRisk(data.audit);
+  const risks = scanFilings(data.filings);
+
+  // 단위 환산 (원 → 백만원)
+  const m = o => ({c:o.c/u, p:o.p/u});
+  const rev=m(f.rev), op=m(f.op), ni=m(f.ni), asset=m(f.asset), liab=m(f.liab), eq=m(f.equity), cash=m(f.cash);
+  const opMargin = c => (!isNaN(rev.c)&&rev.c)?(c/rev.c*100):NaN;
+  const opmCur = opMargin(op.c), opmPrv = (!isNaN(rev.p)&&rev.p)?(op.p/rev.p*100):NaN;
+
+  const prevYear = String(parseInt(data.year)-1);
+  const dirCls = (c,p)=> c>=p?'up':'down';
+
+  // KPI
+  const kpis = [
+    kpiCard('매출액', `${fmt(rev.c)}<span class="unit">백만</span>`, `${pct(rev.c,rev.p)} · ${rev.c>=rev.p?'+':''}${fmt(rev.c-rev.p)}`, dirCls(rev.c,rev.p)),
+    kpiCard('영업이익', `${fmt(op.c)}<span class="unit">백만</span>`, isNaN(opmCur)?'':`영업이익률 ${opmCur.toFixed(1)}%`, dirCls(op.c,op.p)),
+    kpiCard('당기순이익', `${fmt(ni.c)}<span class="unit">백만</span>`, `${pct(ni.c,ni.p)}`, dirCls(ni.c,ni.p)),
+    kpiCard('자본총계', `${fmt(eq.c)}<span class="unit">백만</span>`, `${pct(eq.c,eq.p)}`, dirCls(eq.c,eq.p)),
+  ].join('');
+
+  // 실적표
+  const perfRows = [
+    row(['매출액', fmt(rev.c), fmt(rev.p), (rev.c>=rev.p?'+':'')+fmt(rev.c-rev.p), pct(rev.c,rev.p)], {dir:[dirCls(rev.c,rev.p)==='up'?'pos':'neg',,dirCls(rev.c,rev.p)==='up'?'pos':'neg',dirCls(rev.c,rev.p)==='up'?'pos':'neg']}),
+    row(['영업이익', fmt(op.c), fmt(op.p), (op.c>=op.p?'+':'')+fmt(op.c-op.p), pct(op.c,op.p)], {dir:[op.c>=op.p?'pos':'neg',,op.c>=op.p?'pos':'neg',op.c>=op.p?'pos':'neg']}),
+    row(['　영업이익률', isNaN(opmCur)?'-':opmCur.toFixed(1)+'%', isNaN(opmPrv)?'-':opmPrv.toFixed(1)+'%', '-', '-']),
+    row(['당기순이익', fmt(ni.c), fmt(ni.p), (ni.c>=ni.p?'+':'')+fmt(ni.c-ni.p), pct(ni.c,ni.p)], {dir:[ni.c>=ni.p?'pos':'neg',,ni.c>=ni.p?'pos':'neg',ni.c>=ni.p?'pos':'neg']}),
+    row(['자산총계', fmt(asset.c), fmt(asset.p), (asset.c>=asset.p?'+':'')+fmt(asset.c-asset.p), pct(asset.c,asset.p)]),
+    row(['　현금및현금성자산', fmt(cash.c), fmt(cash.p), (cash.c>=cash.p?'+':'')+fmt(cash.c-cash.p), pct(cash.c,cash.p)]),
+    row(['부채총계', fmt(liab.c), fmt(liab.p), (liab.c>=liab.p?'+':'')+fmt(liab.c-liab.p), pct(liab.c,liab.p)]),
+    row(['자본총계', fmt(eq.c), fmt(eq.p), (eq.c>=eq.p?'+':'')+fmt(eq.c-eq.p), pct(eq.c,eq.p)], {total:true}),
+  ].join('');
+  const perfTable = `<table class="rpt"><caption>단위: 백만원 · ${data.fsBasis}기준</caption>
+    <thead><tr><th>구분</th><th>${data.year}년</th><th>${prevYear}년</th><th>증감액</th><th>증감률</th></tr></thead>
+    <tbody>${perfRows}</tbody></table>`;
+
+  // 감사의견 영역
+  const emphTxt = audit.emphasis.length?audit.emphasis.join(' · '):'특이사항 없음';
+  const auditBox = `
+    <div class="audit-row">
+      <span class="audit-pill ${audit.opinionClass}">감사의견: ${audit.opinion}</span>
+      <span class="audit-pill op-na">감사인: ${audit.auditor}</span>
+      <span class="audit-pill op-na">${emphTxt}</span>
+    </div>`;
+
+  // 위험 항목
+  const lvLabel = {high:'높음',mid:'중간',low:'낮음'};
+  const lvCls   = {high:'lv-high',mid:'lv-mid',low:'lv-low'};
+  const riskBox = risks.length ? risks.map(r=>`
+    <div class="risk-item">
+      <span class="risk-lv ${lvCls[r.lv]}">${lvLabel[r.lv]}</span>
+      <div class="risk-body"><span class="nm">${r.key}</span>
+        <div class="ev">근거 공시: ${r.ev.slice(0,3).join(' / ')}</div>
+      </div>
+    </div>`).join('')
+    : '<div class="risk-item"><span class="risk-lv lv-none">미발견</span><div class="risk-body">공시 제목 기준 위험 신호가 탐지되지 않았습니다.</div></div>';
+
+  // 공시 목록
+  const filingsTop = (data.filings||[]).slice(0,12);
+  const filingList = filingsTop.length ? filingsTop.map(f=>`
+    <li><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${f.rcept_no}" target="_blank">${f.report_nm}</a>
+    <span class="fdate">${f.rcept_dt||''}</span></li>`).join('')
+    : '<li>해당 연도 공시 없음</li>';
+
+  $('report').innerHTML = `
+    <div class="rpt-head">
+      <div class="rpt-eyebrow">Competitor Intelligence · DART ${data.fsBasis}기준</div>
+      <h1>${data.company} ${data.year} 실적 분석</h1>
+      <div class="rpt-sub">corp_code ${data.corp_code} · 단위 백만원 (별도 표기 외) · DART OpenAPI 자동 수집</div>
+    </div>
+    <div class="rpt-hr"></div>
+    <div class="kpis">${kpis}</div>
+    ${auditBox}
+
+    <h2 class="sec"><span class="no">1</span>실적 현황</h2>
+    ${perfTable}
+    <p class="note">재무제표 표준계정 기준 자동 추출. 회사·연도별 계정명 차이로 일부 항목이 '-'로 표시될 수 있습니다.</p>
+
+    <h2 class="sec"><span class="no">2</span>수익성 추이</h2>
+    <div class="grid2">
+      <div class="chartcard"><h3>주요 손익 (${prevYear} → ${data.year})</h3><div class="chartwrap"><canvas id="cIncome"></canvas></div></div>
+      <div class="chartcard"><h3>재무구조 (자산·부채·자본)</h3><div class="chartwrap"><canvas id="cBalance"></canvas></div></div>
+    </div>
+
+    <h2 class="sec"><span class="no">3</span>위험·감사 분석</h2>
+    <p class="note">공시 제목·비고를 룰 기반으로 스캔한 결과입니다(가중치 기반 4단계, 추가 비용 없음). 정밀 분석은 사업보고서 주석 확인 필요.</p>
+    ${riskBox}
+
+    <h2 class="sec"><span class="no">4</span>${data.year}년 공시 목록</h2>
+    <ul class="filing-list">${filingList}</ul>
+
+    <div class="rpt-footer">출처: DART OpenAPI (opendart.fss.or.kr) ${data.fsBasis} 재무제표 · 본 리포트는 제공된 수치를 재구성한 것으로 투자 판단의 근거가 아님 · 위험 분석은 공시 메타데이터 기반 룰 엔진 결과로 참고용</div>
+  `;
+
+  $('state').style.display='none';
+  $('report').style.display='block';
+
+  // 차트
+  Chart.defaults.font.family="'Pretendard','-apple-system',sans-serif";
+  Chart.defaults.color="#6b6b6b";
+  const C={navy:'#0C447C',blue:'#378ADD',muted:'#B9C4D2',green:'#639922',red:'#A32D2D',grid:'#EEF1F5'};
+  charts.push(new Chart($('cIncome'),{type:'bar',
+    data:{labels:['매출액','영업이익','당기순이익'],datasets:[
+      {label:prevYear,data:[rev.p,op.p,ni.p],backgroundColor:C.muted,borderRadius:4},
+      {label:data.year,data:[rev.c,op.c,ni.c],backgroundColor:C.navy,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+      scales:{y:{grid:{color:C.grid},ticks:{callback:v=>(v/1000).toFixed(0)+'억'}},x:{grid:{display:false}}}}}));
+  charts.push(new Chart($('cBalance'),{type:'bar',
+    data:{labels:['자산총계','부채총계','자본총계'],datasets:[
+      {label:prevYear,data:[asset.p,liab.p,eq.p],backgroundColor:C.muted,borderRadius:4},
+      {label:data.year,data:[asset.c,liab.c,eq.c],backgroundColor:C.blue,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
+      scales:{y:{grid:{color:C.grid},ticks:{callback:v=>(v/1000).toFixed(0)+'억'}},x:{grid:{display:false}}}}}));
+}
+
+/* ════════════════════════════════════════════════════════
+   조회
+════════════════════════════════════════════════════════ */
+async function runSearch(){
+  const company = $('qCompany').value.trim();
+  const year = $('qYear').value.trim() || String(new Date().getFullYear()-1);
+  if(!company){toast('회사명을 입력하세요');return;}
+  if(WORKER_URL.includes('YOUR-SUBDOMAIN')){
+    setState('⚠ Worker URL이 설정되지 않았습니다.<br>dart.html 상단의 <b>WORKER_URL</b>을 배포 주소로 교체하세요.','err');
+    return;
+  }
+  loading();
+  try{
+    const res = await fetch(`${WORKER_URL}/?company=${encodeURIComponent(company)}&year=${year}`);
+    const data = await res.json();
+    if(data.error){
+      setState(`조회 실패: ${data.error}` + (data.available?`<br><br>등록된 회사: ${data.available.join(', ')}`:''), 'err');
+      return;
+    }
+    render(data);
+  }catch(e){
+    setState('네트워크 오류: '+e.message+'<br>Worker 배포 상태와 URL을 확인하세요.','err');
+  }
+}
+
+/* 빠른 선택 칩 — Worker의 등록 회사 목록 */
+async function loadChips(){
+  if(WORKER_URL.includes('YOUR-SUBDOMAIN'))return;
+  try{
+    const res = await fetch(`${WORKER_URL}/?list=1`);
+    const {companies} = await res.json();
+    $('quickChips').innerHTML = (companies||[]).map(c=>
+      `<span class="chip" onclick="$('qCompany').value='${c.alias}';runSearch()">${c.name}</span>`).join('');
+  }catch(e){/* silent */}
+}
+$('qYear').value = String(new Date().getFullYear()-1);
+loadChips();
+</script>
+</body>
+</html>
