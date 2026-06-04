@@ -1434,7 +1434,7 @@ window.addNote = async () => {
   inp.value = '';
   await fsUpd(selId, {
     updated: ts,
-    history: [...(t.history || []), { id: Date.now() + '', type: 'comment', text, date: ts }]
+    history: [...(t.history || []), { id: Date.now() + '', type: 'comment', text, date: ts, author: ME.displayName || ME.id }]
   });
 };
 
