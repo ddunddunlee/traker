@@ -40,6 +40,20 @@ body{background:#F0F4F8;color:var(--text);min-height:100vh;font-size:14px}
 .searchbox input:focus{border-color:var(--blue);outline:none}
 .searchbox .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;width:100%}
 
+/* 회사코드 안내 */
+.codeguide{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;margin-bottom:18px;overflow:hidden}
+.codeguide summary{cursor:pointer;padding:14px 18px;font-size:13px;font-weight:600;color:var(--navy);list-style:none;user-select:none}
+.codeguide summary::-webkit-details-marker{display:none}
+.codeguide summary:hover{background:var(--bg2)}
+.codeguide[open] summary{border-bottom:1px solid #EEF1F5}
+.codeguide-body{padding:14px 20px 18px}
+.codeguide-body ol{margin:0 0 8px;padding-left:20px}
+.codeguide-body li{font-size:13px;line-height:1.9;color:var(--text)}
+.codeguide-body code{background:var(--bg3);padding:2px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--navy)}
+.codeguide-body a{color:var(--blue);text-decoration:none;font-weight:600}
+.codeguide-body a:hover{text-decoration:underline}
+.codeguide-tip{font-size:12.5px;color:var(--text2);background:var(--blue-bg);border-radius:8px;padding:9px 12px;margin-top:8px;line-height:1.6}
+
 /* 상태 */
 .statebox{background:var(--bg);border:1px solid #DDE3EA;border-radius:12px;padding:48px 24px;text-align:center;color:var(--text2)}
 .statebox.err{border-color:var(--red-bg);background:var(--red-bg);color:var(--red-t)}
@@ -131,19 +145,31 @@ table.rpt tr.total td{font-weight:700;background:#F4F7FA;border-top:1.5px solid 
         <label>회사코드 (DART 고유번호 8자리)</label>
         <input id="qCode" placeholder="예: 00674498" onkeydown="if(event.key==='Enter')runSearch()" maxlength="8"/>
       </div>
-      <div class="fg year">
-        <label>사업연도</label>
-        <input id="qYear" placeholder="2024"/>
-      </div>
       <button class="btn-solid" style="padding:9px 20px" onclick="runSearch()">분석</button>
       <div class="chips" id="quickChips"></div>
     </div>
     <p style="font-size:12px;color:var(--text3);margin:-8px 0 16px">
-      회사코드는 <a href="https://dart.fss.or.kr" target="_blank" style="color:var(--blue)">dart.fss.or.kr</a>에서 회사 검색 → 공시 클릭 → 주소창의 8자리 숫자로 확인. 자주 보는 회사는 아래 칩으로 저장됩니다.
+      자주 보는 회사는 분석 후 아래 칩으로 자동 저장됩니다. 회사코드를 모르면 아래 <b>회사코드 찾는 법</b>을 참고하세요.
     </p>
 
+    <!-- 회사코드 찾는 법 -->
+    <details class="codeguide">
+      <summary>📌 회사코드(DART 고유번호) 찾는 법</summary>
+      <div class="codeguide-body">
+        <ol>
+          <li><a href="https://dart.fss.or.kr" target="_blank">dart.fss.or.kr</a> 접속</li>
+          <li>상단 검색창에 <b>회사명 입력</b> (예: 골프존뉴딘홀딩스) → 검색</li>
+          <li>공시 목록에서 <b>아무 공시나 클릭</b> (예: 사업보고서)</li>
+          <li>열린 문서창의 <b>주소(URL)</b>를 보면 <code>rcpNo=</code> 또는 회사정보에 <b>8자리 고유번호</b>가 있음</li>
+          <li>또는 공시문서 상단 <b>회사명 옆 [기업개황]</b> 클릭 → 고유번호 확인</li>
+        </ol>
+        <p class="codeguide-tip">💡 더 쉬운 방법: dart.fss.or.kr 에서 회사 검색 후 <b>회사명을 클릭</b>하면 그 회사 전용 페이지로 가는데, 그때 주소창 끝의 8자리 숫자(<code>00674498</code> 형태)가 회사코드입니다.</p>
+        <p class="codeguide-tip">참고 — 골프존뉴딘홀딩스: <code>00674498</code></p>
+      </div>
+    </details>
+
     <!-- 상태/리포트 -->
-    <div id="state" class="statebox">회사코드(8자리)와 연도를 넣고 <b>분석</b>을 누르면 DART 공시를 조회·정리해서 보여드립니다.</div>
+    <div id="state" class="statebox">회사코드(8자리)를 넣고 <b>분석</b>을 누르면 가장 최근 사업보고서를 찾아 최근 3개년 추이를 정리해서 보여드립니다.</div>
     <div id="report"></div>
   </div>
 </div>
@@ -275,13 +301,9 @@ function scanFilings(filings){
 }
 
 /* ════════════════════════════════════════════════════════
-   재무제표 → 표준 항목 추출
+   재무제표 → 표준 항목 추출 (3개년: 당기/전기/전전기)
 ════════════════════════════════════════════════════════ */
 function extractFinance(finList){
-  // 손익계산서(IS/CIS) + 재무상태표(BS)
-  const F = field => row => val(row, field);
-  const cur = 'thstrm_amount', prv = 'frmtrm_amount';
-
   const rev   = pickAccount(finList, ['ifrs-full_Revenue','ifrs_Revenue'], ['수익(매출액)','매출액','영업수익']);
   const op    = pickAccount(finList, ['dart_OperatingIncomeLoss'], ['영업이익','영업이익(손실)']);
   const ni    = pickAccount(finList, ['ifrs-full_ProfitLoss'], ['당기순이익','당기순이익(손실)','분기순이익']);
@@ -290,9 +312,26 @@ function extractFinance(finList){
   const equity= pickAccount(finList, ['ifrs-full_Equity'], ['자본총계']);
   const cash  = pickAccount(finList, ['ifrs-full_CashAndCashEquivalents'], ['현금및현금성자산']);
 
-  const d = (row)=> row?{c:val(row,cur), p:val(row,prv)}:{c:NaN,p:NaN};
+  // c=당기, p=전기, pp=전전기
+  const d = (row)=> row
+    ? { c:val(row,'thstrm_amount'), p:val(row,'frmtrm_amount'), pp:val(row,'bfefrmtrm_amount') }
+    : { c:NaN, p:NaN, pp:NaN };
+
+  // 연도 라벨 추출 (thstrm_nm 등에서 4자리 연도, 없으면 null)
+  const yr = (row, field) => {
+    if(!row) return null;
+    const m = String(row[field]||'').match(/(20\d{2})/);
+    return m ? m[1] : null;
+  };
+  const yearRow = rev || op || asset || finList[0];
+  const years = {
+    c:  yr(yearRow,'thstrm_nm'),
+    p:  yr(yearRow,'frmtrm_nm'),
+    pp: yr(yearRow,'bfefrmtrm_nm'),
+  };
+
   return {
-    rev:d(rev), op:d(op), ni:d(ni), asset:d(asset), liab:d(liab), equity:d(equity), cash:d(cash)
+    rev:d(rev), op:d(op), ni:d(ni), asset:d(asset), liab:d(liab), equity:d(equity), cash:d(cash), years
   };
 }
 
@@ -329,39 +368,71 @@ function render(data){
   const audit = analyzeRisk(data.audit);
   const risks = scanFilings(data.filings);
 
-  // 단위 환산 (원 → 백만원)
-  const m = o => ({c:o.c/u, p:o.p/u});
+  // 단위 환산 (원 → 백만원), 3개년
+  const m = o => ({c:o.c/u, p:o.p/u, pp:o.pp/u});
   const rev=m(f.rev), op=m(f.op), ni=m(f.ni), asset=m(f.asset), liab=m(f.liab), eq=m(f.equity), cash=m(f.cash);
-  const opMargin = c => (!isNaN(rev.c)&&rev.c)?(c/rev.c*100):NaN;
-  const opmCur = opMargin(op.c), opmPrv = (!isNaN(rev.p)&&rev.p)?(op.p/rev.p*100):NaN;
 
-  const prevYear = String(parseInt(data.year)-1);
+  // 연도 라벨: 보고서에서 추출, 없으면 data.year 기준 역산
+  const baseY = parseInt(data.year);
+  const yC  = f.years.c  || String(baseY);
+  const yP  = f.years.p  || String(baseY-1);
+  const yPP = f.years.pp || String(baseY-2);
+  const has3 = !isNaN(rev.pp) || !isNaN(op.pp) || !isNaN(asset.pp); // 전전기 데이터 존재 여부
+
+  const opMargin = (o, k) => (!isNaN(o[k]) && rev[k]) ? (op[k]/rev[k]*100) : NaN; // o는 더미, rev/op 클로저
+  const opmC = (!isNaN(rev.c)&&rev.c)?(op.c/rev.c*100):NaN;
+  const opmP = (!isNaN(rev.p)&&rev.p)?(op.p/rev.p*100):NaN;
+  const opmPP= (!isNaN(rev.pp)&&rev.pp)?(op.pp/rev.pp*100):NaN;
   const dirCls = (c,p)=> c>=p?'up':'down';
 
-  // KPI
+  // KPI (당기 + 전기대비)
   const kpis = [
     kpiCard('매출액', `${fmt(rev.c)}<span class="unit">백만</span>`, `${pct(rev.c,rev.p)} · ${rev.c>=rev.p?'+':''}${fmt(rev.c-rev.p)}`, dirCls(rev.c,rev.p)),
-    kpiCard('영업이익', `${fmt(op.c)}<span class="unit">백만</span>`, isNaN(opmCur)?'':`영업이익률 ${opmCur.toFixed(1)}%`, dirCls(op.c,op.p)),
+    kpiCard('영업이익', `${fmt(op.c)}<span class="unit">백만</span>`, isNaN(opmC)?'':`영업이익률 ${opmC.toFixed(1)}%`, dirCls(op.c,op.p)),
     kpiCard('당기순이익', `${fmt(ni.c)}<span class="unit">백만</span>`, `${pct(ni.c,ni.p)}`, dirCls(ni.c,ni.p)),
     kpiCard('자본총계', `${fmt(eq.c)}<span class="unit">백만</span>`, `${pct(eq.c,eq.p)}`, dirCls(eq.c,eq.p)),
   ].join('');
 
-  // 실적표
+  // 3개년 셀 헬퍼: 당기/전기/전전기 + 전기대비 증감률
+  const cells3 = (o, indent) => {
+    const nm = indent ? '　'+indent : '';
+    const cols = has3
+      ? [fmt(o.c), fmt(o.p), fmt(o.pp), pct(o.c,o.p)]
+      : [fmt(o.c), fmt(o.p), pct(o.c,o.p)];
+    return cols;
+  };
+  const rowOf = (label, o, opt={}) => {
+    const cols = cells3(o);
+    const dir = o.c>=o.p ? 'pos' : 'neg';
+    const dirArr = has3 ? ['', '', '', dir] : ['', '', dir]; // 증감률 칸만 색
+    return row([label, ...cols], {total:opt.total, dir:dirArr});
+  };
+  const marginRow = (label, c, p, pp) => {
+    const cols = has3
+      ? [isNaN(c)?'-':c.toFixed(1)+'%', isNaN(p)?'-':p.toFixed(1)+'%', isNaN(pp)?'-':pp.toFixed(1)+'%', '-']
+      : [isNaN(c)?'-':c.toFixed(1)+'%', isNaN(p)?'-':p.toFixed(1)+'%', '-'];
+    return row(['　'+label, ...cols]);
+  };
+
   const perfRows = [
-    row(['매출액', fmt(rev.c), fmt(rev.p), (rev.c>=rev.p?'+':'')+fmt(rev.c-rev.p), pct(rev.c,rev.p)], {dir:[dirCls(rev.c,rev.p)==='up'?'pos':'neg',,dirCls(rev.c,rev.p)==='up'?'pos':'neg',dirCls(rev.c,rev.p)==='up'?'pos':'neg']}),
-    row(['영업이익', fmt(op.c), fmt(op.p), (op.c>=op.p?'+':'')+fmt(op.c-op.p), pct(op.c,op.p)], {dir:[op.c>=op.p?'pos':'neg',,op.c>=op.p?'pos':'neg',op.c>=op.p?'pos':'neg']}),
-    row(['　영업이익률', isNaN(opmCur)?'-':opmCur.toFixed(1)+'%', isNaN(opmPrv)?'-':opmPrv.toFixed(1)+'%', '-', '-']),
-    row(['당기순이익', fmt(ni.c), fmt(ni.p), (ni.c>=ni.p?'+':'')+fmt(ni.c-ni.p), pct(ni.c,ni.p)], {dir:[ni.c>=ni.p?'pos':'neg',,ni.c>=ni.p?'pos':'neg',ni.c>=ni.p?'pos':'neg']}),
-    row(['자산총계', fmt(asset.c), fmt(asset.p), (asset.c>=asset.p?'+':'')+fmt(asset.c-asset.p), pct(asset.c,asset.p)]),
-    row(['　현금및현금성자산', fmt(cash.c), fmt(cash.p), (cash.c>=cash.p?'+':'')+fmt(cash.c-cash.p), pct(cash.c,cash.p)]),
-    row(['부채총계', fmt(liab.c), fmt(liab.p), (liab.c>=liab.p?'+':'')+fmt(liab.c-liab.p), pct(liab.c,liab.p)]),
-    row(['자본총계', fmt(eq.c), fmt(eq.p), (eq.c>=eq.p?'+':'')+fmt(eq.c-eq.p), pct(eq.c,eq.p)], {total:true}),
+    rowOf('매출액', rev),
+    rowOf('영업이익', op),
+    marginRow('영업이익률', opmC, opmP, opmPP),
+    rowOf('당기순이익', ni),
+    rowOf('자산총계', asset),
+    rowOf('현금및현금성자산', {c:cash.c,p:cash.p,pp:cash.pp}),
+    rowOf('부채총계', liab),
+    rowOf('자본총계', eq, {total:true}),
   ].join('');
-  const perfTable = `<table class="rpt"><caption>단위: 백만원 · ${data.fsBasis}기준</caption>
-    <thead><tr><th>구분</th><th>${data.year}년</th><th>${prevYear}년</th><th>증감액</th><th>증감률</th></tr></thead>
+
+  const headCols = has3
+    ? `<th>${yC}년</th><th>${yP}년</th><th>${yPP}년</th><th>전기대비</th>`
+    : `<th>${yC}년</th><th>${yP}년</th><th>전기대비</th>`;
+  const perfTable = `<table class="rpt"><caption>단위: 백만원 · ${data.fsBasis}기준 · ${has3?'최근 3개년':'최근 2개년'}</caption>
+    <thead><tr><th>구분</th>${headCols}</tr></thead>
     <tbody>${perfRows}</tbody></table>`;
 
-  // 감사의견 영역
+  // 감사의견
   const emphTxt = audit.emphasis.length?audit.emphasis.join(' · '):'특이사항 없음';
   const auditBox = `
     <div class="audit-row">
@@ -392,28 +463,28 @@ function render(data){
   $('report').innerHTML = `
     <div class="rpt-head">
       <div class="rpt-eyebrow">Competitor Intelligence · DART ${data.fsBasis}기준</div>
-      <h1>${data.company} ${data.year} 실적 분석</h1>
-      <div class="rpt-sub">corp_code ${data.corp_code} · 단위 백만원 (별도 표기 외) · DART OpenAPI 자동 수집</div>
+      <h1>${data.company} 실적 분석</h1>
+      <div class="rpt-sub">corp_code ${data.corp_code} · 최근 사업보고서(${yC}년) 기준 · ${has3?`최근 3개년(${yPP}~${yC})`:`최근 2개년(${yP}~${yC})`} · 단위 백만원</div>
     </div>
     <div class="rpt-hr"></div>
     <div class="kpis">${kpis}</div>
     ${auditBox}
 
-    <h2 class="sec"><span class="no">1</span>실적 현황</h2>
+    <h2 class="sec"><span class="no">1</span>실적 현황 (${has3?'3개년':'2개년'} 추이)</h2>
     ${perfTable}
     <p class="note">재무제표 표준계정 기준 자동 추출. 회사·연도별 계정명 차이로 일부 항목이 '-'로 표시될 수 있습니다.</p>
 
-    <h2 class="sec"><span class="no">2</span>수익성 추이</h2>
+    <h2 class="sec"><span class="no">2</span>추이 차트</h2>
     <div class="grid2">
-      <div class="chartcard"><h3>주요 손익 (${prevYear} → ${data.year})</h3><div class="chartwrap"><canvas id="cIncome"></canvas></div></div>
-      <div class="chartcard"><h3>재무구조 (자산·부채·자본)</h3><div class="chartwrap"><canvas id="cBalance"></canvas></div></div>
+      <div class="chartcard"><h3>주요 손익 추이</h3><div class="chartwrap"><canvas id="cIncome"></canvas></div></div>
+      <div class="chartcard"><h3>재무구조 추이 (자산·부채·자본)</h3><div class="chartwrap"><canvas id="cBalance"></canvas></div></div>
     </div>
 
     <h2 class="sec"><span class="no">3</span>위험·감사 분석</h2>
     <p class="note">공시 제목·비고를 룰 기반으로 스캔한 결과입니다(가중치 기반 4단계, 추가 비용 없음). 정밀 분석은 사업보고서 주석 확인 필요.</p>
     ${riskBox}
 
-    <h2 class="sec"><span class="no">4</span>${data.year}년 공시 목록</h2>
+    <h2 class="sec"><span class="no">4</span>최근 공시 목록</h2>
     <ul class="filing-list">${filingList}</ul>
 
     <div class="rpt-footer">출처: DART OpenAPI (opendart.fss.or.kr) ${data.fsBasis} 재무제표 · 본 리포트는 제공된 수치를 재구성한 것으로 투자 판단의 근거가 아님 · 위험 분석은 공시 메타데이터 기반 룰 엔진 결과로 참고용</div>
@@ -422,20 +493,25 @@ function render(data){
   $('state').style.display='none';
   $('report').style.display='block';
 
-  // 차트
+  // 차트 — 3개년 추이 (오래된→최신)
   Chart.defaults.font.family="'Pretendard','-apple-system',sans-serif";
   Chart.defaults.color="#6b6b6b";
   const C={navy:'#0C447C',blue:'#378ADD',muted:'#B9C4D2',green:'#639922',red:'#A32D2D',grid:'#EEF1F5'};
+  const yrLabels = has3 ? [yPP, yP, yC] : [yP, yC];
+  const series = o => has3 ? [o.pp, o.p, o.c] : [o.p, o.c];
+
   charts.push(new Chart($('cIncome'),{type:'bar',
-    data:{labels:['매출액','영업이익','당기순이익'],datasets:[
-      {label:prevYear,data:[rev.p,op.p,ni.p],backgroundColor:C.muted,borderRadius:4},
-      {label:data.year,data:[rev.c,op.c,ni.c],backgroundColor:C.navy,borderRadius:4}]},
+    data:{labels:yrLabels,datasets:[
+      {label:'매출액',data:series(rev),backgroundColor:C.navy,borderRadius:4},
+      {label:'영업이익',data:series(op),backgroundColor:C.blue,borderRadius:4},
+      {label:'당기순이익',data:series(ni),backgroundColor:C.muted,borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
       scales:{y:{grid:{color:C.grid},ticks:{callback:v=>(v/1000).toFixed(0)+'억'}},x:{grid:{display:false}}}}}));
   charts.push(new Chart($('cBalance'),{type:'bar',
-    data:{labels:['자산총계','부채총계','자본총계'],datasets:[
-      {label:prevYear,data:[asset.p,liab.p,eq.p],backgroundColor:C.muted,borderRadius:4},
-      {label:data.year,data:[asset.c,liab.c,eq.c],backgroundColor:C.blue,borderRadius:4}]},
+    data:{labels:yrLabels,datasets:[
+      {label:'자산총계',data:series(asset),backgroundColor:C.navy,borderRadius:4},
+      {label:'부채총계',data:series(liab),backgroundColor:C.red,borderRadius:4},
+      {label:'자본총계',data:series(eq),backgroundColor:C.green,borderRadius:4}]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},
       scales:{y:{grid:{color:C.grid},ticks:{callback:v=>(v/1000).toFixed(0)+'억'}},x:{grid:{display:false}}}}}));
 }
@@ -445,13 +521,11 @@ function render(data){
 ════════════════════════════════════════════════════════ */
 async function runSearch(){
   let code = ($('qCode').value || '').trim();
-  const year = $('qYear').value.trim() || String(new Date().getFullYear()-1);
   if(!code){ toast('회사코드(8자리)를 입력하세요'); return; }
   if(DART_KEY.includes('여기에')){
     setState('⚠ DART 인증키가 설정되지 않았습니다.<br>dart.html 상단의 <b>DART_KEY</b>를 발급받은 키로 교체하세요.','err');
     return;
   }
-  // 코드 정규화: 숫자만 추출 후 8자리로 zero-pad
   code = code.replace(/\D/g,'');
   if(!code){ setState('회사코드는 숫자 8자리입니다. (예: 00674498)','err'); return; }
   code = code.padStart(8,'0');
@@ -459,44 +533,65 @@ async function runSearch(){
 
   loading();
   try{
-    const base = { corp_code: code, bsns_year: year, reprt_code: '11011' };
-
-    // 0) 회사명 조회 (company.json) — 실패해도 진행
+    // 0) 회사명 조회
     const info = await dartGet('company.json', { corp_code: code }).catch(()=>({status:'x'}));
     const companyName = (info.status==='000' && (info.corp_name || info.stock_name)) ? (info.stock_name || info.corp_name) : code;
 
-    // 1) 재무제표 — 연결(CFS) 우선, 없으면 별도(OFS)
-    let fin = await dartGet('fnlttSinglAcntAll.json', { ...base, fs_div:'CFS' });
-    let fsBasis = '연결';
-    if(fin.status !== '000'){
-      fin = await dartGet('fnlttSinglAcntAll.json', { ...base, fs_div:'OFS' });
-      fsBasis = '별도';
+    // 1) 최신 사업보고서 연도 자동 탐색
+    //    최근 2년 범위에서 사업보고서(pblntf_detail_ty=A001)를 최신순 조회
+    const thisYear = new Date().getFullYear();
+    let targetYear = null;
+    const recent = await dartGet('list.json', {
+      corp_code: code,
+      bgn_de: `${thisYear-2}0101`,
+      end_de: `${thisYear}1231`,
+      pblntf_detail_ty: 'A001',   // 사업보고서
+      sort: 'date', sort_mth: 'desc', page_count: '10'
+    }).catch(()=>({status:'x'}));
+    if(recent.status==='000' && recent.list && recent.list.length){
+      // 가장 최근 사업보고서의 보고대상 사업연도 = 접수연도 - 1 (사업보고서는 다음해 3월 제출)
+      const latest = recent.list[0];
+      const ry = parseInt(String(latest.rcept_dt||'').slice(0,4));
+      if(ry) targetYear = String(ry-1);
     }
-    if(fin.status !== '000'){
-      let msg = `재무제표를 찾을 수 없습니다. (DART status ${fin.status}: ${fin.message||''})`;
-      if(fin.status==='013') msg += `<br><br>해당 회사코드/연도에 사업보고서가 없습니다. 회사코드가 맞는지, 연도를 ${parseInt(year)-1} 등으로 바꿔보세요.`;
-      if(fin.status==='020'||fin.status==='021') msg += `<br><br>API 사용한도 초과 또는 키 문제입니다.`;
-      setState(msg, 'err');
+    // 폴백: 못 찾으면 작년부터 역순으로 재무제표 시도
+    const candidates = targetYear
+      ? [targetYear, String(parseInt(targetYear)-1), String(thisYear-1), String(thisYear-2)]
+      : [String(thisYear-1), String(thisYear-2), String(thisYear-3)];
+
+    // 2) 재무제표 — 후보 연도들을 순서대로 시도, 연결(CFS)→별도(OFS)
+    let fin=null, fsBasis='연결', usedYear=null;
+    for(const y of [...new Set(candidates)]){
+      let r = await dartGet('fnlttSinglAcntAll.json', { corp_code:code, bsns_year:y, reprt_code:'11011', fs_div:'CFS' });
+      if(r.status==='000'){ fin=r; fsBasis='연결'; usedYear=y; break; }
+      r = await dartGet('fnlttSinglAcntAll.json', { corp_code:code, bsns_year:y, reprt_code:'11011', fs_div:'OFS' });
+      if(r.status==='000'){ fin=r; fsBasis='별도'; usedYear=y; break; }
+    }
+    if(!fin){
+      setState(`재무제표를 찾을 수 없습니다.<br><br>`+
+        `회사코드 <b>${code}</b>가 맞는지 확인하세요. 비상장·소규모 법인은 사업보고서 대신 감사보고서만 있을 수 있어 조회가 안 될 수 있습니다.`, 'err');
       return;
     }
 
-    // 2) 감사의견  3) 공시목록 (실패해도 무시)
+    const base = { corp_code: code, bsns_year: usedYear, reprt_code: '11011' };
+
+    // 3) 감사의견  4) 최근 공시목록 (해당 연도)
     const audit = await dartGet('accnutAdtorNmNdAdtOpinion.json', base).catch(()=>({status:'x'}));
     const filings = await dartGet('list.json', {
-      corp_code: code, bgn_de:`${year}0101`, end_de:`${year}1231`, page_count:'30'
+      corp_code: code, bgn_de:`${usedYear}0101`, end_de:`${parseInt(usedYear)+1}0630`, page_count:'30',
+      sort:'date', sort_mth:'desc'
     }).catch(()=>({status:'x'}));
 
     render({
       company: companyName,
       corp_code: code,
-      year,
+      year: usedYear,
       fsBasis,
       finance: fin.list || [],
       audit: audit.status==='000' ? (audit.list||[]) : [],
       filings: filings.status==='000' ? (filings.list||[]) : [],
     });
 
-    // 성공 → 자주 보는 회사로 저장
     saveCompany(code, companyName);
 
   }catch(e){
@@ -515,7 +610,6 @@ function loadChips(){
       `<span onclick="event.stopPropagation();removeSaved('${c.code}')" style="margin-left:6px;color:var(--text3);font-weight:700">×</span></span>`
     ).join('');
 }
-$('qYear').value = String(new Date().getFullYear()-1);
 loadChips();
 </script>
 </body>
