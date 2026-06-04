@@ -164,7 +164,14 @@ try {
   // memberOrder가 없으면 빈 배열 — 다른 팀 데이터 표시 방지
   MEMBER_IDS.length = 0;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
-    orderSnap.data().order.forEach(id => MEMBER_IDS.push(id));
+    // accounts에서 manager role 제외 (팀장은 주요업무/일정만 작성)
+    const accSnap = await getDocs(collection(db,'accounts'));
+    const accMap = {};
+    accSnap.docs.forEach(d => { accMap[d.id] = d.data(); });
+    orderSnap.data().order.forEach(id => {
+      const acc = accMap[id];
+      if (!acc || acc.role === 'member') MEMBER_IDS.push(id);
+    });
   }
 } catch(e){console.error("[GZPlan]",e);}
 
