@@ -26,6 +26,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Segoe UI",sans-s
 .spin-wrap{display:none;justify-content:center;margin-top:12px}
 .spin{width:20px;height:20px;border:2px solid #e5e5e3;border-top-color:#1a1a1a;border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.team-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.team-btn{flex:1;min-width:100px;padding:10px 8px;border:1.5px solid #e5e5e3;border-radius:8px;background:#f7f7f5;color:#1a1a1a;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;text-align:center}
+.team-btn:hover{border-color:#0C447C;background:#EEF4FB;color:#0C447C}
+.team-btn.selected{border-color:#0C447C;background:#0C447C;color:#fff}
 </style>
   <link rel="manifest" href="./manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
@@ -75,21 +79,27 @@ firebase.initializeApp({
 var db = firebase.firestore();
 
 // 팀 목록 동적 로드
+function selectTeam(id, name) {
+  document.getElementById('uteam').value = id;
+  document.querySelectorAll('.team-btn').forEach(function(b) {
+    b.classList.toggle('selected', b.dataset.id === id);
+  });
+}
 async function loadTeams() {
-  var sel = document.getElementById('uteam');
+  var wrap = document.getElementById('teamBtns');
   try {
     var snap = await db.collection('teams').get();
-    if (snap.empty) {
-      sel.innerHTML = '<option value="">-- 팀을 선택하세요 --</option><option value="planning">경영기획팀</option>';
-    } else {
-      var opts = '<option value="">-- 팀을 선택하세요 --</option>';
-      snap.docs.forEach(function(d) {
-        opts += '<option value="' + d.id + '">' + (d.data().name || d.id) + '</option>';
-      });
-      sel.innerHTML = opts;
-    }
+    var teams = snap.empty
+      ? [{id:'planning', name:'경영기획팀'}]
+      : snap.docs.map(function(d){ return {id:d.id, name:d.data().name||d.id}; });
+    wrap.innerHTML = teams.map(function(t){
+      return '<button type="button" class="team-btn" data-id="' + t.id + '" onclick="selectTeam('' + t.id + '','' + t.name + '')">' + t.name + '</button>';
+    }).join('');
+    // 팀이 1개면 자동 선택
+    if (teams.length === 1) selectTeam(teams[0].id, teams[0].name);
   } catch(e) {
-    sel.innerHTML = '<option value="">-- 팀을 선택하세요 --</option><option value="planning">경영기획팀</option>';
+    wrap.innerHTML = '<button type="button" class="team-btn" data-id="planning" onclick="selectTeam('planning','경영기획팀')">경영기획팀</button>';
+    selectTeam('planning','경영기획팀');
   }
 }
 loadTeams();
