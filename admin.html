@@ -1074,6 +1074,7 @@ window.loadTeamList = async function() {
           <div style="font-size:14px;font-weight:700">${d.data().name||d.id}</div>
           <div style="font-size:11px;color:var(--text3);font-family:monospace">ID: ${d.id}</div>
         </div>
+        <button onclick="window.syncTeamOrder('${d.id}')" style="padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--navy);cursor:pointer;margin-right:4px">순서 초기화</button>
         <button onclick="window.deleteTeam('${d.id}')" style="padding:5px 12px;font-size:11px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--red);cursor:pointer">삭제</button>
       </div>`).join('');
   } catch(e) { console.error('[GZPlan]', e); }
@@ -1086,6 +1087,44 @@ window.deleteTeam = async function(teamId) {
     toast('팀을 삭제했어요');
     window.loadTeamList();
   } catch(e) { console.error(e); }
+};
+
+window.syncTeamOrder = async function(teamId) {
+  if (!confirm(`'${teamId}' 팀의 멤버 순서를 accounts 기준으로 초기화할까요?`)) return;
+  try {
+    // accounts에서 해당 팀 소속 member/manager 계정 조회
+    const accSnap = await getDocs(collection(db,'accounts'));
+    const members = accSnap.docs
+      .filter(d => {
+        const data = d.data();
+        return (data.teamId || 'planning') === teamId
+          && (data.role === 'member' || data.role === 'manager')
+          && !data.disabled;
+      })
+      .map(d => d.id);
+
+    if (!members.length) {
+      toast('해당 팀에 소속된 팀원이 없어요');
+      return;
+    }
+
+    // 기존 memberOrder가 있으면 순서 유지하면서 누락된 것만 추가
+    const orderSnap = await getDoc(doc(db,'teams',teamId,'config','memberOrder'));
+    let existing = orderSnap.exists() ? (orderSnap.data().order || []) : [];
+    // 다른 팀 계정 제거
+    existing = existing.filter(id => members.includes(id));
+    // 누락된 계정 추가
+    members.forEach(id => { if (!existing.includes(id)) existing.push(id); });
+
+    await setDoc(doc(db,'teams',teamId,'config','memberOrder'), {
+      order: existing,
+      updatedAt: new Date().toISOString()
+    });
+    toast(`${teamId} 팀 멤버 순서 초기화 완료 (${existing.length}명)`);
+  } catch(e) {
+    console.error(e);
+    toast('오류: ' + e.message);
+  }
 };
 
 // 팀 필터 함수
