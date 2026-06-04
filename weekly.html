@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   } catch(e) {}
 
-  document.getElementById('logoutBtn').addEventListener('click', function() {
+  document.getElementById('logoutBtn')?.addEventListener('click', function() {
     localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href='index.html';
   });
   document.querySelectorAll('[data-nav]').forEach(function(el) {
@@ -769,25 +769,25 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('tab-cat').classList.toggle('active', v==='cat');
     });
   });
-  document.getElementById('prevBtn').addEventListener('click', function() { if(window.moveMonth) window.moveMonth(-1); });
-  document.getElementById('nextBtn').addEventListener('click', function() { if(window.moveMonth) window.moveMonth(1); });
-  document.getElementById('todayBtn').addEventListener('click', function() { if(window.goToday) window.goToday(); });
-  document.getElementById('addPersonalBtn').addEventListener('click', function() { if(window.openAddModal) window.openAddModal('personal'); });
-  document.getElementById('addCommonBtnTop').addEventListener('click', function() { if(window.openAddModal) window.openAddModal('common'); });
+  document.getElementById('prevBtn')?.addEventListener('click', function() { if(window.moveMonth) window.moveMonth(-1); });
+  document.getElementById('nextBtn')?.addEventListener('click', function() { if(window.moveMonth) window.moveMonth(1); });
+  document.getElementById('todayBtn')?.addEventListener('click', function() { if(window.goToday) window.goToday(); });
+  document.getElementById('addPersonalBtn')?.addEventListener('click', function() { if(window.openAddModal) window.openAddModal('personal'); });
+  document.getElementById('addCommonBtnTop')?.addEventListener('click', function() { if(window.openAddModal) window.openAddModal('common'); });
   document.getElementById('addCommonBtn')?.addEventListener('click', function() { if(window.openAddModal) window.openAddModal('common'); });
-  document.getElementById('addCatBtn').addEventListener('click', function() { if(window.addCategory) window.addCategory(); });
-  document.getElementById('addCancelBtn').addEventListener('click', function() { if(window.closeModal) window.closeModal('addOverlay'); });
-  document.getElementById('addSubmitBtn').addEventListener('click', function() { if(window.submitEvent) window.submitEvent(); });
-  document.getElementById('repeatEditCancelBtn').addEventListener('click', function() { if(window.closeModal) window.closeModal('repeatEditOverlay'); });
-  document.getElementById('repeatEditOkBtn').addEventListener('click', function() { if(window.confirmRepeatEdit) window.confirmRepeatEdit(); });
-  document.getElementById('repeatDelCancelBtn').addEventListener('click', function() { if(window.closeModal) window.closeModal('repeatDelOverlay'); });
-  document.getElementById('repeatDelOkBtn').addEventListener('click', function() { if(window.confirmRepeatDel) window.confirmRepeatDel(); });
-  document.getElementById('eRepeatType').addEventListener('change', function() { if(window.toggleRepeatOpts) window.toggleRepeatOpts(); });
-  document.getElementById('rEndType').addEventListener('change', function() { if(window.toggleRepeatEnd) window.toggleRepeatEnd(); });
-  document.getElementById('typeFilterRow').addEventListener('click', function(e) {
+  document.getElementById('addCatBtn')?.addEventListener('click', function() { if(window.addCategory) window.addCategory(); });
+  document.getElementById('addCancelBtn')?.addEventListener('click', function() { if(window.closeModal) window.closeModal('addOverlay'); });
+  document.getElementById('addSubmitBtn')?.addEventListener('click', function() { if(window.submitEvent) window.submitEvent(); });
+  document.getElementById('repeatEditCancelBtn')?.addEventListener('click', function() { if(window.closeModal) window.closeModal('repeatEditOverlay'); });
+  document.getElementById('repeatEditOkBtn')?.addEventListener('click', function() { if(window.confirmRepeatEdit) window.confirmRepeatEdit(); });
+  document.getElementById('repeatDelCancelBtn')?.addEventListener('click', function() { if(window.closeModal) window.closeModal('repeatDelOverlay'); });
+  document.getElementById('repeatDelOkBtn')?.addEventListener('click', function() { if(window.confirmRepeatDel) window.confirmRepeatDel(); });
+  document.getElementById('eRepeatType')?.addEventListener('change', function() { if(window.toggleRepeatOpts) window.toggleRepeatOpts(); });
+  document.getElementById('rEndType')?.addEventListener('change', function() { if(window.toggleRepeatEnd) window.toggleRepeatEnd(); });
+  document.getElementById('typeFilterRow')?.addEventListener('click', function(e) {
     var b = e.target.closest('[data-tf]'); if (b && window.setTF) window.setTF(b.dataset.tf);
   });
-  document.getElementById('memberFilterRow').addEventListener('click', function(e) {
+  document.getElementById('memberFilterRow')?.addEventListener('click', function(e) {
     var b = e.target.closest('[data-mf]'); if (b && window.setMF) window.setMF(b.dataset.mf);
   });
   document.querySelectorAll('.overlay').forEach(function(o) {
