@@ -129,18 +129,18 @@ table.rpt tr.total td{font-weight:700;background:#F4F7FA;border-top:1.5px solid 
     <div class="searchbox">
       <div class="fg company">
         <label>회사명</label>
-        <input id="qCompany" placeholder="예: 크리에이츠" onkeydown="if(event.key==='Enter')runSearch()"/>
+        <input id="qCompany" placeholder="예: 크리에이츠 / 골프존" onkeydown="if(event.key==='Enter')runSearch()"/>
       </div>
       <div class="fg year">
         <label>사업연도</label>
-        <input id="qYear" placeholder="2025"/>
+        <input id="qYear" placeholder="2024"/>
       </div>
       <button class="btn-solid" style="padding:9px 20px" onclick="runSearch()">분석</button>
       <div class="chips" id="quickChips"></div>
     </div>
 
     <!-- 상태/리포트 -->
-    <div id="state" class="statebox">회사명을 입력하고 <b>분석</b>을 누르면 DART 공시를 정리해서 보여드립니다.</div>
+    <div id="state" class="statebox">회사명을 입력하고 <b>분석</b>을 누르면 DART 공시를 조회·정리해서 보여드립니다.</div>
     <div id="report"></div>
   </div>
 </div>
@@ -161,10 +161,41 @@ table.rpt tr.total td{font-weight:700;background:#F4F7FA;border-top:1.5px solid 
 })();
 
 /* ════════════════════════════════════════════════════════
-   설정 — 배포 후 Worker URL 입력
+   설정 — DART OpenAPI 직접 호출 (사내 전용)
+   ⚠ 이 키는 코드에 포함됩니다. GZ Plan은 사내 전용 시스템이므로
+     Firebase 설정과 동일한 수준으로 취급합니다.
+     키 교체가 필요하면 아래 DART_KEY 한 줄만 바꾸세요.
 ════════════════════════════════════════════════════════ */
-const WORKER_URL = "https://gz-dart.YOUR-SUBDOMAIN.workers.dev"; // ← 배포 URL로 교체
-const UNIT_DIV   = 1000000; // 표시 단위: 백만원
+const DART_KEY = "여기에_DART_API_키_40자_입력";   // ← DART 인증키
+const DART = "https://opendart.fss.or.kr/api";
+const UNIT_DIV = 1000000; // 표시 단위: 백만원
+
+/* 분석 대상 회사 corp_code (8자리 고유번호)
+   추가: dart.fss.or.kr 에서 회사 검색 → 공시 → URL의 고유번호 확인
+   또는 아래 findCorpHint() 안내 참고 */
+const COMPANIES = {
+  "골프존":          { corp_code: "00000000", name: "골프존",           listed: true  },
+  "골프존뉴딘홀딩스": { corp_code: "00674498", name: "골프존뉴딘홀딩스", listed: true  },
+  "크리에이츠":      { corp_code: "00000000", name: "크리에이츠",       listed: false },
+  "카카오vx":        { corp_code: "00000000", name: "카카오VX",         listed: false },
+};
+
+function normalize(s){return (s||'').toLowerCase().replace(/\s|\(주\)|주식회사/g,'');}
+function findCompany(query){
+  const q=normalize(query);
+  for(const [k,v] of Object.entries(COMPANIES)) if(normalize(k)===q||normalize(v.name)===q) return v;
+  for(const [k,v] of Object.entries(COMPANIES)) if(normalize(k).includes(q)||q.includes(normalize(k))) return v;
+  return null;
+}
+
+/* DART API 호출 (브라우저에서 직접 — 한국 IP라 정상 동작) */
+async function dartGet(path, params){
+  const url = new URL(`${DART}/${path}`);
+  url.searchParams.set('crtfc_key', DART_KEY);
+  for(const [k,v] of Object.entries(params)) url.searchParams.set(k, v);
+  const r = await fetch(url.toString());
+  return r.json();
+}
 
 /* ════════════════════════════════════════════════════════
    유틸
@@ -411,39 +442,71 @@ function render(data){
 }
 
 /* ════════════════════════════════════════════════════════
-   조회
+   조회 — 브라우저에서 DART 직접 호출
 ════════════════════════════════════════════════════════ */
 async function runSearch(){
-  const company = $('qCompany').value.trim();
+  const companyQ = $('qCompany').value.trim();
   const year = $('qYear').value.trim() || String(new Date().getFullYear()-1);
-  if(!company){toast('회사명을 입력하세요');return;}
-  if(WORKER_URL.includes('YOUR-SUBDOMAIN')){
-    setState('⚠ Worker URL이 설정되지 않았습니다.<br>dart.html 상단의 <b>WORKER_URL</b>을 배포 주소로 교체하세요.','err');
+  if(!companyQ){toast('회사명을 입력하세요');return;}
+  if(DART_KEY.includes('여기에')){
+    setState('⚠ DART 인증키가 설정되지 않았습니다.<br>dart.html 상단의 <b>DART_KEY</b>를 발급받은 키로 교체하세요.','err');
     return;
   }
+  const co = findCompany(companyQ);
+  if(!co){
+    setState(`'${companyQ}' 은(는) 등록되지 않은 회사입니다.<br><br>등록된 회사: ${Object.keys(COMPANIES).join(', ')}`+
+      `<br><br>회사를 추가하려면 dart.html 상단 <b>COMPANIES</b>에 corp_code(8자리 고유번호)를 넣으세요.`, 'err');
+    return;
+  }
+  if(co.corp_code==='00000000'){
+    setState(`'${co.name}'의 corp_code(고유번호)가 아직 입력되지 않았습니다.<br><br>`+
+      `dart.fss.or.kr 에서 '${co.name}' 검색 → 공시 클릭 → 주소창의 8자리 고유번호를 확인해<br>`+
+      `dart.html 상단 COMPANIES의 corp_code 에 넣으세요.`, 'err');
+    return;
+  }
+
   loading();
   try{
-    const res = await fetch(`${WORKER_URL}/?company=${encodeURIComponent(company)}&year=${year}`);
-    const data = await res.json();
-    if(data.error){
-      setState(`조회 실패: ${data.error}` + (data.available?`<br><br>등록된 회사: ${data.available.join(', ')}`:''), 'err');
+    const base = { corp_code: co.corp_code, bsns_year: year, reprt_code: '11011' };
+
+    // 1) 재무제표 — 연결(CFS) 우선, 없으면 별도(OFS)
+    let fin = await dartGet('fnlttSinglAcntAll.json', { ...base, fs_div:'CFS' });
+    let fsBasis = '연결';
+    if(fin.status !== '000'){
+      fin = await dartGet('fnlttSinglAcntAll.json', { ...base, fs_div:'OFS' });
+      fsBasis = '별도';
+    }
+    if(fin.status !== '000'){
+      setState(`재무제표를 찾을 수 없습니다. (DART status ${fin.status}: ${fin.message||''})<br><br>`+
+        `연도를 바꿔보거나(예: ${parseInt(year)-1}), 해당 회사가 그 해에 사업보고서를 제출했는지 확인하세요.`, 'err');
       return;
     }
-    render(data);
+
+    // 2) 감사의견  3) 공시목록 (실패해도 무시)
+    const audit = await dartGet('accnutAdtorNmNdAdtOpinion.json', base).catch(()=>({status:'x'}));
+    const filings = await dartGet('list.json', {
+      corp_code: co.corp_code, bgn_de:`${year}0101`, end_de:`${year}1231`, page_count:'30'
+    }).catch(()=>({status:'x'}));
+
+    render({
+      company: co.name,
+      corp_code: co.corp_code,
+      year,
+      fsBasis,
+      finance: fin.list || [],
+      audit: audit.status==='000' ? (audit.list||[]) : [],
+      filings: filings.status==='000' ? (filings.list||[]) : [],
+    });
   }catch(e){
-    setState('네트워크 오류: '+e.message+'<br>Worker 배포 상태와 URL을 확인하세요.','err');
+    setState('조회 중 오류가 발생했습니다: '+e.message+'<br><br>'+
+      '브라우저가 DART(opendart.fss.or.kr) 접속을 차단했을 수 있습니다. 네트워크/방화벽을 확인하세요.', 'err');
   }
 }
 
-/* 빠른 선택 칩 — Worker의 등록 회사 목록 */
-async function loadChips(){
-  if(WORKER_URL.includes('YOUR-SUBDOMAIN'))return;
-  try{
-    const res = await fetch(`${WORKER_URL}/?list=1`);
-    const {companies} = await res.json();
-    $('quickChips').innerHTML = (companies||[]).map(c=>
-      `<span class="chip" onclick="$('qCompany').value='${c.alias}';runSearch()">${c.name}</span>`).join('');
-  }catch(e){/* silent */}
+/* 빠른 선택 칩 — 등록된 회사 목록 */
+function loadChips(){
+  $('quickChips').innerHTML = Object.entries(COMPANIES).map(([alias,c])=>
+    `<span class="chip" onclick="document.getElementById('qCompany').value='${alias}';runSearch()">${c.name}</span>`).join('');
 }
 $('qYear').value = String(new Date().getFullYear()-1);
 loadChips();
