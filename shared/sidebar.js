@@ -56,11 +56,6 @@
             {
               nav: 'memo.html', label: '메모장',
               icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'
-            },
-            {
-              nav: 'dart.html', label: '경쟁사분석',
-              icon: '<path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>',
-              teams: ['planning']   /* 이 팀에서만 노출 (생략 시 전체 노출) */
             }
           ]
         }
@@ -146,23 +141,9 @@
     var menu = MENUS[variant] || MENUS.default;
     var nav  = '';
 
-    /* 현재 로그인 사용자의 팀 (admin은 전체 노출) */
-    var me = {};
-    try { me = JSON.parse(localStorage.getItem('tt_user') || '{}'); } catch (e) {}
-    var myTeam = me.teamId || '';
-    var isAdmin = me.role === 'admin';
-
     menu.sections.forEach(function (sec) {
-      /* 팀 제한이 걸린 항목 필터링 */
-      var items = sec.items.filter(function (item) {
-        if (!item.teams) return true;            // 제한 없음 → 항상 노출
-        if (isAdmin) return true;                // 관리자 → 전체 노출
-        return item.teams.indexOf(myTeam) !== -1; // 내 팀이 허용 목록에 있을 때만
-      });
-      if (!items.length) return;                 // 섹션에 남는 항목 없으면 섹션 헤더도 생략
-
       nav += '<div class="sb-sec">' + sec.label + '</div>';
-      items.forEach(function (item) {
+      sec.items.forEach(function (item) {
         var badge = item.badge
           ? '<div class="sb-badge" id="' + item.badge + '" style="display:none"></div>'
           : '';
