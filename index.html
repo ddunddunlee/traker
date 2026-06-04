@@ -90,7 +90,8 @@ async function loadTeams() {
     var snap = await db.collection('teams').get();
     var teams = snap.empty
       ? [{id:'planning', name:'경영기획팀'}]
-      : snap.docs.map(function(d){ return {id:d.id, name:d.data().name||d.id}; });
+      : snap.docs.map(function(d){ return {id:d.id, name:d.data().name||d.id}; })
+          .sort(function(a,b){ return a.id==='planning'?-1:b.id==='planning'?1:0; });
     wrap.innerHTML = teams.map(function(t){
       return '<button type="button" class="team-btn" data-id="' + t.id + '" onclick="selectTeam(\'' + t.id + '\',\'' + t.name + '\')">' + t.name + '</button>';
     }).join('');
@@ -133,7 +134,7 @@ async function doLogin() {
       } catch(e) { }
       if (dis) { err.textContent = '비활성화된 계정이에요'; return; }
       if (pw !== apw) { err.textContent = '아이디 또는 비밀번호가 틀렸어요'; return; }
-      userData = { id: 'admin', role: 'admin', displayName: 'admin', teamId: teamId || 'planning' };
+      userData = { id: 'admin', role: 'admin', displayName: (s.exists && s.data().displayName) || 'admin', teamId: teamId || 'planning' };
     } else {
             var snap = await db.collection('accounts').doc(id).get();
             if (!snap.exists) { err.textContent = '아이디 또는 비밀번호가 틀렸어요'; return; }
