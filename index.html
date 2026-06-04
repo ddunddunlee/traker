@@ -97,7 +97,7 @@ async function loadTeams() {
     // 팀이 1개면 자동 선택
     if (teams.length === 1) selectTeam(teams[0].id, teams[0].name);
   } catch(e) {
-    wrap.innerHTML = '<button type="button" class="team-btn" data-id="planning" onclick="selectTeam('planning','경영기획팀')">경영기획팀</button>';
+    wrap.innerHTML = '<button type="button" class="team-btn" data-id="planning" onclick="selectTeam(\'planning\',\'경영기획팀\')">경영기획팀</button>';
     selectTeam('planning','경영기획팀');
   }
 }
