@@ -303,9 +303,15 @@ try {
   if (orgSnap.exists()) MEMBER_ORGS = orgSnap.data().orgs || MEMBER_ORGS;
   if (orderSnap.exists() && orderSnap.data().order?.length) {
     const savedOrder = orderSnap.data().order;
-    // MEMBER_IDS 순서 업데이트
+    // accounts에서 manager role 제외 (팀장은 주요업무/일정만 작성)
+    const accSnap = await getDocs(collection(db,'accounts'));
+    const accMap = {};
+    accSnap.docs.forEach(d => { accMap[d.id] = d.data(); });
     MEMBER_IDS.length = 0;
-    savedOrder.forEach(id => MEMBER_IDS.push(id));
+    savedOrder.forEach(id => {
+      const acc = accMap[id];
+      if (!acc || acc.role === 'member') MEMBER_IDS.push(id);
+    });
   }
 } catch(e){console.error("[GZPlan]",e);}
 
