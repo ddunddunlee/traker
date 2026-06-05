@@ -700,34 +700,38 @@ const DEFAULT_ORGS = {
   "이윤형": ["일본","사업지원본부(기획실)"]
 };
 let currentOrgs = {...DEFAULT_ORGS};
+let currentOrgsTeam = TEAM_ID;
 
 // ── 팀원 순서 관리 ──
 let currentOrder = [...MEMBER_IDS];
+let currentOrderTeam = TEAM_ID;
 let dragSrcIdx = null;
 
-window.loadOrder = async function() {
+window.loadOrder = async function(targetTeam) {
+  const team = targetTeam || window.orderTeamFilter || TEAM_ID;
+  const effTeam = (team === 'all') ? TEAM_ID : team;  // 전체일 땐 내 팀 기준으로 로드
   try {
-    const snap = await getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'));
-    if (snap.exists()) currentOrder = snap.data().order || [...MEMBER_IDS];
+    const snap = await getDoc(doc(db,'teams',effTeam,'config','memberOrder'));
+    let order = snap.exists() ? (snap.data().order || []) : [];
     // 현재 팀 소속 계정만 자동 추가
     const accSnap = await getDocs(collection(db,'accounts'));
     const accData = accSnap.docs.map(d => ({id: d.id, ...d.data()}));
     accData.forEach(data => {
-      const sameTeam = (data.teamId || 'planning') === TEAM_ID;
-      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !currentOrder.includes(data.id)) {
-        currentOrder.push(data.id);
+      const sameTeam = (data.teamId || 'planning') === effTeam;
+      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !order.includes(data.id)) {
+        order.push(data.id);
       }
     });
     // 다른 팀 계정 제거
-    currentOrder = currentOrder.filter(id => {
+    order = order.filter(id => {
       const acc = accData.find(a => a.id === id);
       if (!acc) return true;
-      return (acc.teamId || 'planning') === TEAM_ID;
+      return (acc.teamId || 'planning') === effTeam;
     });
+    currentOrder = order;
+    currentOrderTeam = effTeam;
     // accData를 전역 accounts에도 동기화 (필터 참조용)
-    if (accounts.length === 0) {
-      accData.forEach(a => { if (!accounts.find(x=>x.docId===a.id)) accounts.push({docId:a.id,...a}); });
-    }
+    accData.forEach(a => { if (!accounts.find(x=>x.docId===a.id)) accounts.push({docId:a.id,...a}); });
   } catch(e){console.error("[GZPlan]",e);}
   renderOrder();
 };
@@ -735,8 +739,11 @@ window.loadOrder = async function() {
 function renderOrder() {
   const el = document.getElementById('orderList');
   if (!el) return;
-  const filteredOrder = window.orderTeamFilter === 'all' ? currentOrder
-    : currentOrder.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orderTeamFilter);
+  const filteredOrder = currentOrder;
+  if (!filteredOrder.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">이 팀에 등록된 팀원이 없습니다.</div>';
+    return;
+  }
   el.innerHTML = filteredOrder.map((name, i) => `
     <div class="order-item" draggable="true" data-idx="${i}"
       style="display:flex;align-items:center;gap:12px;background:#fff;border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;cursor:grab;user-select:none">
@@ -776,26 +783,40 @@ function renderOrder() {
 
 window.saveOrder = async function() {
   try {
-    await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrder'), { order: currentOrder, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db,'teams',currentOrderTeam,'config','memberOrder'), { order: currentOrder, updatedAt: new Date().toISOString() });
     toast('순서가 저장됐어요 ✓');
   } catch(e) {
     toast('저장 실패: ' + e.message);
   }
 };
 
-window.loadOrgs = async function() {
+window.loadOrgs = async function(targetTeam) {
+  const team = targetTeam || window.orgsTeamFilter || TEAM_ID;
+  const effTeam = (team === 'all') ? TEAM_ID : team;
   try {
     const [orgsSnap, orderSnap, accSnap] = await Promise.all([
-      getDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs')),
-      getDoc(doc(db,'teams',TEAM_ID,'config','memberOrder')),
+      getDoc(doc(db,'teams',effTeam,'config','memberOrgs')),
+      getDoc(doc(db,'teams',effTeam,'config','memberOrder')),
       getDocs(collection(db,'accounts')),
     ]);
-    if (orgsSnap.exists()) currentOrgs = orgsSnap.data().orgs || DEFAULT_ORGS;
-    if (orderSnap.exists()) currentOrder = orderSnap.data().order || [...MEMBER_IDS];
-    // accounts 동기화
-    if (accounts.length === 0) {
-      accSnap.docs.forEach(d => accounts.push({docId:d.id,...d.data()}));
-    }
+    currentOrgs = orgsSnap.exists() ? (orgsSnap.data().orgs || {}) : {};
+    let order = orderSnap.exists() ? (orderSnap.data().order || []) : [];
+    const accData = accSnap.docs.map(d => ({id:d.id, ...d.data()}));
+    accData.forEach(a => { if (!accounts.find(x=>x.docId===a.id)) accounts.push({docId:a.id,...a}); });
+    // 해당 팀 계정만 추리고, 누락 팀원 추가
+    accData.forEach(data => {
+      const sameTeam = (data.teamId || 'planning') === effTeam;
+      if ((data.role === 'member' || data.role === 'manager') && !data.disabled && sameTeam && !order.includes(data.id)) {
+        order.push(data.id);
+      }
+    });
+    order = order.filter(id => {
+      const acc = accData.find(a => a.id === id);
+      if (!acc) return true;
+      return (acc.teamId || 'planning') === effTeam;
+    });
+    currentOrder = order;
+    currentOrgsTeam = effTeam;
   } catch(e){console.error("[GZPlan]",e);}
   renderOrgs();
 };
@@ -803,9 +824,11 @@ window.loadOrgs = async function() {
 function renderOrgs() {
   const el = document.getElementById('orgsList');
   if (!el) return;
-  const baseIds = currentOrder.length ? currentOrder : MEMBER_IDS;
-  const filteredIds = window.orgsTeamFilter === 'all' ? baseIds
-    : baseIds.filter(id => (accounts.find(a => a.docId===id)?.teamId||'planning') === window.orgsTeamFilter);
+  const filteredIds = currentOrder.length ? currentOrder : [];
+  if (!filteredIds.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">이 팀에 등록된 팀원이 없습니다.</div>';
+    return;
+  }
   el.innerHTML = filteredIds.map(id => {
     const orgs = currentOrgs[id] || [];
     return `
@@ -846,7 +869,7 @@ window.removeOrg = function(member, idx) {
 
 window.saveOrgs = async function() {
   try {
-    await setDoc(doc(db,'teams',TEAM_ID,'config','memberOrgs'), { orgs: currentOrgs, updatedAt: new Date().toISOString() });
+    await setDoc(doc(db,'teams',currentOrgsTeam,'config','memberOrgs'), { orgs: currentOrgs, updatedAt: new Date().toISOString() });
     toast('담당 조직이 저장됐어요 ✓');
   } catch(e) {
     toast('저장 실패: ' + e.message);
@@ -854,6 +877,8 @@ window.saveOrgs = async function() {
 };
 
 async function init(){
+  window.orderTeamFilter = window.orderTeamFilter || 'all';
+  window.orgsTeamFilter = window.orgsTeamFilter || 'all';
   document.getElementById('gate').style.display='none';
   document.getElementById('appContent').style.display='block';
   await Promise.all([loadAccounts(),loadReporters(),loadAdminTeamFilter()]);
@@ -1136,12 +1161,12 @@ window.setAdminTeamFilter = function(teamId) {
 window.setOrderTeamFilter = function(teamId) {
   window.orderTeamFilter = teamId;
   document.querySelectorAll('#orderTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'otf-' + teamId));
-  renderOrder();
+  window.loadOrder(teamId);
 };
 window.setOrgsTeamFilter = function(teamId) {
   window.orgsTeamFilter = teamId;
   document.querySelectorAll('#orgsTeamFilterRow .chip').forEach(c => c.classList.toggle('active', c.id === 'grtf-' + teamId));
-  renderOrgs?.();
+  window.loadOrgs(teamId);
 };
 
 // 팀 필터 칩 동적 로드 (3개 탭 동시)
