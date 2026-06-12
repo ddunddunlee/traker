@@ -1888,7 +1888,8 @@ window.changeTaskStatus = async function(newStatus) {
 <script>
 // ── 버튼 바인딩 (일반 script - 즉시 실행) ──
 // window.xxx 함수는 module 스크립트에서 등록되므로 DOMContentLoaded 후 바인딩
-document.addEventListener('DOMContentLoaded', function() {
+(function(){
+function _bindAll() {
 
   // 사이드바 이름 (일반 script에서도 처리 - module보다 빠름)
   try {
@@ -1977,7 +1978,18 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' && window.closeModal) window.closeModal();
   });
-});
+  // ESC로 상세 모달 닫기
+  document.addEventListener('keydown', function(e){
+    var dp = document.getElementById('detailPanel');
+    if(e.key==='Escape' && dp && dp.classList.contains('open') && window.closeDetail) window.closeDetail();
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _bindAll);
+} else {
+  _bindAll();
+}
+})();
 </script>
 
 </body>
