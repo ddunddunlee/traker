@@ -1142,8 +1142,8 @@ function renderDashDetail(t, mid) {
   }
 }
 
-// 상세 패널 닫기 버튼
-document.addEventListener('DOMContentLoaded', function() {
+// 상세 패널 닫기 버튼 (module은 defer라 DOMContentLoaded가 이미 지났을 수 있음 → 즉시 바인딩)
+function bindDetailPanelHandlers() {
   var cb = document.getElementById('closeDetailBtn');
   if(cb) cb.addEventListener('click', function() { window.closeDetail && window.closeDetail(); });
   var dpEl = document.getElementById('detailPanel');
@@ -1154,7 +1154,16 @@ document.addEventListener('DOMContentLoaded', function() {
   if(nb) nb.addEventListener('click', function() { window._dashAddNote && window._dashAddNote(); });
   var ni = document.getElementById('noteInput');
   if(ni) ni.addEventListener('keydown', function(e) { if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)) window._dashAddNote&&window._dashAddNote(); });
-});
+  // ESC로 닫기
+  document.addEventListener('keydown', function(e){
+    if(e.key==='Escape' && dpEl && dpEl.classList.contains('open') && window.closeDetail) window.closeDetail();
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bindDetailPanelHandlers);
+} else {
+  bindDetailPanelHandlers();
+}
 
 window.openScheduleDetail = function(schId, isCommon, e) {
   const s = schedules.find(x => (x._id||x.id) === schId);
