@@ -219,16 +219,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .reporter-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:var(--pill);cursor:pointer;display:inline-block;background:var(--purple-bg);color:var(--purple-t);white-space:nowrap}
 
 /* ── 상세 패널 ── */
-.resizer{width:12px;flex-shrink:0;cursor:col-resize;display:flex;align-items:center;justify-content:center}
+.resizer{display:none}
 .resizer::after{content:'';width:3px;height:30px;background:var(--border);border-radius:var(--pill)}
 .resizer:hover::after{background:var(--border2);height:46px}
 .detail-panel{
-  width:300px;min-width:260px;flex-shrink:0;
-  background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);
-  display:none;position:sticky;top:calc(var(--topbar-h) + 20px);
-  max-height:calc(100vh - var(--topbar-h) - 40px);overflow-y:auto;
+  display:none;position:fixed;inset:0;z-index:500;
+  align-items:flex-start;justify-content:center;
+  padding:5vh 16px;overflow-y:auto;
+  background:rgba(15,23,42,.38);
 }
-.detail-panel.open{display:block}
+.detail-panel.open{display:flex}
+.detail-panel > .dp-inner{
+  width:100%;max-width:760px;
+  background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);
+  max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.22);
+  position:relative;
+}
+.dp-grid{display:grid;grid-template-columns:1fr 1.1fr}
+.dp-col-left{padding:4px 0 16px;border-right:0.5px solid var(--bg3)}
+.dp-col-right{padding:4px 0 16px;display:flex;flex-direction:column}
+@media(max-width:767px){
+  .dp-grid{grid-template-columns:1fr}
+  .dp-col-left{border-right:none;border-bottom:0.5px solid var(--bg3)}
+}
 .dp-head{
   padding:14px 16px;border-bottom:0.5px solid var(--bg3);
   display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
@@ -326,7 +339,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
 ══════════════════════════════════════════ */
 @media(max-width:1023px){
   .stats{grid-template-columns:repeat(2,1fr)}
-  .detail-panel{width:280px;min-width:240px}
+  .detail-panel{width:340px;min-width:300px}
 }
 
 /* ══════════════════════════════════════════
@@ -479,19 +492,27 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
     </div>
     <div class="resizer" id="resizer"></div>
     <div class="detail-panel" id="detailPanel">
+      <div class="dp-inner">
       <div class="dp-head">
         <div style="flex:1;min-width:0">
           <input class="dp-title-input" id="dpTitle"/>
         </div>
         <button class="dp-close" id="closeDetailBtn" style="touch-action:manipulation">✕</button>
       </div>
-      <div class="dp-meta" id="dpMeta"></div>
-      <div class="dp-sec">업무 메모</div>
-      <div class="dp-note">
-        <textarea class="note-input" id="noteInput" placeholder="메모 또는 업데이트 입력..."></textarea>
-        <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
+      <div class="dp-grid">
+        <div class="dp-col-left">
+          <div class="dp-meta" id="dpMeta"></div>
+        </div>
+        <div class="dp-col-right">
+          <div class="dp-sec">업무 메모</div>
+          <div class="dp-note">
+            <textarea class="note-input" id="noteInput" placeholder="업무 진행 내용을 기록하세요..."></textarea>
+            <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
+          </div>
+          <div class="timeline" id="dpTimeline"></div>
+        </div>
       </div>
-      <div class="timeline" id="dpTimeline"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1580,7 +1601,8 @@ function initDrag() {
   const panel   = document.getElementById('detailPanel');
   let startX, startW;
 
-  resizer.addEventListener('mousedown', e => {
+  if (resizer) resizer.addEventListener('mousedown', e => {
+    return; // 모달 전환으로 비활성화
     if (!panel.classList.contains('open')) return;
     startX = e.clientX;
     startW = panel.offsetWidth;
@@ -1915,6 +1937,13 @@ document.addEventListener('DOMContentLoaded', function() {
   safeBind('addTaskOkBtn', function() { if(window.addTask) window.addTask(); });
   safeBind('addNoteBtn', function() { if(window.addNote) window.addNote(); });
   safeBind('closeDetailBtn', function() { if(window.closeDetail) window.closeDetail(); });
+  // 모달 바깥(오버레이) 클릭 시 닫기
+  (function(){
+    var dp = document.getElementById('detailPanel');
+    if(dp) dp.addEventListener('mousedown', function(e){
+      if(e.target === dp && window.closeDetail) window.closeDetail();
+    });
+  })();
   safeBind('notifBtn', function() { if(window.toggleNotification) window.toggleNotification(); });
   safeBind('logoutBtn', function() { localStorage.removeItem('tt_user'); sessionStorage.clear(); location.href='index.html'; });
 
