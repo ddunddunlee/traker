@@ -285,6 +285,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Pretendard','Segoe UI',sans-s
 .tl-author{font-size:10px;font-weight:600;padding:1px 5px;border-radius:var(--pill);background:var(--purple-bg);color:var(--purple-t);margin-right:4px}
 .tl-text{font-size:12px;line-height:1.5;color:var(--text2);word-break:break-word}
 .tl-date{font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap}
+/* 메모 중심 타임라인 */
+.memo-list{display:flex;flex-direction:column}
+.memo-item{border-left:2px solid var(--border);padding:0 0 14px 12px;position:relative}
+.memo-item:first-child{border-left-color:var(--blue)}
+.memo-head{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.memo-date{font-size:10px;color:var(--text3)}
+.memo-text{font-size:13px;line-height:1.55;color:var(--text);word-break:break-word}
+.memo-item .tl-del{margin-left:auto}
+.memo-empty{font-size:12px;color:var(--text3);padding:8px 0 14px;line-height:1.5}
+.log-fold{margin-top:6px;border-top:0.5px solid var(--border);padding-top:10px}
+.log-summary{font-size:12px;color:var(--text2);cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;padding:2px 0;user-select:none}
+.log-summary::-webkit-details-marker{display:none}
+.log-ic{font-size:13px}
+.log-count{color:var(--text3)}
+.log-chev{margin-left:auto;transition:transform .15s}
+.log-fold[open] .log-chev{transform:rotate(180deg)}
+.log-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-left:2px}
+.log-item{display:flex;align-items:center;gap:7px}
+.log-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;background:var(--text3)}
+.log-dot.status{background:var(--orange)}.log-dot.done{background:var(--green)}.log-dot.create{background:var(--blue)}
+.log-text{font-size:12px;color:var(--text2)}
+.log-meta{font-size:10px;color:var(--text3);margin-left:auto;white-space:nowrap}
+.log-item .tl-del{opacity:0}.log-item:hover .tl-del{opacity:1}
 .dp-note{padding:12px 16px}
 .note-input{width:100%;padding:8px 10px;font-size:12px;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg2);color:var(--text);font-family:inherit;resize:none;height:58px}
 .note-input:focus{outline:none;border-color:var(--border2)}
@@ -463,7 +486,7 @@ button,[onclick],[data-nav],.sb-item,.task-card,.chip{
         <button class="dp-close" id="closeDetailBtn" style="touch-action:manipulation">✕</button>
       </div>
       <div class="dp-meta" id="dpMeta"></div>
-      <div class="dp-sec">히스토리</div>
+      <div class="dp-sec">업무 메모</div>
       <div class="dp-note">
         <textarea class="note-input" id="noteInput" placeholder="메모 또는 업데이트 입력..."></textarea>
         <button class="note-submit" id="addNoteBtn" style="touch-action:manipulation">메모 추가</button>
@@ -1065,23 +1088,40 @@ function renderDetail(t) {
       </label>
     </div>`;
 
-  // 타임라인(히스토리)
-  const history = [...(t.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
-  document.getElementById('dpTimeline').innerHTML = history.map((h, i) => `
-    <div class="tl-item">
-      <div class="tl-dot ${h.type}"></div>
-      ${i < history.length - 1 ? '<div class="tl-line"></div>' : ''}
-      <div class="tl-body">
-        <div class="tl-row">
-          <div class="tl-text">
-            ${h.author ? `<span class="tl-author">${h.author}</span>` : ''}
-            ${h.text.replace(/^상태 변경: /, '').replace(/ \(팀장\)$/, '').replace(/ \(팀원\)$/, '')}
-          </div>
-          <button class="tl-del" onclick="deleteHistory('${t._id}', '${h.id}')">✕</button>
-        </div>
-        <div class="tl-date">${fmtDate(h.date)}</div>
+  // 타임라인 — 메모(comment)와 상태/이력(status·edit·done·create) 분리
+  const allHist = [...(t.history || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const memos = allHist.filter(h => h.type === 'comment');
+  const logs  = allHist.filter(h => h.type !== 'comment');
+
+  const memoHtml = memos.length ? memos.map(h => `
+    <div class="memo-item">
+      <div class="memo-head">
+        ${h.author ? `<span class="tl-author">${h.author}</span>` : ''}
+        <span class="memo-date">${fmtDate(h.date)}</span>
+        <button class="tl-del" onclick="deleteHistory('${t._id}', '${h.id}')">✕</button>
       </div>
-    </div>`).join('');
+      <div class="memo-text">${h.text}</div>
+    </div>`).join('')
+    : '<div class="memo-empty">아직 메모가 없습니다. 업무 진행 내용을 기록해보세요.</div>';
+
+  const logHtml = logs.length ? logs.map(h => `
+    <div class="log-item">
+      <span class="log-dot ${h.type}"></span>
+      <span class="log-text">${h.text.replace(/^상태 변경: /, '').replace(/ \(팀장\)$/, '').replace(/ \(팀원\)$/, '')}</span>
+      <span class="log-meta">${fmtDate(h.date)}${h.author ? ' · ' + h.author : ''}</span>
+      <button class="tl-del" onclick="deleteHistory('${t._id}', '${h.id}')">✕</button>
+    </div>`).join('')
+    : '<div class="memo-empty" style="padding:8px 0">변경 이력이 없습니다.</div>';
+
+  document.getElementById('dpTimeline').innerHTML = `
+    <div class="memo-list">${memoHtml}</div>
+    <details class="log-fold">
+      <summary class="log-summary">
+        <span class="log-ic">↻</span> 상태 변경 이력 <span class="log-count">${logs.length}건</span>
+        <span class="log-chev">⌄</span>
+      </summary>
+      <div class="log-list">${logHtml}</div>
+    </details>`;
 }
 
 // ════════════════════════════════════════════
@@ -1150,17 +1190,26 @@ window.openOtherDetail = (docId, memberId) => {
     <div class="dp-row"><span class="dp-lbl">팀원</span><span class="dp-val">${memberId}</span></div>
   `;
 
-  // 히스토리
-  document.getElementById('dpTimeline').innerHTML = history.map((h, i) => {
-    const dot = h.type==='create'?'#378ADD':h.type==='status'?'#639922':'#EF9F27';
-    return `<div class="tl-item">
-      <div class="tl-dot" style="background:${dot}"></div>
-      <div class="tl-body">
-        <div class="tl-text">${h.author?`<strong>${h.author}</strong> `:''}${h.text||''}</div>
-        <div class="tl-date">${fmtDt(h.date)}</div>
-      </div>
-    </div>`;
-  }).join('');
+  // 히스토리 — 메모/이력 분리 (읽기전용)
+  const memosR = history.filter(h => h.type === 'comment');
+  const logsR  = history.filter(h => h.type !== 'comment');
+  const memoHtmlR = memosR.length ? memosR.map(h => `
+    <div class="memo-item">
+      <div class="memo-head">${h.author?`<span class="tl-author">${h.author}</span>`:''}<span class="memo-date">${fmtDt(h.date)}</span></div>
+      <div class="memo-text">${h.text||''}</div>
+    </div>`).join('') : '<div class="memo-empty">메모가 없습니다.</div>';
+  const logHtmlR = logsR.length ? logsR.map(h => `
+    <div class="log-item">
+      <span class="log-dot ${h.type}"></span>
+      <span class="log-text">${(h.text||'').replace(/^상태 변경: /, '')}</span>
+      <span class="log-meta">${fmtDt(h.date)}${h.author?' · '+h.author:''}</span>
+    </div>`).join('') : '<div class="memo-empty" style="padding:8px 0">변경 이력이 없습니다.</div>';
+  document.getElementById('dpTimeline').innerHTML = `
+    <div class="memo-list">${memoHtmlR}</div>
+    <details class="log-fold">
+      <summary class="log-summary"><span class="log-ic">↻</span> 상태 변경 이력 <span class="log-count">${logsR.length}건</span><span class="log-chev">⌄</span></summary>
+      <div class="log-list">${logHtmlR}</div>
+    </details>`;
 
   // 편집 요소 숨기기, 메모 입력 숨기기
   document.querySelectorAll('.dp-edit-only').forEach(el => el.style.display='none');
